@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: dontwork
+  m_Name: dontwork 2
   m_Shader: {fileID: 4800000, guid: 319fc29ff5c9e184b82730420fd60fc7, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -33,8 +33,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AdditionalLightIntensity: 1.31
-    - _LightFalloff: 1.65
+    - _AdditionalLightIntensity: 1
+    - _LightFalloff: 1
     - _MyNormalBias: 0
     - _MyShadowBias: 0.65
     - _OutlineFadeEnd: 30
@@ -43,7 +43,7 @@ Material:
     - _RimIntensity: 0
     - _RimPower: 10
     - _ShadowBias: 0.005
-    - _ShadowColorBlend: 0.79
+    - _ShadowColorBlend: 0.378
     - _ShadowIntensity: 0.94
     - _ShadowNormalBias: 1.8
     - _ShadowOffset: -0.5
@@ -55,14 +55,14 @@ Material:
     - _SubsurfaceIntensity: 0.5
     - _ToonNormalBias: 0.58
     - _ToonShadowBias: 0.0006
-    - _ToonSteps: 2
-    - _UseShadowColor: 0.228
+    - _ToonSteps: 4.72
+    - _UseShadowColor: 0.006
     - _UseVertexColor: 0
     m_Colors:
-    - _BaseColor: {r: 0.8113208, g: 0.753916, b: 0.753916, a: 1}
+    - _BaseColor: {r: 1, g: 0.44906098, b: 0, a: 1}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _RimColor: {r: 1, g: 0, b: 0, a: 1}
-    - _ShadowColor: {r: 0.3584906, g: 0.32940552, b: 0.28577787, a: 1}
+    - _ShadowColor: {r: 0.034798868, g: 0.034798868, b: 0.4339623, a: 1}
     - _SubsurfaceColor: {r: 1, g: 0.39999998, b: 0.39999998, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
