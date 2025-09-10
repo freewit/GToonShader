@@ -1,4 +1,4 @@
-Shader "Custom/NewToonShaderFixed"
+Shader "Custom/Unity6ToonShader"
 {
     Properties
     {
@@ -34,54 +34,72 @@ Shader "Custom/NewToonShaderFixed"
         
         Pass
         {
-            Name "ForwardLit"
+            Name "UniversalForward"
             Tags { "LightMode" = "UniversalForward" }
             
             HLSLPROGRAM
+            #pragma target 4.5
+            
             #pragma vertex vert
             #pragma fragment frag
             
-            // Shadow mode keywords
-            #pragma multi_compile _SHADOWMODE_SIMPLE _SHADOWMODE_BANDED _SHADOWMODE_RAMP
+            // Unity 6.0 keywords
+            #pragma shader_feature_local _SHADOWMODE_SIMPLE _SHADOWMODE_BANDED _SHADOWMODE_RAMP
             
+            // URP 17.0.4 required keywords
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            
+            // Unity 6.0 Core includes
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             
             struct Attributes
             {
-                float4 positionOS : POSITION;
-                float3 normalOS : NORMAL;
-                float2 uv : TEXCOORD0;
+                float4 positionOS   : POSITION;
+                float3 normalOS     : NORMAL;
+                float2 texcoord     : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
             
             struct Varyings
             {
-                float4 positionCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
-                float3 positionWS : TEXCOORD1;
-                float3 normalWS : TEXCOORD2;
+                float4 positionCS               : SV_POSITION;
+                float2 uv                       : TEXCOORD0;
+                float3 positionWS               : TEXCOORD1;
+                float3 normalWS                 : TEXCOORD2;
+                
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
             };
             
             TEXTURE2D(_BaseMap);
-            TEXTURE2D(_RampTexture);
             SAMPLER(sampler_BaseMap);
+            TEXTURE2D(_RampTexture);
             SAMPLER(sampler_RampTexture);
             
             CBUFFER_START(UnityPerMaterial)
-                float4 _BaseColor;
                 float4 _BaseMap_ST;
-                float4 _RampTexture_ST;
-                float4 _ShadowColor;
-                float _ShadowThreshold;
-                float4 _BandedShadowColor;
-                float _BandedShadowThreshold;
-                float _BandCount;
-                float _BandSmooth;
+                half4 _BaseColor;
+                half4 _ShadowColor;
+                half _ShadowThreshold;
+                half4 _BandedShadowColor;
+                half _BandedShadowThreshold;
+                half _BandCount;
+                half _BandSmooth;
             CBUFFER_END
             
             Varyings vert(Attributes input)
             {
-                Varyings output;
+                Varyings output = (Varyings)0;
+                
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 
                 VertexPositionInputs positionInputs = GetVertexPositionInputs(input.positionOS.xyz);
                 VertexNormalInputs normalInputs = GetVertexNormalInputs(input.normalOS);
@@ -89,95 +107,136 @@ Shader "Custom/NewToonShaderFixed"
                 output.positionCS = positionInputs.positionCS;
                 output.positionWS = positionInputs.positionWS;
                 output.normalWS = normalInputs.normalWS;
-                output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+                output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
                 
                 return output;
             }
             
             half4 frag(Varyings input) : SV_Target
             {
-                // Base color ve texture sampling
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                
+                // Base color sampling
                 half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv) * _BaseColor;
                 
-                // Normal normalize
-                float3 normalWS = normalize(input.normalWS);
-                
-                // Main light al
+                // Normal and lighting
+                half3 normalWS = normalize(input.normalWS);
                 Light mainLight = GetMainLight();
                 
-                // NdotL hesapla
-                float NdotL = dot(normalWS, mainLight.direction);
+                // Custom shadow calculation (Z-fighting free)
+                half NdotL = saturate(dot(normalWS, mainLight.direction));
+                half customShadow = smoothstep(0.1h, 0.6h, NdotL);
                 
-                // Final color başlangıç
-                half3 finalColor = baseColor.rgb;
+                // Initialize result color
+                half3 color = baseColor.rgb;
                 
                 #if defined(_SHADOWMODE_SIMPLE)
-                    // Simple shadow - CELL SHADING (keskin geçiş)
-                    float shadowValue = step(_ShadowThreshold, NdotL);
-                    float3 shadowTint = _ShadowColor.rgb;
-                    float3 lightInfluence = lerp(shadowTint, float3(1,1,1), shadowValue);
-                    finalColor = baseColor.rgb * lightInfluence;
+                    // Simple cell shading
+                    half isLit = customShadow >= _ShadowThreshold ? 1.0h : 0.0h;
+                    half3 shadowTint = _ShadowColor.rgb;
+                    half3 lightInfluence = lerp(shadowTint, half3(1,1,1), isLit);
+                    color = baseColor.rgb * lightInfluence;
                     
                 #elif defined(_SHADOWMODE_BANDED)
-                    // Banded shadow - düzeltilmiş smoothness
-                    float shadowValue = step(_BandedShadowThreshold, NdotL);
-                    float bandedShadow = floor(shadowValue * _BandCount) / _BandCount;
+                    // Banded shading - düzeltilmiş algoritma
+                    half lightValue = customShadow >= _BandedShadowThreshold ? customShadow : 0.0h;
                     
-                    // Düzeltilmiş smoothness - daha iyi çalışan
-                    if(_BandSmooth > 0)
+                    // Band'lara böl - daha doğru yöntem
+                    half bandedValue = floor(lightValue * _BandCount) / _BandCount;
+                    
+                    // Smoothness - band kenarları için
+                    if(_BandSmooth > 0.01h)
                     {
-                        float currentBand = floor(shadowValue * _BandCount);
-                        float nextBand = currentBand + 1.0;
-                        float bandProgress = (shadowValue * _BandCount) - currentBand;
+                        half bandStep = 1.0h / _BandCount;
+                        half currentBandIndex = floor(lightValue * _BandCount);
+                        half nextBandIndex = min(currentBandIndex + 1.0h, _BandCount);
                         
-                        float smoothStart = 1.0 - _BandSmooth;
-                        float smoothedProgress = smoothstep(smoothStart, 1.0, bandProgress);
+                        // Band içindeki pozisyon (0-1)
+                        half positionInBand = (lightValue * _BandCount) - currentBandIndex;
                         
-                        bandedShadow = (currentBand + smoothedProgress) / _BandCount;
+                        // Smoothness alanı
+                        half smoothArea = _BandSmooth;
+                        half smoothStart = 1.0h - smoothArea;
+                        
+                        if(positionInBand > smoothStart)
+                        {
+                            // Smooth geçiş hesapla
+                            half smoothProgress = (positionInBand - smoothStart) / smoothArea;
+                            smoothProgress = smoothstep(0.0h, 1.0h, smoothProgress);
+                            
+                            half currentBandValue = currentBandIndex / _BandCount;
+                            half nextBandValue = nextBandIndex / _BandCount;
+                            
+                            bandedValue = lerp(currentBandValue, nextBandValue, smoothProgress);
+                        }
                     }
                     
-                    float3 shadowTint = _BandedShadowColor.rgb;
-                    float3 lightInfluence = lerp(shadowTint, float3(1,1,1), bandedShadow);
-                    finalColor = baseColor.rgb * lightInfluence;
+                    half3 shadowTint = _BandedShadowColor.rgb;
+                    half3 lightInfluence = lerp(shadowTint, half3(1,1,1), bandedValue);
+                    color = baseColor.rgb * lightInfluence;
                     
                 #elif defined(_SHADOWMODE_RAMP)
-                    // Ramp shadow - tiling/offset yok
-                    float shadowValue = smoothstep(0.4, 0.6, NdotL);
-                    float3 rampColor = SAMPLE_TEXTURE2D(_RampTexture, sampler_RampTexture, float2(shadowValue, 0.5)).rgb;
-                    finalColor = baseColor.rgb * rampColor;
+                    // Ramp shading
+                    half rampInput = smoothstep(0.0h, 1.0h, customShadow);
+                    half3 rampColor = SAMPLE_TEXTURE2D(_RampTexture, sampler_RampTexture, half2(rampInput, 0.5h)).rgb;
+                    color = baseColor.rgb * rampColor;
                 #endif
                 
-                // Main light color uygula
-                finalColor *= mainLight.color;
+                // Apply main light color
+                color *= mainLight.color;
                 
-                // Basic ambient
-                half3 ambient = SampleSH(normalWS) * baseColor.rgb * 0.3;
-                finalColor += ambient;
+                // Add ambient lighting
+                half3 ambient = SampleSH(normalWS) * baseColor.rgb * 0.3h;
+                color += ambient;
                 
-                return half4(finalColor, baseColor.a);
+                return half4(color, baseColor.a);
             }
             ENDHLSL
         }
         
-        // Shadow caster pass
         Pass
         {
             Name "ShadowCaster"
-            Tags { "LightMode" = "ShadowCaster" }
-            
+            Tags{"LightMode" = "ShadowCaster"}
+
             ZWrite On
             ZTest LEqual
             ColorMask 0
-            
+            Cull[_Cull]
+
             HLSLPROGRAM
+            #pragma target 4.5
+
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
-            
+
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
             ENDHLSL
         }
+        
+        Pass
+        {
+            Name "DepthOnly"
+            Tags{"LightMode" = "DepthOnly"}
+
+            ZWrite On
+            ColorMask 0
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma target 4.5
+
+            #pragma vertex DepthOnlyVertex
+            #pragma fragment DepthOnlyFragment
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
+            ENDHLSL
+        }
     }
     
+    CustomEditor "GorgonizeToonShaderGUI"
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }

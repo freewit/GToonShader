@@ -40,9 +40,9 @@ Material:
     m_Floats:
     - _AdditionalLightIntensity: 1.31
     - _BandCount: 2
-    - _BandSmooth: 0
+    - _BandSmooth: 0.02
     - _BandedShadowIntensity: 0.79
-    - _BandedShadowThreshold: 0.071
+    - _BandedShadowThreshold: 0.973
     - _LightFalloff: 1.65
     - _MyNormalBias: 0
     - _MyShadowBias: 0.65
@@ -61,7 +61,7 @@ Material:
     - _ShadowSmoothing: 0.02
     - _ShadowSoftness: 0.05
     - _ShadowSteps: 2
-    - _ShadowThreshold: 0.186
+    - _ShadowThreshold: 0.699
     - _SubsurfaceDistortion: 0.2
     - _SubsurfaceIntensity: 0.5
     - _ToonNormalBias: 0.58
@@ -70,11 +70,11 @@ Material:
     - _UseShadowColor: 0.372
     - _UseVertexColor: 0
     m_Colors:
-    - _BandedShadowColor: {r: 0.8235295, g: 0.32941177, b: 0.8862746, a: 1}
-    - _BaseColor: {r: 0.4716981, g: 0.26032394, b: 0.26032394, a: 1}
+    - _BandedShadowColor: {r: 0.7306269, g: 0.61521006, b: 0.745283, a: 1}
+    - _BaseColor: {r: 0.4339623, g: 0.3494015, b: 0.2804379, a: 1}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _RimColor: {r: 1, g: 0, b: 0, a: 1}
-    - _ShadowColor: {r: 0, g: 0, b: 0, a: 1}
+    - _ShadowColor: {r: 0.7294118, g: 0.6156863, b: 0.74509805, a: 1}
     - _SubsurfaceColor: {r: 1, g: 0.39999998, b: 0.39999998, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

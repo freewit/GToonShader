@@ -61,7 +61,7 @@ Material:
     - _ShadowSmoothing: 0.02
     - _ShadowSoftness: 0.05
     - _ShadowSteps: 2
-    - _ShadowThreshold: 0.5
+    - _ShadowThreshold: 1
     - _SubsurfaceDistortion: 0.2
     - _SubsurfaceIntensity: 0.5
     - _ToonNormalBias: 0.58
@@ -74,7 +74,7 @@ Material:
     - _BaseColor: {r: 0.6792453, g: 0.5927376, b: 0.5927376, a: 1}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _RimColor: {r: 1, g: 0, b: 0, a: 1}
-    - _ShadowColor: {r: 0, g: 0, b: 0, a: 1}
+    - _ShadowColor: {r: 0.4431373, g: 0.27058825, b: 0.2392157, a: 1}
     - _SubsurfaceColor: {r: 1, g: 0.39999998, b: 0.39999998, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
