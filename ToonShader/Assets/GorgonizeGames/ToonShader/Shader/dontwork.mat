@@ -70,8 +70,8 @@ Material:
     - _UseShadowColor: 0.372
     - _UseVertexColor: 0
     m_Colors:
-    - _BandedShadowColor: {r: 0.7306269, g: 0.61521006, b: 0.745283, a: 1}
-    - _BaseColor: {r: 0.4339623, g: 0.3494015, b: 0.2804379, a: 1}
+    - _BandedShadowColor: {r: 0.7306269, g: 0.61521, b: 0.745283, a: 1}
+    - _BaseColor: {r: 0.43396226, g: 0.34940147, b: 0.28043786, a: 1}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _RimColor: {r: 1, g: 0, b: 0, a: 1}
     - _ShadowColor: {r: 0.7294118, g: 0.6156863, b: 0.74509805, a: 1}

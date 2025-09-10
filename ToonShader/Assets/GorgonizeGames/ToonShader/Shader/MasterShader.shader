@@ -1,4 +1,4 @@
-Shader "Custom/Unity6ToonShader"
+Shader "Custom/GorgonizeToonShader"
 {
     Properties
     {
@@ -43,18 +43,12 @@ Shader "Custom/Unity6ToonShader"
             #pragma vertex vert
             #pragma fragment frag
             
-            // Unity 6.0 keywords
             #pragma shader_feature_local _SHADOWMODE_SIMPLE _SHADOWMODE_BANDED _SHADOWMODE_RAMP
-            
-            // URP 17.0.4 required keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
-            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
             
-            // Unity 6.0 Core includes
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             
@@ -68,11 +62,10 @@ Shader "Custom/Unity6ToonShader"
             
             struct Varyings
             {
-                float4 positionCS               : SV_POSITION;
-                float2 uv                       : TEXCOORD0;
-                float3 positionWS               : TEXCOORD1;
-                float3 normalWS                 : TEXCOORD2;
-                
+                float4 positionCS   : SV_POSITION;
+                float2 uv           : TEXCOORD0;
+                float3 positionWS   : TEXCOORD1;
+                float3 normalWS     : TEXCOORD2;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -117,80 +110,79 @@ Shader "Custom/Unity6ToonShader"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 
-                // Base color sampling
+                // Base color
                 half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv) * _BaseColor;
+                half3 result = baseColor.rgb;
                 
-                // Normal and lighting
+                // Lighting setup
                 half3 normalWS = normalize(input.normalWS);
                 Light mainLight = GetMainLight();
+                half mainNdotL = saturate(dot(normalWS, mainLight.direction));
+                half mainShadow = smoothstep(0.1h, 0.6h, mainNdotL);
                 
-                // Custom shadow calculation (Z-fighting free)
-                half NdotL = saturate(dot(normalWS, mainLight.direction));
-                half customShadow = smoothstep(0.1h, 0.6h, NdotL);
+                // Additional lights
+                half additionalContribution = 0.0h;
+                #ifdef _ADDITIONAL_LIGHTS
+                uint pixelLightCount = GetAdditionalLightsCount();
+                for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
+                {
+                    Light light = GetAdditionalLight(lightIndex, input.positionWS);
+                    half lightNdotL = saturate(dot(normalWS, light.direction));
+                    half lightAttenuation = light.distanceAttenuation * light.shadowAttenuation;
+                    half pointShadow = smoothstep(0.1h, 0.6h, lightNdotL);
+                    additionalContribution += pointShadow * lightAttenuation * 0.5h;
+                }
+                #endif
                 
-                // Initialize result color
-                half3 color = baseColor.rgb;
+                // Combined lighting
+                half totalLighting = saturate(mainShadow + additionalContribution);
                 
+                // Apply shadow modes
                 #if defined(_SHADOWMODE_SIMPLE)
-                    // Simple cell shading
-                    half isLit = customShadow >= _ShadowThreshold ? 1.0h : 0.0h;
+                    half isLit = totalLighting >= _ShadowThreshold ? 1.0h : 0.0h;
                     half3 shadowTint = _ShadowColor.rgb;
                     half3 lightInfluence = lerp(shadowTint, half3(1,1,1), isLit);
-                    color = baseColor.rgb * lightInfluence;
+                    result = baseColor.rgb * lightInfluence;
                     
                 #elif defined(_SHADOWMODE_BANDED)
-                    // Banded shading - düzeltilmiş algoritma
-                    half lightValue = customShadow >= _BandedShadowThreshold ? customShadow : 0.0h;
-                    
-                    // Band'lara böl - daha doğru yöntem
+                    half lightValue = totalLighting >= _BandedShadowThreshold ? totalLighting : 0.0h;
                     half bandedValue = floor(lightValue * _BandCount) / _BandCount;
                     
-                    // Smoothness - band kenarları için
                     if(_BandSmooth > 0.01h)
                     {
-                        half bandStep = 1.0h / _BandCount;
                         half currentBandIndex = floor(lightValue * _BandCount);
                         half nextBandIndex = min(currentBandIndex + 1.0h, _BandCount);
-                        
-                        // Band içindeki pozisyon (0-1)
                         half positionInBand = (lightValue * _BandCount) - currentBandIndex;
-                        
-                        // Smoothness alanı
-                        half smoothArea = _BandSmooth;
-                        half smoothStart = 1.0h - smoothArea;
+                        half smoothStart = 1.0h - _BandSmooth;
                         
                         if(positionInBand > smoothStart)
                         {
-                            // Smooth geçiş hesapla
-                            half smoothProgress = (positionInBand - smoothStart) / smoothArea;
+                            half smoothProgress = (positionInBand - smoothStart) / _BandSmooth;
                             smoothProgress = smoothstep(0.0h, 1.0h, smoothProgress);
-                            
                             half currentBandValue = currentBandIndex / _BandCount;
                             half nextBandValue = nextBandIndex / _BandCount;
-                            
                             bandedValue = lerp(currentBandValue, nextBandValue, smoothProgress);
                         }
                     }
                     
                     half3 shadowTint = _BandedShadowColor.rgb;
                     half3 lightInfluence = lerp(shadowTint, half3(1,1,1), bandedValue);
-                    color = baseColor.rgb * lightInfluence;
+                    result = baseColor.rgb * lightInfluence;
                     
                 #elif defined(_SHADOWMODE_RAMP)
-                    // Ramp shading
-                    half rampInput = smoothstep(0.0h, 1.0h, customShadow);
+                    half rampInput = smoothstep(0.0h, 1.0h, totalLighting);
                     half3 rampColor = SAMPLE_TEXTURE2D(_RampTexture, sampler_RampTexture, half2(rampInput, 0.5h)).rgb;
-                    color = baseColor.rgb * rampColor;
+                    result = baseColor.rgb * rampColor;
                 #endif
                 
                 // Apply main light color
-                color *= mainLight.color;
+                result *= mainLight.color;
                 
-                // Add ambient lighting
+                // Add ambient
                 half3 ambient = SampleSH(normalWS) * baseColor.rgb * 0.3h;
-                color += ambient;
+                result += ambient;
                 
-                return half4(color, baseColor.a);
+                return half4(result, baseColor.a);
             }
             ENDHLSL
         }
@@ -199,18 +191,14 @@ Shader "Custom/Unity6ToonShader"
         {
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
-
             ZWrite On
             ZTest LEqual
             ColorMask 0
-            Cull[_Cull]
-
+            
             HLSLPROGRAM
             #pragma target 4.5
-
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
-
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
             ENDHLSL
@@ -220,17 +208,13 @@ Shader "Custom/Unity6ToonShader"
         {
             Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
-
             ZWrite On
             ColorMask 0
-            Cull[_Cull]
-
+            
             HLSLPROGRAM
             #pragma target 4.5
-
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
-
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
