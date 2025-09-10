@@ -1,4 +1,4 @@
-Shader "Gorgonize/Ultimate Toon Shader"
+Shader "Gorgonize/Ultimate Toon Shader - Shadow Fix"
 {
     Properties
     {
@@ -17,6 +17,14 @@ Shader "Gorgonize/Ultimate Toon Shader"
         _ShadowIntensity ("Shadow Intensity", Range(0, 1)) = 0.5
         _ShadowOffset ("Shadow Offset", Range(-1, 1)) = 0
         _OcclusionStrength ("Occlusion Strength", Range(0, 1)) = 1
+        
+        [Header(Advanced Shadow Bias)]
+        _ShadowDepthBias ("Shadow Depth Bias", Range(0, 5)) = 0.5
+        _ShadowNormalBias ("Shadow Normal Bias", Range(0, 5)) = 2.0
+        _ShadowSlopeBias ("Shadow Slope Bias", Range(0, 2)) = 1.0
+        _ShadowDistanceFade ("Shadow Distance Fade", Range(0.1, 1)) = 0.8
+        [Toggle] _UsePancaking ("Use Shadow Pancaking", Float) = 1
+        [Toggle] _UseAdaptiveBias ("Use Adaptive Bias", Float) = 1
         
         [Header(Highlight System)]
         _SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
@@ -93,6 +101,8 @@ Shader "Gorgonize/Ultimate Toon Shader"
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local _EMISSION
             #pragma shader_feature_local _DETAIL
+            #pragma shader_feature_local _USEPANCAKING_ON
+            #pragma shader_feature_local _USEADAPTIVEBIAS_ON
             
             // URP keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
@@ -129,8 +139,9 @@ Shader "Gorgonize/Ultimate Toon Shader"
                 float3 bitangentWS              : TEXCOORD4;
                 float3 viewDirWS                : TEXCOORD5;
                 float4 shadowCoord              : TEXCOORD6;
-                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 7);
-                float fogCoord                  : TEXCOORD8;
+                float distanceToCamera          : TEXCOORD7;
+                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 8);
+                float fogCoord                  : TEXCOORD9;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -155,6 +166,12 @@ Shader "Gorgonize/Ultimate Toon Shader"
                 half _ShadowIntensity;
                 half _ShadowOffset;
                 half _OcclusionStrength;
+                
+                // Advanced Shadow Bias
+                half _ShadowDepthBias;
+                half _ShadowNormalBias;
+                half _ShadowSlopeBias;
+                half _ShadowDistanceFade;
                 
                 // Specular
                 half4 _SpecularColor;
@@ -193,6 +210,55 @@ Shader "Gorgonize/Ultimate Toon Shader"
                 half _LightmapInfluence;
             CBUFFER_END
             
+            // Advanced shadow coordinate calculation - URP 17.0.4 Compatible
+            float4 GetAdvancedShadowCoord(VertexPositionInputs positionInputs, float3 normalWS, float3 lightDir)
+            {
+                float4 shadowCoord = GetShadowCoord(positionInputs);
+                
+                #if defined(_MAIN_LIGHT_SHADOWS) && defined(_RECEIVESHADOWS_ON)
+                    float3 worldPos = positionInputs.positionWS;
+                    
+                    // Calculate distance-based fade
+                    float distanceToCamera = distance(_WorldSpaceCameraPos.xyz, worldPos);
+                    float maxShadowDistance = _MainLightShadowParams.z;
+                    float distanceFade = saturate(1.0 - (distanceToCamera / (maxShadowDistance * _ShadowDistanceFade)));
+                    
+                    // Calculate slope-based bias
+                    float NoL = saturate(dot(normalWS, lightDir));
+                    float slopeFactor = 1.0 - NoL;
+                    
+                    #ifdef _USEADAPTIVEBIAS_ON
+                        // Adaptive bias based on surface curvature and distance
+                        float adaptiveBias = _ShadowDepthBias * (1.0 + slopeFactor * _ShadowSlopeBias);
+                        adaptiveBias *= (1.0 + distanceToCamera * 0.001); // Increase bias with distance
+                        
+                        // Normal bias with surface angle consideration
+                        float normalBias = _ShadowNormalBias * slopeFactor * distanceFade;
+                        
+                        // Apply depth bias
+                        shadowCoord.z -= adaptiveBias * 0.001;
+                        
+                        // For normal bias, we'll apply it in vertex shader by offsetting world position
+                        #ifdef _USEPANCAKING_ON
+                        // Shadow pancaking to prevent shadow acne on back faces
+                        float backFaceFactor = max(0, -dot(normalWS, lightDir));
+                        float3 offsetWorldPos = worldPos + lightDir * backFaceFactor * 0.1 + normalWS * normalBias * 0.01;
+                        float4 offsetShadowCoord = TransformWorldToShadowCoord(offsetWorldPos);
+                        shadowCoord = lerp(shadowCoord, offsetShadowCoord, slopeFactor * 0.3);
+                        #endif
+                    #else
+                        // Standard bias application
+                        float bias = _ShadowDepthBias + _ShadowNormalBias * slopeFactor;
+                        shadowCoord.z -= bias * 0.001;
+                    #endif
+                    
+                    // Clamp shadow coordinates to valid range
+                    shadowCoord.z = saturate(shadowCoord.z);
+                #endif
+                
+                return shadowCoord;
+            }
+            
             Varyings vert(Attributes input)
             {
                 Varyings output = (Varyings)0;
@@ -221,12 +287,13 @@ Shader "Gorgonize/Ultimate Toon Shader"
                 output.bitangentWS = normalInputs.bitangentWS;
                 output.viewDirWS = GetWorldSpaceViewDir(positionInputs.positionWS);
                 output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
+                output.distanceToCamera = distance(_WorldSpaceCameraPos.xyz, positionInputs.positionWS);
                 
                 OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
                 OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
                 
                 #ifdef _RECEIVESHADOWS_ON
-                output.shadowCoord = GetShadowCoord(positionInputs);
+                output.shadowCoord = GetAdvancedShadowCoord(positionInputs, normalInputs.normalWS, _MainLightPosition.xyz);
                 #endif
                 
                 output.fogCoord = ComputeFogFactor(output.positionCS.z);
@@ -234,8 +301,46 @@ Shader "Gorgonize/Ultimate Toon Shader"
                 return output;
             }
             
-            // Advanced toon lighting calculation
-            half3 CalculateToonLighting(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half shadowAttenuation)
+            // Enhanced shadow sampling with PCF
+            half SampleShadowWithPCF(float4 shadowCoord, float3 worldPos)
+            {
+                #if defined(_MAIN_LIGHT_SHADOWS) && defined(_RECEIVESHADOWS_ON)
+                    // Calculate shadow map texel size for PCF
+                    float shadowMapSize = _MainLightShadowmapSize.x;
+                    float texelSize = 1.0 / shadowMapSize;
+                    
+                    half shadowAttenuation = 0;
+                    
+                    // 5x5 PCF sampling for smoother shadows
+                    [unroll]
+                    for(int x = -2; x <= 2; x++)
+                    {
+                        [unroll]
+                        for(int y = -2; y <= 2; y++)
+                        {
+                            float2 offset = float2(x, y) * texelSize;
+                            float4 sampleCoord = shadowCoord;
+                            sampleCoord.xy += offset;
+                            shadowAttenuation += MainLightRealtimeShadow(sampleCoord);
+                        }
+                    }
+                    shadowAttenuation /= 25.0; // Average of 25 samples
+                    
+                    // Apply distance-based shadow fade
+                    float distanceToCamera = distance(_WorldSpaceCameraPos.xyz, worldPos);
+                    float maxShadowDistance = _MainLightShadowParams.z;
+                    float distanceFade = saturate(1.0 - (distanceToCamera / (maxShadowDistance * _ShadowDistanceFade)));
+                    
+                    shadowAttenuation = lerp(1.0, shadowAttenuation, distanceFade);
+                    
+                    return shadowAttenuation;
+                #else
+                    return 1.0;
+                #endif
+            }
+            
+            // Advanced toon lighting calculation with enhanced shadow handling
+            half3 CalculateToonLighting(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half shadowAttenuation, float3 worldPos)
             {
                 half NdotL = dot(normal, lightDir);
                 half rawNdotL = NdotL * 0.5 + 0.5; // Remap to 0-1
@@ -274,7 +379,7 @@ Shader "Gorgonize/Ultimate Toon Shader"
                     toonLighting = dot(rampSample, half3(0.299, 0.587, 0.114)); // Luminance
                 #endif
                 
-                // Apply shadow
+                // Apply enhanced shadow with PCF
                 #ifdef _RECEIVESHADOWS_ON
                 toonLighting *= shadowAttenuation;
                 #endif
@@ -353,9 +458,14 @@ Shader "Gorgonize/Ultimate Toon Shader"
                 
                 half3 viewDirWS = normalize(input.viewDirWS);
                 
-                // Main lighting
-                Light mainLight = GetMainLight(input.shadowCoord);
-                half3 diffuseColor = CalculateToonLighting(mainLight.color, mainLight.direction, normalWS, viewDirWS, mainLight.shadowAttenuation);
+                // Enhanced shadow sampling
+                half shadowAttenuation = SampleShadowWithPCF(input.shadowCoord, input.positionWS);
+                
+                // Main lighting with enhanced shadows
+                Light mainLight = GetMainLight();
+                mainLight.shadowAttenuation = shadowAttenuation;
+                
+                half3 diffuseColor = CalculateToonLighting(mainLight.color, mainLight.direction, normalWS, viewDirWS, shadowAttenuation, input.positionWS);
                 half3 specularColor = CalculateToonSpecular(mainLight.color, mainLight.direction, normalWS, viewDirWS);
                 half3 rimColor = CalculateRimLight(normalWS, viewDirWS, mainLight.color);
                 half3 subsurfaceColor = CalculateSubsurface(mainLight.color, mainLight.direction, normalWS, viewDirWS);
@@ -366,15 +476,9 @@ Shader "Gorgonize/Ultimate Toon Shader"
                 for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
                 {
                     Light light = GetAdditionalLight(lightIndex, input.positionWS);
-                    diffuseColor += CalculateToonLighting(light.color, light.direction, normalWS, viewDirWS, light.shadowAttenuation);
-                    
-                    #ifdef _ENABLESPECULAR_ON
+                    diffuseColor += CalculateToonLighting(light.color, light.direction, normalWS, viewDirWS, light.shadowAttenuation, input.positionWS);
                     specularColor += CalculateToonSpecular(light.color, light.direction, normalWS, viewDirWS);
-                    #endif
-                    
-                    #ifdef _ENABLERIMLIGHTING_ON
                     rimColor += CalculateRimLight(normalWS, viewDirWS, light.color);
-                    #endif
                 }
                 #endif
                 
@@ -398,6 +502,114 @@ Shader "Gorgonize/Ultimate Toon Shader"
                 
                 return half4(color, baseColor.a);
             }
+            ENDHLSL
+        }
+        
+        // Enhanced Shadow Caster Pass
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags{"LightMode" = "ShadowCaster"}
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+            Cull Back
+            
+            HLSLPROGRAM
+            #pragma target 4.5
+            #pragma vertex ShadowPassVertex
+            #pragma fragment ShadowPassFragment
+            
+            // Enhanced shadow caster keywords
+            #pragma shader_feature_local _USEPANCAKING_ON
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
+            
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+            
+            struct Attributes
+            {
+                float4 positionOS   : POSITION;
+                float3 normalOS     : NORMAL;
+                float2 texcoord     : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+            
+            struct Varyings
+            {
+                float4 positionCS   : SV_POSITION;
+                float2 uv           : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+            
+            CBUFFER_START(UnityPerMaterial)
+                float4 _BaseMap_ST;
+                half _ShadowDepthBias;
+                half _ShadowNormalBias;
+            CBUFFER_END
+            
+            float3 _LightDirection;
+            float3 _LightPosition;
+            
+            Varyings ShadowPassVertex(Attributes input)
+            {
+                Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                
+                output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
+                
+                float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+                
+                #ifdef _USEPANCAKING_ON
+                    // Enhanced shadow pancaking
+                    #if _CASTING_PUNCTUAL_LIGHT_SHADOW
+                        float3 lightDirectionWS = normalize(_LightPosition - positionWS);
+                    #else
+                        float3 lightDirectionWS = _LightDirection;
+                    #endif
+                    
+                    // Apply bias based on surface angle to light
+                    float NoL = dot(normalWS, lightDirectionWS);
+                    float bias = _ShadowDepthBias + _ShadowNormalBias * (1.0 - abs(NoL));
+                    
+                    // Offset position to reduce shadow acne
+                    positionWS += normalWS * bias * 0.01;
+                    positionWS += lightDirectionWS * max(0, -NoL) * 0.05;
+                #endif
+                
+                output.positionCS = TransformWorldToHClip(positionWS);
+                
+                return output;
+            }
+            
+            half4 ShadowPassFragment(Varyings input) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                return 0;
+            }
+            ENDHLSL
+        }
+        
+        // Depth pass
+        Pass
+        {
+            Name "DepthOnly"
+            Tags{"LightMode" = "DepthOnly"}
+            ZWrite On
+            ColorMask 0
+            Cull[_Cull]
+            
+            HLSLPROGRAM
+            #pragma target 4.5
+            #pragma vertex DepthOnlyVertex
+            #pragma fragment DepthOnlyFragment
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
         }
         
@@ -461,45 +673,8 @@ Shader "Gorgonize/Ultimate Toon Shader"
             }
             ENDHLSL
         }
-        
-        // Shadow caster pass
-        Pass
-        {
-            Name "ShadowCaster"
-            Tags{"LightMode" = "ShadowCaster"}
-            ZWrite On
-            ZTest LEqual
-            ColorMask 0
-            Cull[_Cull]
-            
-            HLSLPROGRAM
-            #pragma target 4.5
-            #pragma vertex ShadowPassVertex
-            #pragma fragment ShadowPassFragment
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
-            ENDHLSL
-        }
-        
-        // Depth pass
-        Pass
-        {
-            Name "DepthOnly"
-            Tags{"LightMode" = "DepthOnly"}
-            ZWrite On
-            ColorMask 0
-            Cull[_Cull]
-            
-            HLSLPROGRAM
-            #pragma target 4.5
-            #pragma vertex DepthOnlyVertex
-            #pragma fragment DepthOnlyFragment
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
-            ENDHLSL
-        }
     }
     
-    CustomEditor "UltimateToonShaderGUI"
+    CustomEditor "AdvancedToonShaderGUI"
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }

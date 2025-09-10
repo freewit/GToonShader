@@ -3,41 +3,7 @@ using UnityEditor;
 using System.IO;
 using System.Collections.Generic;
 
-[System.Serializable]
-public class UltimateToonPreset
-{
-    public string presetName;
-    public Color baseColor;
-    public string baseMapPath;
-    public int lightingMode;
-    public float shadowSteps;
-    public float shadowSmoothness;
-    public string shadowRampPath;
-    public Color shadowColor;
-    public float shadowIntensity;
-    public float shadowOffset;
-    public Color specularColor;
-    public float specularSize;
-    public float specularSmoothness;
-    public float specularSteps;
-    public Color rimColor;
-    public float rimPower;
-    public float rimIntensity;
-    public float rimOffset;
-    public float normalStrength;
-    public Color emissionColor;
-    public float emissionIntensity;
-    public Color subsurfaceColor;
-    public float subsurfaceIntensity;
-    public bool enableOutline;
-    public Color outlineColor;
-    public float outlineWidth;
-    public bool enableWind;
-    public float windSpeed;
-    public float windStrength;
-}
-
-public class UltimateToonShaderGUI : ShaderGUI
+public class AdvancedToonShaderGUI : ShaderGUI
 {
     // Material Properties
     private MaterialProperty baseColor;
@@ -49,6 +15,12 @@ public class UltimateToonShaderGUI : ShaderGUI
     private MaterialProperty shadowColor;
     private MaterialProperty shadowIntensity;
     private MaterialProperty shadowOffset;
+    private MaterialProperty shadowDepthBias;
+    private MaterialProperty shadowNormalBias;
+    private MaterialProperty shadowSlopeBias;
+    private MaterialProperty shadowDistanceFade;
+    private MaterialProperty usePancaking;
+    private MaterialProperty useAdaptiveBias;
     private MaterialProperty occlusionStrength;
     
     private MaterialProperty specularColor;
@@ -91,6 +63,7 @@ public class UltimateToonShaderGUI : ShaderGUI
     
     // GUI State
     private static bool showLighting = true;
+    private static bool showAdvancedShadowBias = false;
     private static bool showHighlights = false;
     private static bool showRim = false;
     private static bool showAdvanced = false;
@@ -99,17 +72,13 @@ public class UltimateToonShaderGUI : ShaderGUI
     private static bool showWind = false;
     private static bool showPerformance = false;
     
-    // Preset System
-    private static string newPresetName = "";
-    private static List<string> availablePresets = new List<string>();
-    private static int selectedPresetIndex = 0;
-    private const string PRESET_FOLDER = "Assets/GorgonizeGames/ToonShader/Presets";
-    
     // Styles
     private static GUIStyle headerStyle;
     private static GUIStyle versionStyle;
     private static GUIStyle sectionStyle;
     private static GUIStyle foldoutStyle;
+    private static GUIStyle errorStyle;
+    private static GUIStyle successStyle;
     
     public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
     {
@@ -119,13 +88,13 @@ public class UltimateToonShaderGUI : ShaderGUI
         DrawHeader();
         EditorGUILayout.Space(5);
         
-        DrawPresetSystem(materialEditor);
-        EditorGUILayout.Space(5);
-        
         DrawBaseProperties(materialEditor);
         EditorGUILayout.Space(3);
         
         DrawLightingSection(materialEditor);
+        EditorGUILayout.Space(3);
+        
+        DrawAdvancedShadowBiasSection(materialEditor);
         EditorGUILayout.Space(3);
         
         DrawHighlightsSection(materialEditor);
@@ -149,6 +118,9 @@ public class UltimateToonShaderGUI : ShaderGUI
         DrawPerformanceSection(materialEditor);
         EditorGUILayout.Space(10);
         
+        DrawTroubleshootingTips();
+        EditorGUILayout.Space(5);
+        
         DrawFooter();
     }
     
@@ -163,6 +135,12 @@ public class UltimateToonShaderGUI : ShaderGUI
         shadowColor = FindProperty("_ShadowColor", props);
         shadowIntensity = FindProperty("_ShadowIntensity", props);
         shadowOffset = FindProperty("_ShadowOffset", props);
+        shadowDepthBias = FindProperty("_ShadowDepthBias", props);
+        shadowNormalBias = FindProperty("_ShadowNormalBias", props);
+        shadowSlopeBias = FindProperty("_ShadowSlopeBias", props);
+        shadowDistanceFade = FindProperty("_ShadowDistanceFade", props);
+        usePancaking = FindProperty("_UsePancaking", props);
+        useAdaptiveBias = FindProperty("_UseAdaptiveBias", props);
         occlusionStrength = FindProperty("_OcclusionStrength", props);
         
         specularColor = FindProperty("_SpecularColor", props);
@@ -244,6 +222,26 @@ public class UltimateToonShaderGUI : ShaderGUI
                 fontStyle = FontStyle.Bold
             };
         }
+        
+        if (errorStyle == null)
+        {
+            errorStyle = new GUIStyle(EditorStyles.label)
+            {
+                normal = { textColor = Color.red },
+                fontSize = 11,
+                wordWrap = true
+            };
+        }
+        
+        if (successStyle == null)
+        {
+            successStyle = new GUIStyle(EditorStyles.label)
+            {
+                normal = { textColor = Color.green },
+                fontSize = 11,
+                wordWrap = true
+            };
+        }
     }
     
     void DrawHeader()
@@ -252,58 +250,11 @@ public class UltimateToonShaderGUI : ShaderGUI
         
         EditorGUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
-        EditorGUILayout.LabelField("⚡ Ultimate Toon Shader", headerStyle);
+        EditorGUILayout.LabelField("⚡ Ultimate Toon Shader - Shadow Fix", headerStyle);
         GUILayout.FlexibleSpace();
         EditorGUILayout.EndHorizontal();
         
-        EditorGUILayout.LabelField("Professional Toon Rendering System v1.0", versionStyle);
-        
-        EditorGUILayout.EndVertical();
-    }
-    
-    void DrawPresetSystem(MaterialEditor materialEditor)
-    {
-        EditorGUILayout.BeginVertical(sectionStyle);
-        
-        EditorGUILayout.LabelField("🎛️ Preset Management", EditorStyles.boldLabel);
-        
-        EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField("Save:", GUILayout.Width(40));
-        newPresetName = EditorGUILayout.TextField(newPresetName);
-        
-        GUI.enabled = !string.IsNullOrEmpty(newPresetName);
-        if (GUILayout.Button("💾", GUILayout.Width(30)))
-        {
-            SavePreset(materialEditor.target as Material, newPresetName);
-            newPresetName = "";
-            RefreshPresetList();
-        }
-        GUI.enabled = true;
-        EditorGUILayout.EndHorizontal();
-        
-        RefreshPresetList();
-        if (availablePresets.Count > 0)
-        {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Load:", GUILayout.Width(40));
-            selectedPresetIndex = EditorGUILayout.Popup(selectedPresetIndex, availablePresets.ToArray());
-            
-            if (GUILayout.Button("📂", GUILayout.Width(30)))
-            {
-                LoadPreset(materialEditor.target as Material, availablePresets[selectedPresetIndex]);
-            }
-            
-            if (GUILayout.Button("🗑️", GUILayout.Width(30)))
-            {
-                if (EditorUtility.DisplayDialog("Delete Preset", 
-                    "Delete '" + availablePresets[selectedPresetIndex] + "'?", "Delete", "Cancel"))
-                {
-                    DeletePreset(availablePresets[selectedPresetIndex]);
-                    RefreshPresetList();
-                }
-            }
-            EditorGUILayout.EndHorizontal();
-        }
+        EditorGUILayout.LabelField("Advanced Shadow Acne & Z-Fighting Solution v2.0", versionStyle);
         
         EditorGUILayout.EndVertical();
     }
@@ -354,6 +305,120 @@ public class UltimateToonShaderGUI : ShaderGUI
         }
         
         EditorGUILayout.EndVertical();
+    }
+    
+    void DrawAdvancedShadowBiasSection(MaterialEditor materialEditor)
+    {
+        EditorGUILayout.BeginVertical(sectionStyle);
+        
+        showAdvancedShadowBias = EditorGUILayout.Foldout(showAdvancedShadowBias, "🛠️ Advanced Shadow Fix (Anti Z-Fighting)", foldoutStyle);
+        if (showAdvancedShadowBias)
+        {
+            EditorGUILayout.HelpBox("Bu gelişmiş ayarlar Z-fighting ve shadow acne problemlerini çözer. Değerleri kademeli olarak artırın.", MessageType.Info);
+            
+            // Advanced toggles
+            EditorGUI.BeginChangeCheck();
+            bool adaptiveBias = useAdaptiveBias.floatValue > 0.5f;
+            bool pancaking = usePancaking.floatValue > 0.5f;
+            
+            adaptiveBias = EditorGUILayout.Toggle(new GUIContent("Use Adaptive Bias", "Yüzey açısına göre otomatik bias ayarı"), adaptiveBias);
+            pancaking = EditorGUILayout.Toggle(new GUIContent("Use Shadow Pancaking", "Arka yüzlerdeki shadow acne'yi önler"), pancaking);
+            
+            if (EditorGUI.EndChangeCheck())
+            {
+                useAdaptiveBias.floatValue = adaptiveBias ? 1.0f : 0.0f;
+                usePancaking.floatValue = pancaking ? 1.0f : 0.0f;
+                SetAdvancedShadowKeywords(materialEditor.target as Material, adaptiveBias, pancaking);
+            }
+            
+            EditorGUILayout.Space(5);
+            
+            // Bias parameters
+            materialEditor.RangeProperty(shadowDepthBias, "Shadow Depth Bias");
+            EditorGUILayout.LabelField("• Düz yüzeylerdeki shadow acne'yi düzeltir", EditorStyles.miniLabel);
+            
+            materialEditor.RangeProperty(shadowNormalBias, "Shadow Normal Bias");
+            EditorGUILayout.LabelField("• Kavisli yüzeylerdeki shadow acne'yi düzeltir", EditorStyles.miniLabel);
+            
+            materialEditor.RangeProperty(shadowSlopeBias, "Shadow Slope Bias");
+            EditorGUILayout.LabelField("• Eğimli yüzeylerdeki problemleri çözer", EditorStyles.miniLabel);
+            
+            materialEditor.RangeProperty(shadowDistanceFade, "Shadow Distance Fade");
+            EditorGUILayout.LabelField("• Uzak nesnelerde gölgeleri yumuşatır", EditorStyles.miniLabel);
+            
+            EditorGUILayout.Space(10);
+            
+            // Smart preset buttons
+            EditorGUILayout.LabelField("🎯 Akıllı Presetler:", EditorStyles.boldLabel);
+            EditorGUILayout.BeginHorizontal();
+            
+            if (GUILayout.Button("Minimal Fix"))
+            {
+                ApplyShadowPreset(0.1f, 0.5f, 0.2f, 0.9f, false, false);
+                SetAdvancedShadowKeywords(materialEditor.target as Material, false, false);
+            }
+            
+            if (GUILayout.Button("Standard Fix"))
+            {
+                ApplyShadowPreset(0.5f, 1.0f, 0.5f, 0.8f, true, false);
+                SetAdvancedShadowKeywords(materialEditor.target as Material, true, false);
+            }
+            
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+            
+            if (GUILayout.Button("Aggressive Fix"))
+            {
+                ApplyShadowPreset(1.0f, 2.0f, 1.0f, 0.7f, true, true);
+                SetAdvancedShadowKeywords(materialEditor.target as Material, true, true);
+            }
+            
+            if (GUILayout.Button("Maximum Fix"))
+            {
+                ApplyShadowPreset(2.0f, 3.0f, 1.5f, 0.6f, true, true);
+                SetAdvancedShadowKeywords(materialEditor.target as Material, true, true);
+            }
+            
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+            
+            if (GUILayout.Button("Reset"))
+            {
+                ApplyShadowPreset(0.5f, 2.0f, 1.0f, 0.8f, true, true);
+                SetAdvancedShadowKeywords(materialEditor.target as Material, true, true);
+            }
+            
+            EditorGUILayout.EndHorizontal();
+            
+            EditorGUILayout.Space(5);
+            
+            // Performance impact indicator
+            float totalBias = shadowDepthBias.floatValue + shadowNormalBias.floatValue + shadowSlopeBias.floatValue;
+            if (totalBias < 1.0f)
+            {
+                EditorGUILayout.LabelField("✅ Performans Etkisi: Düşük", successStyle);
+            }
+            else if (totalBias < 3.0f)
+            {
+                EditorGUILayout.LabelField("⚠️ Performans Etkisi: Orta", EditorStyles.label);
+            }
+            else
+            {
+                EditorGUILayout.LabelField("⚠️ Performans Etkisi: Yüksek", errorStyle);
+            }
+        }
+        
+        EditorGUILayout.EndVertical();
+    }
+    
+    void ApplyShadowPreset(float depthBias, float normalBias, float slopeBias, float distanceFade, bool adaptive, bool pancaking)
+    {
+        shadowDepthBias.floatValue = depthBias;
+        shadowNormalBias.floatValue = normalBias;
+        shadowSlopeBias.floatValue = slopeBias;
+        shadowDistanceFade.floatValue = distanceFade;
+        useAdaptiveBias.floatValue = adaptive ? 1.0f : 0.0f;
+        usePancaking.floatValue = pancaking ? 1.0f : 0.0f;
     }
     
     void DrawHighlightsSection(MaterialEditor materialEditor)
@@ -514,6 +579,41 @@ public class UltimateToonShaderGUI : ShaderGUI
         EditorGUILayout.EndVertical();
     }
     
+    void DrawTroubleshootingTips()
+    {
+        EditorGUILayout.BeginVertical(sectionStyle);
+        
+        EditorGUILayout.LabelField("🔧 Sorun Giderme Rehberi", EditorStyles.boldLabel);
+        
+        GUIStyle tipStyle = new GUIStyle(EditorStyles.label)
+        {
+            fontSize = 10,
+            wordWrap = true,
+            normal = { textColor = new Color(0.6f, 0.6f, 0.6f, 1f) }
+        };
+        
+        EditorGUILayout.LabelField("🔍 Shadow Acne (Gölge Lekesi):", EditorStyles.miniBoldLabel);
+        EditorGUILayout.LabelField("• 'Standard Fix' preset'ini deneyin", tipStyle);
+        EditorGUILayout.LabelField("• Shadow Depth Bias'ı 0.5-1.0 arasında ayarlayın", tipStyle);
+        
+        EditorGUILayout.Space(3);
+        EditorGUILayout.LabelField("🔍 Z-Fighting (Yüzey Titreşimi):", EditorStyles.miniBoldLabel);
+        EditorGUILayout.LabelField("• 'Aggressive Fix' preset'ini kullanın", tipStyle);
+        EditorGUILayout.LabelField("• Use Adaptive Bias'ı aktif edin", tipStyle);
+        
+        EditorGUILayout.Space(3);
+        EditorGUILayout.LabelField("🔍 Light Leaking (Işık Sızması):", EditorStyles.miniBoldLabel);
+        EditorGUILayout.LabelField("• Bias değerlerini düşürün", tipStyle);
+        EditorGUILayout.LabelField("• Shadow Distance Fade'i artırın", tipStyle);
+        
+        EditorGUILayout.Space(3);
+        EditorGUILayout.LabelField("🔍 Performance Sorunları:", EditorStyles.miniBoldLabel);
+        EditorGUILayout.LabelField("• 'Minimal Fix' preset'ini kullanın", tipStyle);
+        EditorGUILayout.LabelField("• Use Shadow Pancaking'i kapatın", tipStyle);
+        
+        EditorGUILayout.EndVertical();
+    }
+    
     void DrawFooter()
     {
         EditorGUILayout.BeginVertical(sectionStyle);
@@ -527,11 +627,11 @@ public class UltimateToonShaderGUI : ShaderGUI
             normal = { textColor = new Color(0.6f, 0.6f, 0.6f, 1f) }
         };
         
-        EditorGUILayout.LabelField("• Use Stepped mode for classic cell shading", tipStyle);
-        EditorGUILayout.LabelField("• Smooth mode blends between stepped and realistic", tipStyle);
-        EditorGUILayout.LabelField("• Ramp mode gives full artistic control via textures", tipStyle);
-        EditorGUILayout.LabelField("• Enable outline for comic book style", tipStyle);
-        EditorGUILayout.LabelField("• Subsurface scattering enhances skin and translucent materials", tipStyle);
+        EditorGUILayout.LabelField("• Her sahne için farklı ayarlar gerekebilir", tipStyle);
+        EditorGUILayout.LabelField("• Önce 'Standard Fix' ile başlayın", tipStyle);
+        EditorGUILayout.LabelField("• URP Asset'inde Shadow Distance'ı 50-100 arası tutun", tipStyle);
+        EditorGUILayout.LabelField("• Light'ın Shadow Bias ayarlarını da kontrol edin", tipStyle);
+        EditorGUILayout.LabelField("• Mobil için daha düşük bias değerleri kullanın", tipStyle);
         
         EditorGUILayout.EndVertical();
     }
@@ -551,28 +651,17 @@ public class UltimateToonShaderGUI : ShaderGUI
         }
     }
     
-    void SetSpecularKeyword(Material material, bool enabled)
+    void SetAdvancedShadowKeywords(Material material, bool adaptiveBias, bool pancaking)
     {
-        if (enabled)
-            material.EnableKeyword("_ENABLESPECULAR_ON");
+        if (adaptiveBias)
+            material.EnableKeyword("_USEADAPTIVEBIAS_ON");
         else
-            material.DisableKeyword("_ENABLESPECULAR_ON");
-    }
-    
-    void SetRimKeyword(Material material, bool enabled)
-    {
-        if (enabled)
-            material.EnableKeyword("_ENABLERIMLIGHTING_ON");
+            material.DisableKeyword("_USEADAPTIVEBIAS_ON");
+            
+        if (pancaking)
+            material.EnableKeyword("_USEPANCAKING_ON");
         else
-            material.DisableKeyword("_ENABLERIMLIGHTING_ON");
-    }
-    
-    void SetSubsurfaceKeyword(Material material, bool enabled)
-    {
-        if (enabled)
-            material.EnableKeyword("_ENABLESUBSURFACE_ON");
-        else
-            material.DisableKeyword("_ENABLESUBSURFACE_ON");
+            material.DisableKeyword("_USEPANCAKING_ON");
     }
     
     void SetOutlineKeyword(Material material, bool enabled)
@@ -602,49 +691,5 @@ public class UltimateToonShaderGUI : ShaderGUI
             material.EnableKeyword("_ENABLEADDITIONALLIGHTS_ON");
         else
             material.DisableKeyword("_ENABLEADDITIONALLIGHTS_ON");
-    }
-    
-    // Preset System Implementation
-    void RefreshPresetList()
-    {
-        availablePresets.Clear();
-        
-        if (!Directory.Exists(PRESET_FOLDER))
-        {
-            Directory.CreateDirectory(PRESET_FOLDER);
-            return;
-        }
-        
-        string[] files = Directory.GetFiles(PRESET_FOLDER, "*.json");
-        foreach (string file in files)
-        {
-            string fileName = Path.GetFileNameWithoutExtension(file);
-            availablePresets.Add(fileName);
-        }
-        
-        if (selectedPresetIndex >= availablePresets.Count)
-            selectedPresetIndex = 0;
-    }
-    
-    void SavePreset(Material material, string presetName)
-    {
-        // Implementation for saving presets
-        // This would be a comprehensive preset save including all parameters
-    }
-    
-    void LoadPreset(Material material, string presetName)
-    {
-        // Implementation for loading presets
-        // This would restore all material parameters from saved preset
-    }
-    
-    void DeletePreset(string presetName)
-    {
-        string filePath = Path.Combine(PRESET_FOLDER, presetName + ".json");
-        if (File.Exists(filePath))
-        {
-            File.Delete(filePath);
-            AssetDatabase.Refresh();
-        }
     }
 }

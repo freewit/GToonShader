@@ -84,6 +84,7 @@ Material:
     - _RimPower: 4
     - _ShadowBias: 0.005
     - _ShadowColorBlend: 0.528
+    - _ShadowDepthBias: 0.1
     - _ShadowIntensity: 1
     - _ShadowMode: 0
     - _ShadowNormalBias: 1.8
@@ -108,6 +109,7 @@ Material:
     - _UseVertexColor: 0
     - _WindSpeed: 3.06
     - _WindStrength: 0.1
+    - _ZBias: 0.0001
     m_Colors:
     - _BandedShadowColor: {r: 0.6, g: 0.6, b: 0.8, a: 1}
     - _BaseColor: {r: 1, g: 0.9058824, b: 0.5921569, a: 1}
