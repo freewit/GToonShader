@@ -1,0 +1,29 @@
+{
+    "presetName": "ToonPresets",
+    "baseColor": {
+        "r": 0.6792452931404114,
+        "g": 0.5481079816818237,
+        "b": 0.4517621397972107,
+        "a": 1.0
+    },
+    "baseMapPath": "",
+    "shadowMode": 0,
+    "shadowColor": {
+        "r": 0.5377357602119446,
+        "g": 0.3525720536708832,
+        "b": 0.5126171112060547,
+        "a": 1.0
+    },
+    "shadowThreshold": 0.5189999938011169,
+    "simpleShadowSmooth": 0.0,
+    "bandedShadowColor": {
+        "r": 0.6000000238418579,
+        "g": 0.6000000238418579,
+        "b": 0.800000011920929,
+        "a": 1.0
+    },
+    "bandedShadowThreshold": 0.5,
+    "bandCount": 3.0,
+    "bandSmooth": 0.10000000149011612,
+    "rampTexturePath": ""
+}
