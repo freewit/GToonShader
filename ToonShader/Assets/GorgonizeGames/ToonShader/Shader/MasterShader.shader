@@ -367,8 +367,14 @@ Shader "Gorgonize/Ultimate Toon Shader"
                 {
                     Light light = GetAdditionalLight(lightIndex, input.positionWS);
                     diffuseColor += CalculateToonLighting(light.color, light.direction, normalWS, viewDirWS, light.shadowAttenuation);
+                    
+                    #ifdef _ENABLESPECULAR_ON
                     specularColor += CalculateToonSpecular(light.color, light.direction, normalWS, viewDirWS);
+                    #endif
+                    
+                    #ifdef _ENABLERIMLIGHTING_ON
                     rimColor += CalculateRimLight(normalWS, viewDirWS, light.color);
+                    #endif
                 }
                 #endif
                 

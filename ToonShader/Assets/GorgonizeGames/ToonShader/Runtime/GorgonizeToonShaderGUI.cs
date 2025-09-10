@@ -551,6 +551,30 @@ public class UltimateToonShaderGUI : ShaderGUI
         }
     }
     
+    void SetSpecularKeyword(Material material, bool enabled)
+    {
+        if (enabled)
+            material.EnableKeyword("_ENABLESPECULAR_ON");
+        else
+            material.DisableKeyword("_ENABLESPECULAR_ON");
+    }
+    
+    void SetRimKeyword(Material material, bool enabled)
+    {
+        if (enabled)
+            material.EnableKeyword("_ENABLERIMLIGHTING_ON");
+        else
+            material.DisableKeyword("_ENABLERIMLIGHTING_ON");
+    }
+    
+    void SetSubsurfaceKeyword(Material material, bool enabled)
+    {
+        if (enabled)
+            material.EnableKeyword("_ENABLESUBSURFACE_ON");
+        else
+            material.DisableKeyword("_ENABLESUBSURFACE_ON");
+    }
+    
     void SetOutlineKeyword(Material material, bool enabled)
     {
         if (enabled)
