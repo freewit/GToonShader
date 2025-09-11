@@ -713,6 +713,7 @@ Shader "Gorgonize/Ultimate Toon Shader - Shadow Fix"
         }
     }
     
-    CustomEditor "AdvancedToonShaderGUI"
+    CustomEditor "Gorgonize.ToonShader.Editor.AdvancedToonShaderGUI"
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }
+
