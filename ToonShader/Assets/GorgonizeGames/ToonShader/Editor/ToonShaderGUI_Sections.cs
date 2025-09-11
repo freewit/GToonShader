@@ -21,9 +21,35 @@ namespace Gorgonize.ToonShader.Editor
         public static void DrawHeader()
         {
             EditorGUILayout.BeginVertical(ToonShaderStyles.sectionStyle);
-            EditorGUILayout.LabelField("⚡ Ultimate Toon Shader - Shadow Fix", ToonShaderStyles.headerStyle);
+
+            // Başlığı ve logoyu ortalamak için yatay bir düzen kullan
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+
+            // Logoyu ölçeklendirerek çiz
+            if (ToonShaderStyles.logoTexture != null)
+            {
+                // Başlık font boyutuna göre dinamik bir logo boyutu belirle
+                // Bu sayede logo her zaman metinle orantılı görünür.
+                float logoSize = ToonShaderStyles.headerStyle.fontSize * 1.8f; 
+                GUILayout.Label(ToonShaderStyles.logoTexture, GUILayout.Width(logoSize), GUILayout.Height(logoSize));
+            }
+            
+            // Başlık metnini çiz
+            GUILayout.Label(" Gorgonize Toon Shader", ToonShaderStyles.headerStyle);
+
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndHorizontal();
+            
+            // Alt başlık
             EditorGUILayout.LabelField("Advanced Shadow Acne & Z-Fighting Solution v2.0", ToonShaderStyles.versionStyle);
             EditorGUILayout.EndVertical();
+
+            // Logo bulunamazsa bir uyarı göster
+            if (ToonShaderStyles.logoTexture == null)
+            {
+                EditorGUILayout.HelpBox("Logo bulunamadı! Lütfen 'GorgonizeLogo.png' dosyanızı 'Assets/.../Editor/Resources' klasörüne ekleyin.", MessageType.Warning);
+            }
         }
 
         public static void DrawBaseProperties(MaterialEditor editor, MaterialProperty color, MaterialProperty map)

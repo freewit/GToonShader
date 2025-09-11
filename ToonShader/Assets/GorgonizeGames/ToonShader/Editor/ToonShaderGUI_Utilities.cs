@@ -144,18 +144,29 @@ namespace Gorgonize.ToonShader.Editor
         public static GUIStyle foldoutStyle;
         public static GUIStyle errorStyle;
         public static GUIStyle successStyle;
+        public static Texture2D logoTexture; // Logo için Texture2D alanı
         private static bool isInitialized = false;
 
         public static void Initialize()
         {
             if (isInitialized) return;
 
-            headerStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 20, alignment = TextAnchor.MiddleCenter, normal = { textColor = new Color(0.9f, 0.7f, 0.3f, 1f) } };
+            headerStyle = new GUIStyle(EditorStyles.boldLabel) 
+            { 
+                fontSize = 20, 
+                alignment = TextAnchor.MiddleCenter, 
+                normal = { textColor = new Color(0.9f, 0.7f, 0.3f, 1f) },
+                wordWrap = true // Yazının kaybolmasını engellemek için
+            };
             versionStyle = new GUIStyle(EditorStyles.label) { fontSize = 12, alignment = TextAnchor.MiddleCenter, normal = { textColor = new Color(0.7f, 0.7f, 0.7f, 1f) }, fontStyle = FontStyle.Italic };
             sectionStyle = new GUIStyle(GUI.skin.box) { padding = new RectOffset(8, 8, 4, 4), margin = new RectOffset(0, 0, 2, 2) };
             foldoutStyle = new GUIStyle(EditorStyles.foldout) { fontSize = 13, fontStyle = FontStyle.Bold };
             errorStyle = new GUIStyle(EditorStyles.label) { normal = { textColor = Color.red }, fontSize = 11, wordWrap = true };
             successStyle = new GUIStyle(EditorStyles.label) { normal = { textColor = Color.green }, fontSize = 11, wordWrap = true };
+            
+            // Logoyu Resources klasöründen yükle
+            logoTexture = Resources.Load<Texture2D>("GorgonizeLogo");
+
             isInitialized = true;
         }
     }
@@ -194,4 +205,5 @@ namespace Gorgonize.ToonShader.Editor
         }
     }
 }
+
 

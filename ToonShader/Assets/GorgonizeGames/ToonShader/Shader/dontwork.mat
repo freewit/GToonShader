@@ -79,32 +79,32 @@ Material:
     - _OcclusionStrength: 1
     - _OutlineFadeEnd: 30
     - _OutlineFadeStart: 20
-    - _OutlineWidth: 3.61
+    - _OutlineWidth: 7.45
     - _ReceiveShadows: 1
-    - _RimIntensity: 1.77
-    - _RimOffset: -0.29
-    - _RimPower: 4
+    - _RimIntensity: 1.9
+    - _RimOffset: -0.53
+    - _RimPower: 0.63
     - _ShadowBias: 0.005
     - _ShadowColorBlend: 0.528
-    - _ShadowDepthBias: 0.1
+    - _ShadowDepthBias: 0.01
     - _ShadowDistanceFade: 0.8
     - _ShadowIntensity: 1
     - _ShadowMode: 0
-    - _ShadowNormalBias: 1.8
-    - _ShadowOffset: -0.19
+    - _ShadowNormalBias: 0.86
+    - _ShadowOffset: 0.17
     - _ShadowSharpness: 0.01
     - _ShadowSlopeBias: 1
     - _ShadowSmoothing: 0.02
     - _ShadowSmoothness: 0
     - _ShadowSoftness: 0.05
-    - _ShadowSteps: 5.45
+    - _ShadowSteps: 5.66
     - _ShadowThreshold: 0.519
     - _SimpleSmooth: 0
-    - _SpecularSize: 0.848
-    - _SpecularSmoothness: 0.771
-    - _SpecularSteps: 1.12
+    - _SpecularSize: 0.911
+    - _SpecularSmoothness: 0.759
+    - _SpecularSteps: 4.56
     - _SubsurfaceDistortion: 0.2
-    - _SubsurfaceIntensity: 0.5
+    - _SubsurfaceIntensity: 0.42
     - _SubsurfacePower: 1
     - _ToonNormalBias: 0.58
     - _ToonShadowBias: 0.0006
@@ -118,12 +118,12 @@ Material:
     - _ZBias: 0.0001
     m_Colors:
     - _BandedShadowColor: {r: 0.6, g: 0.6, b: 0.8, a: 1}
-    - _BaseColor: {r: 1, g: 0.9058824, b: 0.5921569, a: 1}
+    - _BaseColor: {r: 0.16642934, g: 0.6415094, b: 0.6329917, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
-    - _RimColor: {r: 0.98823535, g: 0.70980394, b: 0.23137257, a: 1}
-    - _ShadowColor: {r: 0.7058824, g: 0.32156864, b: 0.3254902, a: 1}
-    - _SpecularColor: {r: 1, g: 0.9058824, b: 0.5921569, a: 1}
+    - _OutlineColor: {r: 0.36078432, g: 0.41039598, b: 0.7529412, a: 1}
+    - _RimColor: {r: 0.35970533, g: 0.09077963, b: 0.3773585, a: 1}
+    - _ShadowColor: {r: 0.3679245, g: 0.08503916, b: 0.3670809, a: 1}
+    - _SpecularColor: {r: 0, g: 1, b: 0.9616327, a: 1}
     - _SubsurfaceColor: {r: 1, g: 0.39999998, b: 0.39999998, a: 1}
     - _WindDirection: {r: 1, g: 0, b: 1, a: 0}
   m_BuildTextureStacks: []

@@ -1,4 +1,4 @@
-Shader "Gorgonize/Ultimate Toon Shader - Shadow Fix"
+Shader "Gorgonize/Gorgonize Toon Shader"
 {
     Properties
     {
