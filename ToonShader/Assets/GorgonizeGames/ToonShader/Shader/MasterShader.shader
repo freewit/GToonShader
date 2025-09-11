@@ -119,6 +119,25 @@ Shader "Gorgonize/Ultimate Toon Shader - Shadow Fix"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
             
+            // Manual LerpWhiteTo fonksiyonu tanımları - URP 17.0.4 uyumluluğu için
+            half LerpWhiteTo(half b, half t)
+            {
+                half oneMinusT = 1.0 - t;
+                return oneMinusT + b * t;
+            }
+
+            half3 LerpWhiteTo(half3 b, half t)
+            {
+                half oneMinusT = 1.0 - t;
+                return half3(oneMinusT, oneMinusT, oneMinusT) + b * t;
+            }
+
+            half4 LerpWhiteTo(half4 b, half t)
+            {
+                half oneMinusT = 1.0 - t;
+                return half4(oneMinusT, oneMinusT, oneMinusT, oneMinusT) + b * t;
+            }
+            
             struct Attributes
             {
                 float4 positionOS   : POSITION;
@@ -384,7 +403,7 @@ Shader "Gorgonize/Ultimate Toon Shader - Shadow Fix"
                 toonLighting *= shadowAttenuation;
                 #endif
                 
-                // Apply shadow color
+                // Apply shadow color using lerp instead of LerpWhiteTo
                 half3 shadowTint = lerp(_ShadowColor.rgb, half3(1,1,1), toonLighting);
                 shadowTint = lerp(half3(1,1,1), shadowTint, _ShadowIntensity);
                 
@@ -523,6 +542,25 @@ Shader "Gorgonize/Ultimate Toon Shader - Shadow Fix"
             // Enhanced shadow caster keywords
             #pragma shader_feature_local _USEPANCAKING_ON
             #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
+            
+            // LerpWhiteTo fonksiyonu tanımları - include'lardan ÖNCE
+            half LerpWhiteTo(half b, half t)
+            {
+                half oneMinusT = 1.0 - t;
+                return oneMinusT + b * t;
+            }
+
+            half3 LerpWhiteTo(half3 b, half t)
+            {
+                half oneMinusT = 1.0 - t;
+                return half3(oneMinusT, oneMinusT, oneMinusT) + b * t;
+            }
+
+            half4 LerpWhiteTo(half4 b, half t)
+            {
+                half oneMinusT = 1.0 - t;
+                return half4(oneMinusT, oneMinusT, oneMinusT, oneMinusT) + b * t;
+            }
             
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
