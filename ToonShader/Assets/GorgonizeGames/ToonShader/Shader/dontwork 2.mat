@@ -15,6 +15,7 @@ Material:
   - _ENABLEADDITIONALLIGHTS_ON
   - _ENABLEHIGHLIGHTS_ON
   - _ENABLEOUTLINE_ON
+  - _ENABLERIM_ON
   - _LIGHTINGMODE_STEPPED
   - _RECEIVESHADOWS_ON
   m_InvalidKeywords:
@@ -71,6 +72,8 @@ Material:
     - _EnableAdditionalLights: 1
     - _EnableHighlights: 1
     - _EnableOutline: 1
+    - _EnableRim: 1
+    - _EnableSubsurface: 0
     - _EnableWind: 0
     - _LightFalloff: 1
     - _LightingMode: 0

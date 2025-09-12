@@ -605,21 +605,30 @@ Shader "Gorgonize/Gorgonize Toon Shader"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-                
-                float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
-                float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
-                
-                positionWS += normalWS * _OutlineWidth * 0.01;
-                output.positionCS = TransformWorldToHClip(positionWS);
+
+                #if defined(_ENABLEOUTLINE_ON)
+                    float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+                    
+                    positionWS += normalWS * _OutlineWidth * 0.01;
+                    output.positionCS = TransformWorldToHClip(positionWS);
+                #else
+                    output.positionCS = float4(0,0,0,0);
+                #endif
                 
                 return output;
             }
             
             half4 fragOutline(VaryingsOutline input) : SV_Target
             {
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                return _OutlineColor;
+                #if defined(_ENABLEOUTLINE_ON)
+                    UNITY_SETUP_INSTANCE_ID(input);
+                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                    return _OutlineColor;
+                #else
+                    discard;
+                    return half4(0,0,0,0);
+                #endif
             }
             ENDHLSL
         }

@@ -13,7 +13,8 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _ENABLEADDITIONALLIGHTS_ON
-  - _ENABLEHIGHLIGHTS_ON
+  - _ENABLEOUTLINE_ON
+  - _ENABLESUBSURFACE_ON
   - _LIGHTINGMODE_STEPPED
   - _RECEIVESHADOWS_ON
   m_InvalidKeywords:
@@ -66,8 +67,10 @@ Material:
     - _DetailStrength: 1
     - _EmissionIntensity: 0
     - _EnableAdditionalLights: 1
-    - _EnableHighlights: 1
-    - _EnableOutline: 0
+    - _EnableHighlights: 0
+    - _EnableOutline: 1
+    - _EnableRim: 0
+    - _EnableSubsurface: 1
     - _EnableWind: 0
     - _LightFalloff: 1.65
     - _LightingMode: 0
@@ -102,9 +105,9 @@ Material:
     - _SpecularSize: 0.903
     - _SpecularSmoothness: 1
     - _SpecularSteps: 1
-    - _SubsurfaceDistortion: 2
-    - _SubsurfaceIntensity: 0
-    - _SubsurfacePower: 0.1
+    - _SubsurfaceDistortion: 0
+    - _SubsurfaceIntensity: 0.71
+    - _SubsurfacePower: 4.17
     - _ToonNormalBias: 0.58
     - _ToonShadowBias: 0.0006
     - _ToonSteps: 2.58
