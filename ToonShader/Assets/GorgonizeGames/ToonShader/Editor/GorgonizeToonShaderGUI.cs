@@ -22,9 +22,6 @@ namespace Gorgonize.ToonShader.Editor
             
             ToonShaderSections.DrawLightingSection(materialEditor, props);
             EditorGUILayout.Space(3);
-
-            ToonShaderSections.DrawAdvancedShadowBiasSection(materialEditor, props);
-            EditorGUILayout.Space(3);
             
             ToonShaderSections.DrawHighlightsSection(materialEditor, props);
             EditorGUILayout.Space(3);
@@ -54,4 +51,3 @@ namespace Gorgonize.ToonShader.Editor
         }
     }
 }
-

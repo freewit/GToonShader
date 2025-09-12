@@ -22,14 +22,6 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty shadowOffset;
         public MaterialProperty occlusionStrength;
         
-        // Advanced Shadow
-        public MaterialProperty shadowDepthBias;
-        public MaterialProperty shadowNormalBias;
-        public MaterialProperty shadowSlopeBias;
-        public MaterialProperty shadowDistanceFade;
-        public MaterialProperty usePancaking;
-        public MaterialProperty useAdaptiveBias;
-
         // Highlights
         public MaterialProperty specularColor;
         public MaterialProperty specularSize;
@@ -92,12 +84,6 @@ namespace Gorgonize.ToonShader.Editor
                     case "_ShadowIntensity": shadowIntensity = prop; break;
                     case "_ShadowOffset": shadowOffset = prop; break;
                     case "_OcclusionStrength": occlusionStrength = prop; break;
-                    case "_ShadowDepthBias": shadowDepthBias = prop; break;
-                    case "_ShadowNormalBias": shadowNormalBias = prop; break;
-                    case "_ShadowSlopeBias": shadowSlopeBias = prop; break;
-                    case "_ShadowDistanceFade": shadowDistanceFade = prop; break;
-                    case "_UsePancaking": usePancaking = prop; break;
-                    case "_UseAdaptiveBias": useAdaptiveBias = prop; break;
                     case "_SpecularColor": specularColor = prop; break;
                     case "_SpecularSize": specularSize = prop; break;
                     case "_SpecularSmoothness": specularSmoothness = prop; break;
@@ -190,12 +176,6 @@ namespace Gorgonize.ToonShader.Editor
             }
         }
     
-        public static void SetAdvancedShadowKeywords(Material material, bool adaptiveBias, bool pancaking)
-        {
-            SetKeyword(material, "_USEADAPTIVEBIAS_ON", adaptiveBias);
-            SetKeyword(material, "_USEPANCAKING_ON", pancaking);
-        }
-    
         public static void SetKeyword(Material material, string keyword, bool enabled)
         {
             if (enabled)
@@ -205,5 +185,3 @@ namespace Gorgonize.ToonShader.Editor
         }
     }
 }
-
-

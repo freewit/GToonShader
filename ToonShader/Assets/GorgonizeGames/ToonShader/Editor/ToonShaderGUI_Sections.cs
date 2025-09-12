@@ -9,7 +9,6 @@ namespace Gorgonize.ToonShader.Editor
     public static class ToonShaderSections
     {
         private static bool showLighting = true;
-        private static bool showAdvancedShadowBias = false;
         private static bool showHighlights = false;
         private static bool showRim = false;
         private static bool showAdvanced = false;
@@ -89,37 +88,6 @@ namespace Gorgonize.ToonShader.Editor
                 editor.RangeProperty(props.shadowIntensity, "Shadow Intensity");
                 editor.RangeProperty(props.shadowOffset, "Shadow Offset");
                 editor.RangeProperty(props.occlusionStrength, "Occlusion Strength");
-            }
-            EditorGUILayout.EndVertical();
-        }
-        
-        public static void DrawAdvancedShadowBiasSection(MaterialEditor editor, ToonShaderProperties props)
-        {
-            EditorGUILayout.BeginVertical(ToonShaderStyles.sectionStyle);
-            showAdvancedShadowBias = EditorGUILayout.Foldout(showAdvancedShadowBias, "🛠️ Advanced Shadow Fix (Anti Z-Fighting)", ToonShaderStyles.foldoutStyle);
-            if (showAdvancedShadowBias)
-            {
-                EditorGUILayout.HelpBox("Bu gelişmiş ayarlar Z-fighting ve shadow acne problemlerini çözer. Değerleri kademeli olarak artırın.", MessageType.Info);
-
-                EditorGUI.BeginChangeCheck();
-                bool adaptive = EditorGUILayout.Toggle(new GUIContent("Use Adaptive Bias", "Yüzey açısına göre otomatik bias ayarı"), props.useAdaptiveBias.floatValue > 0.5f);
-                bool pancaking = EditorGUILayout.Toggle(new GUIContent("Use Shadow Pancaking", "Arka yüzlerdeki shadow acne'yi önler"), props.usePancaking.floatValue > 0.5f);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    props.useAdaptiveBias.floatValue = adaptive ? 1f : 0f;
-                    props.usePancaking.floatValue = pancaking ? 1f : 0f;
-                    ToonShaderKeywords.SetAdvancedShadowKeywords(editor.target as Material, adaptive, pancaking);
-                }
-
-                EditorGUILayout.Space(5);
-                editor.RangeProperty(props.shadowDepthBias, "Shadow Depth Bias");
-                EditorGUILayout.LabelField("• Düz yüzeylerdeki shadow acne'yi düzeltir", EditorStyles.miniLabel);
-                editor.RangeProperty(props.shadowNormalBias, "Shadow Normal Bias");
-                EditorGUILayout.LabelField("• Kavisli yüzeylerdeki shadow acne'yi düzeltir", EditorStyles.miniLabel);
-                editor.RangeProperty(props.shadowSlopeBias, "Shadow Slope Bias");
-                EditorGUILayout.LabelField("• Eğimli yüzeylerdeki problemleri çözer", EditorStyles.miniLabel);
-                editor.RangeProperty(props.shadowDistanceFade, "Shadow Distance Fade");
-                EditorGUILayout.LabelField("• Uzak nesnelerde gölgeleri yumuşatır", EditorStyles.miniLabel);
             }
             EditorGUILayout.EndVertical();
         }
@@ -273,4 +241,3 @@ namespace Gorgonize.ToonShader.Editor
         }
     }
 }
-
