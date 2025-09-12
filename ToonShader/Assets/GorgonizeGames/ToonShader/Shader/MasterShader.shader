@@ -6,9 +6,9 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
         _BaseMap ("Base Texture", 2D) = "white" {}
         
-        // Header 'Shadow System' olarak güncellendi ve tüm gölge özellikleri tek başlık altına toplandı.
         [Header(Shadow System)]
         [KeywordEnum(Stepped, Smooth, Ramp)] _LightingMode ("Lighting Mode", Float) = 0
+        [Toggle(_TINT_SHADOW_ON_BASE)] _TintShadowOnBase ("Tint On Full Object", Float) = 0
         _ShadowSteps ("Shadow Steps", Range(2, 8)) = 3
         _ShadowSmoothness ("Shadow Smoothness", Range(0, 1)) = 0.1
         _ShadowRamp ("Shadow Ramp", 2D) = "white" {} [NoScaleOffset]
@@ -92,6 +92,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             #pragma shader_feature_local _ENABLERIM_ON
             #pragma shader_feature_local _ENABLESUBSURFACE_ON
             #pragma shader_feature_local _LIGHTINGMODE_STEPPED _LIGHTINGMODE_SMOOTH _LIGHTINGMODE_RAMP
+            #pragma shader_feature_local _TINT_SHADOW_ON_BASE
             #pragma shader_feature_local _ENABLEOUTLINE_ON
             #pragma shader_feature_local _ENABLEWIND_ON
             #pragma shader_feature_local _RECEIVESHADOWS_ON
@@ -173,6 +174,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
                 half4 _BaseColor;
                 
                 // Lighting
+                half _TintShadowOnBase;
                 half _ShadowSteps;
                 half _ShadowSmoothness;
                 half4 _ShadowColor;
@@ -286,7 +288,6 @@ Shader "Gorgonize/Gorgonize Toon Shader"
                 #endif
             }
             
-            // Advanced toon lighting calculation with enhanced shadow handling
             half3 CalculateToonLighting(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half shadowAttenuation, float3 worldPos)
             {
                 half NdotL = dot(normal, lightDir);
@@ -297,7 +298,6 @@ Shader "Gorgonize/Gorgonize Toon Shader"
                 half toonLighting = 0;
                 
                 #if defined(_LIGHTINGMODE_STEPPED)
-                    // Stepped lighting
                     toonLighting = floor(rawNdotL * _ShadowSteps) / _ShadowSteps;
                     if(_ShadowSmoothness > 0.01)
                     {
@@ -310,41 +310,35 @@ Shader "Gorgonize/Gorgonize Toon Shader"
                             toonLighting = lerp(toonLighting, stepThreshold, smoothStep);
                         }
                     }
-                    
                 #elif defined(_LIGHTINGMODE_SMOOTH)
-                    // Smooth toon lighting
                     toonLighting = smoothstep(0.1, 0.9, rawNdotL);
                     if(_ShadowSmoothness < 0.99)
                     {
                         half stepped = floor(rawNdotL * _ShadowSteps) / _ShadowSteps;
                         toonLighting = lerp(stepped, toonLighting, _ShadowSmoothness);
                     }
-                    
                 #elif defined(_LIGHTINGMODE_RAMP)
-                    // Ramp-based lighting
                     half3 rampSample = SAMPLE_TEXTURE2D(_ShadowRamp, sampler_ShadowRamp, half2(rawNdotL, 0.5)).rgb;
-                    toonLighting = dot(rampSample, half3(0.299, 0.587, 0.114)); // Luminance
+                    toonLighting = dot(rampSample, half3(0.299, 0.587, 0.114));
                 #endif
                 
-                // Apply enhanced shadow with PCF
                 #ifdef _RECEIVESHADOWS_ON
                 toonLighting *= shadowAttenuation;
                 #endif
-                
-                // YENİ GÖLGE RENK HESAPLAMASI
-                // Son renk, aydınlık ve gölgeli renk arasında bir karışımdır.
-                // Gölgeli renk, temel ışık renginin gölge rengimizle tonlanmasıdır.
-                half3 litColorContribution = lightColor;
-                half3 shadowColorContribution = lightColor * _ShadowColor.rgb;
-                
-                // Aydınlık ve gölgeli arasında toon aydınlatma faktörüne göre harmanla
-                half3 blendedColor = lerp(shadowColorContribution, litColorContribution, toonLighting);
-                
-                // Yoğunluk, gölge renginin sonucu ne kadar etkilediğini kontrol eder.
-                // 0 yoğunlukta, tamamen aydınlık rengi elde ederiz. 1'de ise tam gölge karışımını.
-                half3 finalToonColor = lerp(litColorContribution, blendedColor, _ShadowIntensity);
-    
-                return finalToonColor;
+
+                // HATA DÜZELTMESİ: Checkbox'a göre gölge hesaplaması yeniden düzenlendi.
+                #if defined(_TINT_SHADOW_ON_BASE)
+                    // Checkbox AÇIK: Gölge rengi, aydınlık alanları da hafifçe etkiler.
+                    half3 shadowTint = lerp(_ShadowColor.rgb, half3(1,1,1), toonLighting);
+                    shadowTint = lerp(half3(1,1,1), shadowTint, _ShadowIntensity);
+                    return lightColor * shadowTint;
+                #else
+                    // Checkbox KAPALI: Gölge rengi sadece gölgeli alanları etkiler.
+                    half3 finalLight = lightColor * toonLighting;
+                    half shadowAmount = 1.0 - toonLighting;
+                    finalLight.rgb = lerp(finalLight.rgb, _ShadowColor.rgb, shadowAmount * _ShadowIntensity);
+                    return finalLight;
+                #endif
             }
             
             // Toon specular highlights
@@ -645,3 +639,4 @@ Shader "Gorgonize/Gorgonize Toon Shader"
     CustomEditor "Gorgonize.ToonShader.Editor.AdvancedToonShaderGUI"
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }
+

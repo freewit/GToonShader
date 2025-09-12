@@ -14,6 +14,8 @@ namespace Gorgonize.ToonShader.Editor
 
         // Lighting
         public MaterialProperty lightingMode;
+        // Yeni özellik eklendi
+        public MaterialProperty tintShadowOnBase;
         public MaterialProperty shadowSteps;
         public MaterialProperty shadowSmoothness;
         public MaterialProperty shadowRamp;
@@ -80,6 +82,8 @@ namespace Gorgonize.ToonShader.Editor
                     case "_BaseColor": baseColor = prop; break;
                     case "_BaseMap": baseMap = prop; break;
                     case "_LightingMode": lightingMode = prop; break;
+                    // Yeni özellik ataması
+                    case "_TintShadowOnBase": tintShadowOnBase = prop; break;
                     case "_ShadowSteps": shadowSteps = prop; break;
                     case "_ShadowSmoothness": shadowSmoothness = prop; break;
                     case "_ShadowRamp": shadowRamp = prop; break;
@@ -191,4 +195,3 @@ namespace Gorgonize.ToonShader.Editor
         }
     }
 }
-

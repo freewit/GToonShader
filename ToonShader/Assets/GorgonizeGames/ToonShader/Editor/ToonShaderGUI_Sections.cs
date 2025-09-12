@@ -100,12 +100,29 @@ namespace Gorgonize.ToonShader.Editor
                 EditorGUILayout.Space();
 
                 // --- Grup 3: Gölge Görünümü (Shadow Appearance) ---
-                EditorGUILayout.LabelField("Shadow Appearance", EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
-                editor.ColorProperty(props.shadowColor, "Color");
-                editor.RangeProperty(props.shadowIntensity, "Intensity");
+                // Bu grup, isteğin üzerine sadece Stepped ve Smooth modlarında gösterilecek şekilde güncellendi.
+                if (mode < 2)
+                {
+                    EditorGUILayout.LabelField("Shadow Appearance", EditorStyles.boldLabel);
+                    EditorGUI.indentLevel++;
+                    editor.ColorProperty(props.shadowColor, "Color");
+                    editor.RangeProperty(props.shadowIntensity, "Intensity");
+                    
+                    // Yeni Checkbox eklendi
+                    EditorGUI.BeginChangeCheck();
+                    bool tintOnBase = EditorGUILayout.Toggle("Tint On Full Object", props.tintShadowOnBase.floatValue > 0.5f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        props.tintShadowOnBase.floatValue = tintOnBase ? 1f : 0f;
+                        ToonShaderKeywords.SetKeyword(editor.target as Material, "_TINT_SHADOW_ON_BASE", tintOnBase);
+                    }
+                    
+                    EditorGUI.indentLevel--;
+                    EditorGUILayout.Space();
+                }
+
+                // Occlusion Strength, tüm modları etkilediği için ayrı olarak gösteriliyor.
                 editor.RangeProperty(props.occlusionStrength, "Occlusion Strength");
-                EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndVertical();
         }
@@ -298,3 +315,4 @@ namespace Gorgonize.ToonShader.Editor
         }
     }
 }
+
