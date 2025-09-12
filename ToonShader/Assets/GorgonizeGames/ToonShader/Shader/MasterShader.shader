@@ -19,6 +19,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _OcclusionStrength ("Occlusion Strength", Range(0, 1)) = 1
         
         [Header(Highlight System)]
+        [Toggle] _EnableHighlights ("Enable Highlights", Float) = 1
         _SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
         _SpecularSize ("Specular Size", Range(0, 1)) = 0.1
         _SpecularSmoothness ("Specular Smoothness", Range(0, 1)) = 0.5
@@ -26,6 +27,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         
         
         [Header(Rim Lighting)]
+        [Toggle] _EnableRim ("Enable Rim Lighting", Float) = 1
         _RimColor ("Rim Color", Color) = (1, 1, 1, 1)
         _RimPower ("Rim Power", Range(0, 10)) = 2
         _RimIntensity ("Rim Intensity", Range(0, 3)) = 1
@@ -44,6 +46,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _DetailStrength ("Detail Strength", Range(0, 2)) = 1
         
         [Header(Subsurface Scattering)]
+        [Toggle] _EnableSubsurface ("Enable Subsurface", Float) = 0
         _SubsurfaceColor ("Subsurface Color", Color) = (1, 0.4, 0.25, 1)
         _SubsurfaceIntensity ("Subsurface Intensity", Range(0, 2)) = 0
         _SubsurfaceDistortion ("Subsurface Distortion", Range(0, 2)) = 1
@@ -86,6 +89,9 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             #pragma fragment frag
             
             // Feature keywords
+            #pragma shader_feature_local _ENABLEHIGHLIGHTS_ON
+            #pragma shader_feature_local _ENABLERIM_ON
+            #pragma shader_feature_local _ENABLESUBSURFACE_ON
             #pragma shader_feature_local _LIGHTINGMODE_STEPPED _LIGHTINGMODE_SMOOTH _LIGHTINGMODE_RAMP
             #pragma shader_feature_local _ENABLEOUTLINE_ON
             #pragma shader_feature_local _ENABLEWIND_ON
@@ -404,9 +410,22 @@ Shader "Gorgonize/Gorgonize Toon Shader"
                 mainLight.shadowAttenuation = shadowAttenuation;
                 
                 half3 diffuseColor = CalculateToonLighting(mainLight.color, mainLight.direction, normalWS, viewDirWS, shadowAttenuation, input.positionWS);
-                half3 specularColor = CalculateToonSpecular(mainLight.color, mainLight.direction, normalWS, viewDirWS);
-                half3 rimColor = CalculateRimLight(normalWS, viewDirWS, mainLight.color);
-                half3 subsurfaceColor = CalculateSubsurface(mainLight.color, mainLight.direction, normalWS, viewDirWS);
+                
+                half3 specularColor = half3(0,0,0);
+                #if defined(_ENABLEHIGHLIGHTS_ON)
+                specularColor = CalculateToonSpecular(mainLight.color, mainLight.direction, normalWS, viewDirWS);
+                #endif
+                
+                half3 rimColor = half3(0,0,0);
+                #if defined(_ENABLERIM_ON)
+                rimColor = CalculateRimLight(normalWS, viewDirWS, mainLight.color);
+                #endif
+
+                half3 subsurfaceColor = half3(0,0,0);
+                #if defined(_ENABLESUBSURFACE_ON)
+                subsurfaceColor = CalculateSubsurface(mainLight.color, mainLight.direction, normalWS, viewDirWS);
+                #endif
+
                 // Additional lights
                 #ifdef _ENABLEADDITIONALLIGHTS_ON
                 uint pixelLightCount = GetAdditionalLightsCount();
@@ -414,8 +433,12 @@ Shader "Gorgonize/Gorgonize Toon Shader"
                 {
                     Light light = GetAdditionalLight(lightIndex, input.positionWS);
                     diffuseColor += CalculateToonLighting(light.color, light.direction, normalWS, viewDirWS, light.shadowAttenuation, input.positionWS);
+                    #if defined(_ENABLEHIGHLIGHTS_ON)
                     specularColor += CalculateToonSpecular(light.color, light.direction, normalWS, viewDirWS);
+                    #endif
+                    #if defined(_ENABLERIM_ON)
                     rimColor += CalculateRimLight(normalWS, viewDirWS, light.color);
+                    #endif
                 }
                 #endif
                 
@@ -605,3 +628,4 @@ Shader "Gorgonize/Gorgonize Toon Shader"
     CustomEditor "Gorgonize.ToonShader.Editor.AdvancedToonShaderGUI"
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }
+

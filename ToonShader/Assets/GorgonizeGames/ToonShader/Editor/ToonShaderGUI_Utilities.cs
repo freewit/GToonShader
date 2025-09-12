@@ -23,12 +23,14 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty occlusionStrength;
         
         // Highlights
+        public MaterialProperty enableHighlights;
         public MaterialProperty specularColor;
         public MaterialProperty specularSize;
         public MaterialProperty specularSmoothness;
         public MaterialProperty specularSteps;
         
         // Rim
+        public MaterialProperty enableRim;
         public MaterialProperty rimColor;
         public MaterialProperty rimPower;
         public MaterialProperty rimIntensity;
@@ -45,6 +47,7 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty detailStrength;
         
         // Subsurface
+        public MaterialProperty enableSubsurface;
         public MaterialProperty subsurfaceColor;
         public MaterialProperty subsurfaceIntensity;
         public MaterialProperty subsurfaceDistortion;
@@ -84,10 +87,12 @@ namespace Gorgonize.ToonShader.Editor
                     case "_ShadowIntensity": shadowIntensity = prop; break;
                     case "_ShadowOffset": shadowOffset = prop; break;
                     case "_OcclusionStrength": occlusionStrength = prop; break;
+                    case "_EnableHighlights": enableHighlights = prop; break;
                     case "_SpecularColor": specularColor = prop; break;
                     case "_SpecularSize": specularSize = prop; break;
                     case "_SpecularSmoothness": specularSmoothness = prop; break;
                     case "_SpecularSteps": specularSteps = prop; break;
+                    case "_EnableRim": enableRim = prop; break;
                     case "_RimColor": rimColor = prop; break;
                     case "_RimPower": rimPower = prop; break;
                     case "_RimIntensity": rimIntensity = prop; break;
@@ -100,6 +105,7 @@ namespace Gorgonize.ToonShader.Editor
                     case "_DetailMap": detailMap = prop; break;
                     case "_DetailNormalMap": detailNormalMap = prop; break;
                     case "_DetailStrength": detailStrength = prop; break;
+                    case "_EnableSubsurface": enableSubsurface = prop; break;
                     case "_SubsurfaceColor": subsurfaceColor = prop; break;
                     case "_SubsurfaceIntensity": subsurfaceIntensity = prop; break;
                     case "_SubsurfaceDistortion": subsurfaceDistortion = prop; break;
@@ -185,3 +191,4 @@ namespace Gorgonize.ToonShader.Editor
         }
     }
 }
+

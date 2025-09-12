@@ -9,10 +9,10 @@ namespace Gorgonize.ToonShader.Editor
     public static class ToonShaderSections
     {
         private static bool showLighting = true;
-        private static bool showHighlights = false;
-        private static bool showRim = false;
+        private static bool showHighlights = true;
+        private static bool showRim = true;
         private static bool showAdvanced = false;
-        private static bool showSubsurface = false;
+        private static bool showSubsurface = true;
         private static bool showOutline = false;
         private static bool showWind = false;
         private static bool showPerformance = false;
@@ -98,10 +98,23 @@ namespace Gorgonize.ToonShader.Editor
              showHighlights = EditorGUILayout.Foldout(showHighlights, "✨ Highlight System", ToonShaderStyles.foldoutStyle);
              if(showHighlights)
              {
-                editor.ColorProperty(props.specularColor, "Specular Color");
-                editor.RangeProperty(props.specularSize, "Specular Size");
-                editor.RangeProperty(props.specularSmoothness, "Specular Smoothness");
-                editor.RangeProperty(props.specularSteps, "Specular Steps");
+                EditorGUI.BeginChangeCheck();
+                bool enabled = EditorGUILayout.Toggle("Enable Highlights", props.enableHighlights.floatValue > 0.5f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    props.enableHighlights.floatValue = enabled ? 1f : 0f;
+                    ToonShaderKeywords.SetKeyword(editor.target as Material, "_ENABLEHIGHLIGHTS_ON", enabled);
+                }
+
+                if(enabled)
+                {
+                    EditorGUI.indentLevel++;
+                    editor.ColorProperty(props.specularColor, "Specular Color");
+                    editor.RangeProperty(props.specularSize, "Specular Size");
+                    editor.RangeProperty(props.specularSmoothness, "Specular Smoothness");
+                    editor.RangeProperty(props.specularSteps, "Specular Steps");
+                    EditorGUI.indentLevel--;
+                }
              }
              EditorGUILayout.EndVertical();
         }
@@ -112,10 +125,23 @@ namespace Gorgonize.ToonShader.Editor
             showRim = EditorGUILayout.Foldout(showRim, "🌅 Rim Lighting", ToonShaderStyles.foldoutStyle);
             if(showRim)
             {
-                editor.ColorProperty(props.rimColor, "Rim Color");
-                editor.RangeProperty(props.rimPower, "Rim Power");
-                editor.RangeProperty(props.rimIntensity, "Rim Intensity");
-                editor.RangeProperty(props.rimOffset, "Rim Offset");
+                EditorGUI.BeginChangeCheck();
+                bool enabled = EditorGUILayout.Toggle("Enable Rim Lighting", props.enableRim.floatValue > 0.5f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    props.enableRim.floatValue = enabled ? 1f : 0f;
+                    ToonShaderKeywords.SetKeyword(editor.target as Material, "_ENABLERIM_ON", enabled);
+                }
+
+                if(enabled)
+                {
+                    EditorGUI.indentLevel++;
+                    editor.ColorProperty(props.rimColor, "Rim Color");
+                    editor.RangeProperty(props.rimPower, "Rim Power");
+                    editor.RangeProperty(props.rimIntensity, "Rim Intensity");
+                    editor.RangeProperty(props.rimOffset, "Rim Offset");
+                    EditorGUI.indentLevel--;
+                }
             }
             EditorGUILayout.EndVertical();
         }
@@ -146,10 +172,23 @@ namespace Gorgonize.ToonShader.Editor
             showSubsurface = EditorGUILayout.Foldout(showSubsurface, "🔴 Subsurface Scattering", ToonShaderStyles.foldoutStyle);
             if(showSubsurface)
             {
-                 editor.ColorProperty(props.subsurfaceColor, "Subsurface Color");
-                 editor.RangeProperty(props.subsurfaceIntensity, "Intensity");
-                 editor.RangeProperty(props.subsurfaceDistortion, "Distortion");
-                 editor.RangeProperty(props.subsurfacePower, "Power");
+                 EditorGUI.BeginChangeCheck();
+                 bool enabled = EditorGUILayout.Toggle("Enable Subsurface", props.enableSubsurface.floatValue > 0.5f);
+                 if (EditorGUI.EndChangeCheck())
+                 {
+                     props.enableSubsurface.floatValue = enabled ? 1f : 0f;
+                     ToonShaderKeywords.SetKeyword(editor.target as Material, "_ENABLESUBSURFACE_ON", enabled);
+                 }
+
+                 if(enabled)
+                 {
+                    EditorGUI.indentLevel++;
+                    editor.ColorProperty(props.subsurfaceColor, "Subsurface Color");
+                    editor.RangeProperty(props.subsurfaceIntensity, "Intensity");
+                    editor.RangeProperty(props.subsurfaceDistortion, "Distortion");
+                    editor.RangeProperty(props.subsurfacePower, "Power");
+                    EditorGUI.indentLevel--;
+                 }
             }
             EditorGUILayout.EndVertical();
         }
@@ -241,3 +280,4 @@ namespace Gorgonize.ToonShader.Editor
         }
     }
 }
+

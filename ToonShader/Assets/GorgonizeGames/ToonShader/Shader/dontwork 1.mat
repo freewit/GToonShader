@@ -13,13 +13,14 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _ENABLEADDITIONALLIGHTS_ON
+  - _ENABLEHIGHLIGHTS_ON
   - _ENABLEOUTLINE_ON
   - _LIGHTINGMODE_STEPPED
   - _RECEIVESHADOWS_ON
-  - _USEADAPTIVEBIAS_ON
-  - _USEPANCAKING_ON
   m_InvalidKeywords:
   - _SHADOWMODE_SIMPLE
+  - _USEADAPTIVEBIAS_ON
+  - _USEPANCAKING_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -68,6 +69,7 @@ Material:
     - _DetailStrength: 1
     - _EmissionIntensity: 0
     - _EnableAdditionalLights: 1
+    - _EnableHighlights: 1
     - _EnableOutline: 1
     - _EnableWind: 0
     - _LightFalloff: 1
