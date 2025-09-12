@@ -8,7 +8,8 @@ namespace Gorgonize.ToonShader.Editor
     /// </summary>
     public static class ToonShaderSections
     {
-        private static bool showLighting = true;
+        // 'showLighting' değişkeni 'showShadows' olarak güncellendi.
+        private static bool showShadows = true;
         private static bool showHighlights = true;
         private static bool showRim = true;
         private static bool showAdvanced = false;
@@ -60,34 +61,51 @@ namespace Gorgonize.ToonShader.Editor
             EditorGUILayout.EndVertical();
         }
         
-        public static void DrawLightingSection(MaterialEditor editor, ToonShaderProperties props)
+        // 'DrawLightingSection' metodu, 'DrawShadowSection' olarak yeniden adlandırıldı ve yeniden düzenlendi.
+        public static void DrawShadowSection(MaterialEditor editor, ToonShaderProperties props)
         {
             EditorGUILayout.BeginVertical(ToonShaderStyles.sectionStyle);
-            showLighting = EditorGUILayout.Foldout(showLighting, "🌟 Lighting System", ToonShaderStyles.foldoutStyle);
-            if (showLighting)
+            showShadows = EditorGUILayout.Foldout(showShadows, "👻 Shadow System", ToonShaderStyles.foldoutStyle);
+            if (showShadows)
             {
+                // --- Grup 1: Gölgelendirme Modu ---
+                EditorGUILayout.LabelField("Toon Shading Mode", EditorStyles.boldLabel);
                 EditorGUI.BeginChangeCheck();
                 int mode = (int)props.lightingMode.floatValue;
-                mode = EditorGUILayout.Popup("Lighting Mode", mode, new[] { "Stepped", "Smooth", "Ramp" });
+                
+                // Dropdown yerine butonlu bir toolbar kullanılarak arayüz modernize edildi.
+                mode = GUILayout.Toolbar(mode, new[] { "Stepped", "Smooth", "Ramp" });
+                
                 if (EditorGUI.EndChangeCheck())
                 {
                     props.lightingMode.floatValue = mode;
                     ToonShaderKeywords.SetLightingKeywords(editor.target as Material, mode);
                 }
+                EditorGUILayout.Space();
 
-                if (mode < 2)
+                // --- Grup 2: Gölge Şekli (Shadow Shape) ---
+                EditorGUILayout.LabelField("Shadow Shape", EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                if (mode < 2) // Stepped veya Smooth modu seçiliyse
                 {
-                    editor.RangeProperty(props.shadowSteps, "Shadow Steps");
-                    editor.RangeProperty(props.shadowSmoothness, "Shadow Smoothness");
+                    editor.RangeProperty(props.shadowSteps, "Steps");
+                    editor.RangeProperty(props.shadowSmoothness, "Smoothness");
                 }
-                else
+                else // Ramp modu seçiliyse
                 {
-                    editor.TextureProperty(props.shadowRamp, "Shadow Ramp", false);
+                    editor.TextureProperty(props.shadowRamp, "Ramp Texture", false);
                 }
-                editor.ColorProperty(props.shadowColor, "Shadow Color");
-                editor.RangeProperty(props.shadowIntensity, "Shadow Intensity");
-                editor.RangeProperty(props.shadowOffset, "Shadow Offset");
+                editor.RangeProperty(props.shadowOffset, "Offset");
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+
+                // --- Grup 3: Gölge Görünümü (Shadow Appearance) ---
+                EditorGUILayout.LabelField("Shadow Appearance", EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                editor.ColorProperty(props.shadowColor, "Color");
+                editor.RangeProperty(props.shadowIntensity, "Intensity");
                 editor.RangeProperty(props.occlusionStrength, "Occlusion Strength");
+                EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndVertical();
         }
@@ -280,4 +298,3 @@ namespace Gorgonize.ToonShader.Editor
         }
     }
 }
-

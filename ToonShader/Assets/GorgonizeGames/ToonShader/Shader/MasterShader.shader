@@ -6,13 +6,12 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
         _BaseMap ("Base Texture", 2D) = "white" {}
         
-        [Header(Lighting System)]
+        // Header 'Shadow System' olarak güncellendi ve tüm gölge özellikleri tek başlık altına toplandı.
+        [Header(Shadow System)]
         [KeywordEnum(Stepped, Smooth, Ramp)] _LightingMode ("Lighting Mode", Float) = 0
         _ShadowSteps ("Shadow Steps", Range(2, 8)) = 3
         _ShadowSmoothness ("Shadow Smoothness", Range(0, 1)) = 0.1
         _ShadowRamp ("Shadow Ramp", 2D) = "white" {} [NoScaleOffset]
-        
-        [Header(Shadow Configuration)]
         _ShadowColor ("Shadow Color", Color) = (0.5, 0.5, 0.8, 1)
         _ShadowIntensity ("Shadow Intensity", Range(0, 1)) = 0.5
         _ShadowOffset ("Shadow Offset", Range(-1, 1)) = 0
@@ -332,11 +331,20 @@ Shader "Gorgonize/Gorgonize Toon Shader"
                 toonLighting *= shadowAttenuation;
                 #endif
                 
-                // Apply shadow color using lerp instead of LerpWhiteTo
-                half3 shadowTint = lerp(_ShadowColor.rgb, half3(1,1,1), toonLighting);
-                shadowTint = lerp(half3(1,1,1), shadowTint, _ShadowIntensity);
+                // YENİ GÖLGE RENK HESAPLAMASI
+                // Son renk, aydınlık ve gölgeli renk arasında bir karışımdır.
+                // Gölgeli renk, temel ışık renginin gölge rengimizle tonlanmasıdır.
+                half3 litColorContribution = lightColor;
+                half3 shadowColorContribution = lightColor * _ShadowColor.rgb;
                 
-                return lightColor * toonLighting * shadowTint;
+                // Aydınlık ve gölgeli arasında toon aydınlatma faktörüne göre harmanla
+                half3 blendedColor = lerp(shadowColorContribution, litColorContribution, toonLighting);
+                
+                // Yoğunluk, gölge renginin sonucu ne kadar etkilediğini kontrol eder.
+                // 0 yoğunlukta, tamamen aydınlık rengi elde ederiz. 1'de ise tam gölge karışımını.
+                half3 finalToonColor = lerp(litColorContribution, blendedColor, _ShadowIntensity);
+    
+                return finalToonColor;
             }
             
             // Toon specular highlights
@@ -449,7 +457,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
                 #endif
                 
                 // Combine lighting
-                half3 color = baseColor.rgb * (diffuseColor + ambient * 0.3) + specularColor + rimColor + subsurfaceColor;
+                half3 color = baseColor.rgb * (diffuseColor + ambient * _OcclusionStrength) + specularColor + rimColor + subsurfaceColor;
                 // Emission
                 #ifdef _EMISSION
                 half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).rgb * _EmissionColor.rgb * _EmissionIntensity;
@@ -637,4 +645,3 @@ Shader "Gorgonize/Gorgonize Toon Shader"
     CustomEditor "Gorgonize.ToonShader.Editor.AdvancedToonShaderGUI"
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }
-

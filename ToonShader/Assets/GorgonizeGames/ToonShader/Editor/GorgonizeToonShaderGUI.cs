@@ -20,7 +20,8 @@ namespace Gorgonize.ToonShader.Editor
             ToonShaderSections.DrawBaseProperties(materialEditor, props.baseColor, props.baseMap);
             EditorGUILayout.Space(3);
             
-            ToonShaderSections.DrawLightingSection(materialEditor, props);
+            // 'DrawLightingSection' yerine yeni 'DrawShadowSection' çağrılıyor
+            ToonShaderSections.DrawShadowSection(materialEditor, props);
             EditorGUILayout.Space(3);
             
             ToonShaderSections.DrawHighlightsSection(materialEditor, props);
