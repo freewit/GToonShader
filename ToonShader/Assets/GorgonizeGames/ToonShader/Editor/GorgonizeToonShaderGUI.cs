@@ -3,7 +3,9 @@ using UnityEngine;
 
 namespace Gorgonize.ToonShader.Editor
 {
-    public class AdvancedToonShaderGUI : ShaderGUI
+    // Orijinal 'AdvancedToonShaderGUI' sınıf adını, dosya adıyla eşleşmesi için 'GorgonizeToonShaderGUI' olarak düzelttim.
+    // Bu, Unity'nin özel shader arayüzünü doğru bir şekilde bulmasını sağlar.
+    public class GorgonizeToonShaderGUI : ShaderGUI
     {
         private ToonShaderProperties props;
 
@@ -20,7 +22,6 @@ namespace Gorgonize.ToonShader.Editor
             ToonShaderSections.DrawBaseProperties(materialEditor, props.baseColor, props.baseMap);
             EditorGUILayout.Space(3);
             
-            // 'DrawLightingSection' yerine yeni 'DrawShadowSection' çağrılıyor
             ToonShaderSections.DrawShadowSection(materialEditor, props);
             EditorGUILayout.Space(3);
             
