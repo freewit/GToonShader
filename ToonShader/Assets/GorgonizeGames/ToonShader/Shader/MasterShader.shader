@@ -550,4 +550,5 @@ Shader "Gorgonize/Gorgonize Toon Shader"
     }
     
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
+    CustomEditor "Gorgonize.ToonShader.Editor.GorgonizeToonShaderGUI"
 }
