@@ -14,7 +14,6 @@ namespace Gorgonize.ToonShader.Editor
 
         // Lighting
         public MaterialProperty lightingMode;
-        // Yeni özellik eklendi
         public MaterialProperty tintShadowOnBase;
         public MaterialProperty shadowSteps;
         public MaterialProperty shadowSmoothness;
@@ -73,62 +72,82 @@ namespace Gorgonize.ToonShader.Editor
 
         public ToonShaderProperties(MaterialProperty[] props)
         {
-            // HATA DÜZELTMESİ: 'ShaderGUI.FindProperty' metodunu kullanmak yerine,
-            // koruma seviyesi hatasını önlemek için özellikleri manuel olarak buluyoruz.
-            foreach (var prop in props)
+            // Base properties
+            baseColor = FindProperty("_BaseColor", props);
+            baseMap = FindProperty("_BaseMap", props);
+            
+            // Lighting/Shadow properties
+            lightingMode = FindProperty("_LightingMode", props);
+            tintShadowOnBase = FindProperty("_TintShadowOnBase", props);
+            shadowSteps = FindProperty("_ShadowSteps", props);
+            shadowSmoothness = FindProperty("_ShadowSmoothness", props);
+            shadowRamp = FindProperty("_ShadowRamp", props);
+            shadowColor = FindProperty("_ShadowColor", props);
+            shadowIntensity = FindProperty("_ShadowIntensity", props);
+            shadowOffset = FindProperty("_ShadowOffset", props);
+            occlusionStrength = FindProperty("_OcclusionStrength", props);
+            
+            // Highlights properties
+            enableHighlights = FindProperty("_EnableHighlights", props);
+            specularColor = FindProperty("_SpecularColor", props);
+            specularSize = FindProperty("_SpecularSize", props);
+            specularSmoothness = FindProperty("_SpecularSmoothness", props);
+            specularSteps = FindProperty("_SpecularSteps", props);
+            
+            // Rim properties
+            enableRim = FindProperty("_EnableRim", props);
+            rimColor = FindProperty("_RimColor", props);
+            rimPower = FindProperty("_RimPower", props);
+            rimIntensity = FindProperty("_RimIntensity", props);
+            rimOffset = FindProperty("_RimOffset", props);
+            
+            // Advanced properties
+            normalMap = FindProperty("_NormalMap", props);
+            normalStrength = FindProperty("_NormalStrength", props);
+            emissionMap = FindProperty("_EmissionMap", props);
+            emissionColor = FindProperty("_EmissionColor", props);
+            emissionIntensity = FindProperty("_EmissionIntensity", props);
+            detailMap = FindProperty("_DetailMap", props);
+            detailNormalMap = FindProperty("_DetailNormalMap", props);
+            detailStrength = FindProperty("_DetailStrength", props);
+            
+            // Subsurface properties
+            enableSubsurface = FindProperty("_EnableSubsurface", props);
+            subsurfaceColor = FindProperty("_SubsurfaceColor", props);
+            subsurfaceIntensity = FindProperty("_SubsurfaceIntensity", props);
+            subsurfaceDistortion = FindProperty("_SubsurfaceDistortion", props);
+            subsurfacePower = FindProperty("_SubsurfacePower", props);
+            
+            // Outline properties
+            enableOutline = FindProperty("_EnableOutline", props);
+            outlineColor = FindProperty("_OutlineColor", props);
+            outlineWidth = FindProperty("_OutlineWidth", props);
+            
+            // Wind properties
+            enableWind = FindProperty("_EnableWind", props);
+            windSpeed = FindProperty("_WindSpeed", props);
+            windStrength = FindProperty("_WindStrength", props);
+            windDirection = FindProperty("_WindDirection", props);
+            
+            // Performance properties
+            receiveShadows = FindProperty("_ReceiveShadows", props);
+            enableAdditionalLights = FindProperty("_EnableAdditionalLights", props);
+            lightmapInfluence = FindProperty("_LightmapInfluence", props);
+        }
+
+        private MaterialProperty FindProperty(string name, MaterialProperty[] props)
+        {
+            for (int i = 0; i < props.Length; i++)
             {
-                switch (prop.name)
-                {
-                    case "_BaseColor": baseColor = prop; break;
-                    case "_BaseMap": baseMap = prop; break;
-                    case "_LightingMode": lightingMode = prop; break;
-                    // Yeni özellik ataması
-                    case "_TintShadowOnBase": tintShadowOnBase = prop; break;
-                    case "_ShadowSteps": shadowSteps = prop; break;
-                    case "_ShadowSmoothness": shadowSmoothness = prop; break;
-                    case "_ShadowRamp": shadowRamp = prop; break;
-                    case "_ShadowColor": shadowColor = prop; break;
-                    case "_ShadowIntensity": shadowIntensity = prop; break;
-                    case "_ShadowOffset": shadowOffset = prop; break;
-                    case "_OcclusionStrength": occlusionStrength = prop; break;
-                    case "_EnableHighlights": enableHighlights = prop; break;
-                    case "_SpecularColor": specularColor = prop; break;
-                    case "_SpecularSize": specularSize = prop; break;
-                    case "_SpecularSmoothness": specularSmoothness = prop; break;
-                    case "_SpecularSteps": specularSteps = prop; break;
-                    case "_EnableRim": enableRim = prop; break;
-                    case "_RimColor": rimColor = prop; break;
-                    case "_RimPower": rimPower = prop; break;
-                    case "_RimIntensity": rimIntensity = prop; break;
-                    case "_RimOffset": rimOffset = prop; break;
-                    case "_NormalMap": normalMap = prop; break;
-                    case "_NormalStrength": normalStrength = prop; break;
-                    case "_EmissionMap": emissionMap = prop; break;
-                    case "_EmissionColor": emissionColor = prop; break;
-                    case "_EmissionIntensity": emissionIntensity = prop; break;
-                    case "_DetailMap": detailMap = prop; break;
-                    case "_DetailNormalMap": detailNormalMap = prop; break;
-                    case "_DetailStrength": detailStrength = prop; break;
-                    case "_EnableSubsurface": enableSubsurface = prop; break;
-                    case "_SubsurfaceColor": subsurfaceColor = prop; break;
-                    case "_SubsurfaceIntensity": subsurfaceIntensity = prop; break;
-                    case "_SubsurfaceDistortion": subsurfaceDistortion = prop; break;
-                    case "_SubsurfacePower": subsurfacePower = prop; break;
-                    case "_EnableOutline": enableOutline = prop; break;
-                    case "_OutlineColor": outlineColor = prop; break;
-                    case "_OutlineWidth": outlineWidth = prop; break;
-                    case "_EnableWind": enableWind = prop; break;
-                    case "_WindSpeed": windSpeed = prop; break;
-                    case "_WindStrength": windStrength = prop; break;
-                    case "_WindDirection": windDirection = prop; break;
-                    case "_ReceiveShadows": receiveShadows = prop; break;
-                    case "_EnableAdditionalLights": enableAdditionalLights = prop; break;
-                    case "_LightmapInfluence": lightmapInfluence = prop; break;
-                }
+                if (props[i].name == name)
+                    return props[i];
             }
+            
+            Debug.LogWarning($"Property '{name}' not found in shader!");
+            return null;
         }
     }
-
+    
     /// <summary>
     /// Toon Shader arayüzü için özel GUIStyle'ları yönetir.
     /// </summary>
@@ -140,7 +159,7 @@ namespace Gorgonize.ToonShader.Editor
         public static GUIStyle foldoutStyle;
         public static GUIStyle errorStyle;
         public static GUIStyle successStyle;
-        public static Texture2D logoTexture; // Logo için Texture2D alanı
+        public static Texture2D logoTexture;
         private static bool isInitialized = false;
 
         public static void Initialize()
@@ -152,15 +171,44 @@ namespace Gorgonize.ToonShader.Editor
                 fontSize = 20, 
                 alignment = TextAnchor.MiddleCenter, 
                 normal = { textColor = new Color(0.9f, 0.7f, 0.3f, 1f) },
-                wordWrap = true // Yazının kaybolmasını engellemek için
+                wordWrap = true
             };
-            versionStyle = new GUIStyle(EditorStyles.label) { fontSize = 12, alignment = TextAnchor.MiddleCenter, normal = { textColor = new Color(0.7f, 0.7f, 0.7f, 1f) }, fontStyle = FontStyle.Italic };
-            sectionStyle = new GUIStyle(GUI.skin.box) { padding = new RectOffset(8, 8, 4, 4), margin = new RectOffset(0, 0, 2, 2) };
-            foldoutStyle = new GUIStyle(EditorStyles.foldout) { fontSize = 13, fontStyle = FontStyle.Bold };
-            errorStyle = new GUIStyle(EditorStyles.label) { normal = { textColor = Color.red }, fontSize = 11, wordWrap = true };
-            successStyle = new GUIStyle(EditorStyles.label) { normal = { textColor = Color.green }, fontSize = 11, wordWrap = true };
             
-            // Logoyu Resources klasöründen yükle
+            versionStyle = new GUIStyle(EditorStyles.label) 
+            { 
+                fontSize = 12, 
+                alignment = TextAnchor.MiddleCenter, 
+                normal = { textColor = new Color(0.7f, 0.7f, 0.7f, 1f) }, 
+                fontStyle = FontStyle.Italic 
+            };
+            
+            sectionStyle = new GUIStyle(GUI.skin.box) 
+            { 
+                padding = new RectOffset(8, 8, 4, 4), 
+                margin = new RectOffset(0, 0, 2, 2) 
+            };
+            
+            foldoutStyle = new GUIStyle(EditorStyles.foldout) 
+            { 
+                fontSize = 13, 
+                fontStyle = FontStyle.Bold 
+            };
+            
+            errorStyle = new GUIStyle(EditorStyles.label) 
+            { 
+                normal = { textColor = Color.red }, 
+                fontSize = 11, 
+                wordWrap = true 
+            };
+            
+            successStyle = new GUIStyle(EditorStyles.label) 
+            { 
+                normal = { textColor = Color.green }, 
+                fontSize = 11, 
+                wordWrap = true 
+            };
+            
+            // Logo yükleme
             logoTexture = Resources.Load<Texture2D>("GorgonizeLogo");
 
             isInitialized = true;

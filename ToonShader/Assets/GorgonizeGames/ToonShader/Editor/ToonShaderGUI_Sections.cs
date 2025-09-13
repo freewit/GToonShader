@@ -8,12 +8,11 @@ namespace Gorgonize.ToonShader.Editor
     /// </summary>
     public static class ToonShaderSections
     {
-        // 'showLighting' değişkeni 'showShadows' olarak güncellendi.
         private static bool showShadows = true;
         private static bool showHighlights = true;
         private static bool showRim = true;
         private static bool showAdvanced = false;
-        private static bool showSubsurface = true;
+        private static bool showSubsurface = false;
         private static bool showOutline = false;
         private static bool showWind = false;
         private static bool showPerformance = false;
@@ -22,30 +21,23 @@ namespace Gorgonize.ToonShader.Editor
         {
             EditorGUILayout.BeginVertical(ToonShaderStyles.sectionStyle);
 
-            // Başlığı ve logoyu ortalamak için yatay bir düzen kullan
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
-            // Logoyu ölçeklendirerek çiz
             if (ToonShaderStyles.logoTexture != null)
             {
-                // Başlık font boyutuna göre dinamik bir logo boyutu belirle
-                // Bu sayede logo her zaman metinle orantılı görünür.
                 float logoSize = ToonShaderStyles.headerStyle.fontSize * 1.8f; 
                 GUILayout.Label(ToonShaderStyles.logoTexture, GUILayout.Width(logoSize), GUILayout.Height(logoSize));
             }
             
-            // Başlık metnini çiz
             GUILayout.Label(" Gorgonize Toon Shader", ToonShaderStyles.headerStyle);
 
             GUILayout.FlexibleSpace();
             EditorGUILayout.EndHorizontal();
             
-            // Alt başlık
             EditorGUILayout.LabelField("Advanced Shadow Acne & Z-Fighting Solution v2.0", ToonShaderStyles.versionStyle);
             EditorGUILayout.EndVertical();
 
-            // Logo bulunamazsa bir uyarı göster
             if (ToonShaderStyles.logoTexture == null)
             {
                 EditorGUILayout.HelpBox("Logo bulunamadı! Lütfen 'GorgonizeLogo.png' dosyanızı 'Assets/.../Editor/Resources' klasörüne ekleyin.", MessageType.Warning);
@@ -60,68 +52,57 @@ namespace Gorgonize.ToonShader.Editor
             editor.TextureProperty(map, "Base Texture");
             EditorGUILayout.EndVertical();
         }
-        
-        // 'DrawLightingSection' metodu, 'DrawShadowSection' olarak yeniden adlandırıldı ve yeniden düzenlendi.
+
         public static void DrawShadowSection(MaterialEditor editor, ToonShaderProperties props)
         {
             EditorGUILayout.BeginVertical(ToonShaderStyles.sectionStyle);
-            showShadows = EditorGUILayout.Foldout(showShadows, "👻 Shadow System", ToonShaderStyles.foldoutStyle);
-            if (showShadows)
+            showShadows = EditorGUILayout.Foldout(showShadows, "🌑 Shadow System", ToonShaderStyles.foldoutStyle);
+            if(showShadows)
             {
-                // --- Grup 1: Gölgelendirme Modu ---
-                EditorGUILayout.LabelField("Toon Shading Mode", EditorStyles.boldLabel);
+                // Shadow mode selection
                 EditorGUI.BeginChangeCheck();
-                int mode = (int)props.lightingMode.floatValue;
-                
-                // Dropdown yerine butonlu bir toolbar kullanılarak arayüz modernize edildi.
-                mode = GUILayout.Toolbar(mode, new[] { "Stepped", "Smooth", "Ramp" });
-                
+                int lightingMode = (int)props.lightingMode.floatValue;
+                lightingMode = EditorGUILayout.Popup("Lighting Mode", lightingMode, new string[] {"Stepped", "Smooth", "Ramp"});
                 if (EditorGUI.EndChangeCheck())
                 {
-                    props.lightingMode.floatValue = mode;
-                    ToonShaderKeywords.SetLightingKeywords(editor.target as Material, mode);
+                    props.lightingMode.floatValue = lightingMode;
+                    ToonShaderKeywords.SetLightingKeywords(editor.target as Material, lightingMode);
                 }
-                EditorGUILayout.Space();
 
-                // --- Grup 2: Gölge Şekli (Shadow Shape) ---
-                EditorGUILayout.LabelField("Shadow Shape", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
-                if (mode < 2) // Stepped veya Smooth modu seçiliyse
+                
+                // Common shadow properties
+                editor.ColorProperty(props.shadowColor, "Shadow Color");
+                editor.RangeProperty(props.shadowIntensity, "Shadow Intensity");
+                editor.RangeProperty(props.shadowOffset, "Shadow Offset");
+                
+                // Mode specific properties
+                if (lightingMode == 0) // Stepped
                 {
-                    editor.RangeProperty(props.shadowSteps, "Steps");
-                    editor.RangeProperty(props.shadowSmoothness, "Smoothness");
+                    editor.RangeProperty(props.shadowSteps, "Shadow Steps");
                 }
-                else // Ramp modu seçiliyse
+                else if (lightingMode == 1) // Smooth  
                 {
-                    editor.TextureProperty(props.shadowRamp, "Ramp Texture", false);
+                    editor.RangeProperty(props.shadowSmoothness, "Shadow Smoothness");
                 }
-                editor.RangeProperty(props.shadowOffset, "Offset");
+                else if (lightingMode == 2) // Ramp
+                {
+                    editor.TextureProperty(props.shadowRamp, "Shadow Ramp");
+                }
+                
+                // Tint shadow on base toggle
+                EditorGUI.BeginChangeCheck();
+                bool tintOnBase = EditorGUILayout.Toggle("Tint On Full Object", props.tintShadowOnBase.floatValue > 0.5f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    props.tintShadowOnBase.floatValue = tintOnBase ? 1f : 0f;
+                    ToonShaderKeywords.SetKeyword(editor.target as Material, "_TINT_SHADOW_ON_BASE", tintOnBase);
+                }
+                
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
 
-                // --- Grup 3: Gölge Görünümü (Shadow Appearance) ---
-                // Bu grup, isteğin üzerine sadece Stepped ve Smooth modlarında gösterilecek şekilde güncellendi.
-                if (mode < 2)
-                {
-                    EditorGUILayout.LabelField("Shadow Appearance", EditorStyles.boldLabel);
-                    EditorGUI.indentLevel++;
-                    editor.ColorProperty(props.shadowColor, "Color");
-                    editor.RangeProperty(props.shadowIntensity, "Intensity");
-                    
-                    // Yeni Checkbox eklendi
-                    EditorGUI.BeginChangeCheck();
-                    bool tintOnBase = EditorGUILayout.Toggle("Tint On Full Object", props.tintShadowOnBase.floatValue > 0.5f);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        props.tintShadowOnBase.floatValue = tintOnBase ? 1f : 0f;
-                        ToonShaderKeywords.SetKeyword(editor.target as Material, "_TINT_SHADOW_ON_BASE", tintOnBase);
-                    }
-                    
-                    EditorGUI.indentLevel--;
-                    EditorGUILayout.Space();
-                }
-
-                // Occlusion Strength, tüm modları etkilediği için ayrı olarak gösteriliyor.
+                // Occlusion Strength
                 editor.RangeProperty(props.occlusionStrength, "Occlusion Strength");
             }
             EditorGUILayout.EndVertical();
@@ -193,7 +174,7 @@ namespace Gorgonize.ToonShader.Editor
                 editor.TextureProperty(props.emissionMap, "Emission Map");
                 editor.ColorProperty(props.emissionColor, "Emission Color");
                 editor.RangeProperty(props.emissionIntensity, "Emission Intensity");
-                 EditorGUILayout.Space();
+                EditorGUILayout.Space();
                 editor.TextureProperty(props.detailMap, "Detail Albedo");
                 editor.TextureProperty(props.detailNormalMap, "Detail Normal");
                 editor.RangeProperty(props.detailStrength, "Detail Strength");
@@ -207,23 +188,23 @@ namespace Gorgonize.ToonShader.Editor
             showSubsurface = EditorGUILayout.Foldout(showSubsurface, "🔴 Subsurface Scattering", ToonShaderStyles.foldoutStyle);
             if(showSubsurface)
             {
-                 EditorGUI.BeginChangeCheck();
-                 bool enabled = EditorGUILayout.Toggle("Enable Subsurface", props.enableSubsurface.floatValue > 0.5f);
-                 if (EditorGUI.EndChangeCheck())
-                 {
-                     props.enableSubsurface.floatValue = enabled ? 1f : 0f;
-                     ToonShaderKeywords.SetKeyword(editor.target as Material, "_ENABLESUBSURFACE_ON", enabled);
-                 }
+                EditorGUI.BeginChangeCheck();
+                bool enabled = EditorGUILayout.Toggle("Enable Subsurface", props.enableSubsurface.floatValue > 0.5f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    props.enableSubsurface.floatValue = enabled ? 1f : 0f;
+                    ToonShaderKeywords.SetKeyword(editor.target as Material, "_ENABLESUBSURFACE_ON", enabled);
+                }
 
-                 if(enabled)
-                 {
+                if(enabled)
+                {
                     EditorGUI.indentLevel++;
                     editor.ColorProperty(props.subsurfaceColor, "Subsurface Color");
                     editor.RangeProperty(props.subsurfaceIntensity, "Intensity");
                     editor.RangeProperty(props.subsurfaceDistortion, "Distortion");
                     editor.RangeProperty(props.subsurfacePower, "Power");
                     EditorGUI.indentLevel--;
-                 }
+                }
             }
             EditorGUILayout.EndVertical();
         }
@@ -265,9 +246,9 @@ namespace Gorgonize.ToonShader.Editor
                 }
                 if(enabled)
                 {
-                     editor.RangeProperty(props.windSpeed, "Wind Speed");
-                     editor.RangeProperty(props.windStrength, "Wind Strength");
-                     editor.VectorProperty(props.windDirection, "Wind Direction");
+                    editor.RangeProperty(props.windSpeed, "Wind Speed");
+                    editor.RangeProperty(props.windStrength, "Wind Strength");
+                    editor.VectorProperty(props.windDirection, "Wind Direction");
                 }
             }
             EditorGUILayout.EndVertical();
@@ -299,8 +280,8 @@ namespace Gorgonize.ToonShader.Editor
             EditorGUILayout.BeginVertical(ToonShaderStyles.sectionStyle);
             EditorGUILayout.LabelField("🔧 Sorun Giderme Rehberi", EditorStyles.boldLabel);
             GUIStyle tipStyle = new GUIStyle(EditorStyles.label) { fontSize = 10, wordWrap = true, normal = { textColor = new Color(0.6f, 0.6f, 0.6f, 1f) } };
-            EditorGUILayout.LabelField("• Shadow Acne: 'Standard Fix' preset'ini deneyin.", tipStyle);
-            EditorGUILayout.LabelField("• Z-Fighting: 'Aggressive Fix' preset'ini kullanın ve Adaptive Bias'ı aktif edin.", tipStyle);
+            EditorGUILayout.LabelField("• Shadow Acne: Directional Light Shadow Bias değerini düşürün.", tipStyle);
+            EditorGUILayout.LabelField("• Z-Fighting: Shadow Distance değerini 50-100 arasında tutun.", tipStyle);
             EditorGUILayout.EndVertical();
         }
 
@@ -315,4 +296,3 @@ namespace Gorgonize.ToonShader.Editor
         }
     }
 }
-
