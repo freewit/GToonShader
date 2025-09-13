@@ -9,11 +9,10 @@ namespace Gorgonize.ToonShader.Editor
     public class GorgonizeToonShaderGUI : ShaderGUI
     {
         private ToonShaderProperties props;
-        private static bool isInitialized = false;
         
-        // Foldout durumları
-        private static bool showBase = true;
-        private static bool showShadows = true;
+        // Foldout durumları - Hepsi kapalı başlasın
+        private static bool showBase = false;
+        private static bool showShadows = false;
         private static bool showHighlights = false;
         private static bool showRim = false;
         private static bool showAdvanced = false;
@@ -24,12 +23,8 @@ namespace Gorgonize.ToonShader.Editor
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
-            // Stilleri ve özellikleri başlat
-            if (!isInitialized)
-            {
-                ToonShaderStyles.Initialize();
-                isInitialized = true;
-            }
+            // Her seferinde force initialize (cache problemi için)
+            ToonShaderStyles.Initialize();
             
             props = new ToonShaderProperties(properties);
             
@@ -62,9 +57,11 @@ namespace Gorgonize.ToonShader.Editor
 
         private void DrawHeader()
         {
-            ToonShaderStyles.DrawHeader("Gorgonize Toon Shader", "Advanced Shadow Acne & Z-Fighting Solution v2.0");
+            // SEÇENEK 1: Kompakt Header (Logo + Yazı yan yana, küçük) - AKTİF
+            ToonShaderStyles.DrawHeader("Gorgonize Toon Shader", "BETA (v0.7)");
+            
             ToonShaderStyles.DrawSeparator();
-            EditorGUILayout.Space(10);
+            EditorGUILayout.Space(8);
         }
 
         private void DrawBaseSectionWithStyle(MaterialEditor materialEditor)
@@ -427,28 +424,37 @@ namespace Gorgonize.ToonShader.Editor
         {
             EditorGUILayout.Space(15);
             ToonShaderStyles.DrawSeparator();
-            EditorGUILayout.Space(10);
+            EditorGUILayout.Space(15);
             
-            // Footer bilgi kutusu
-            var footerStyle = new GUIStyle(EditorStyles.helpBox)
-            {
-                padding = new RectOffset(15, 15, 10, 10),
-                fontSize = 11,
-                alignment = TextAnchor.MiddleCenter
-            };
+            // Modern footer
+            var footerRect = EditorGUILayout.BeginVertical();
+            EditorGUI.DrawRect(footerRect, new Color(ToonShaderStyles.darkBackground.r, ToonShaderStyles.darkBackground.g, ToonShaderStyles.darkBackground.b, 0.5f));
             
-            EditorGUILayout.BeginVertical(footerStyle);
+            GUILayout.Space(15);
             
             var copyrightStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
             {
-                fontSize = 10,
-                normal = { textColor = new Color(0.6f, 0.6f, 0.6f, 1f) }
+                fontSize = 11,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = ToonShaderStyles.accentColor },
+                alignment = TextAnchor.MiddleCenter
             };
             
-            GUILayout.Label("Gorgonize Games © 2024", copyrightStyle);
-            GUILayout.Label("Gorgonize Toon Shader v2.0", copyrightStyle);
+            var versionStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+            {
+                fontSize = 10,
+                fontStyle = FontStyle.Italic,
+                normal = { textColor = new Color(ToonShaderStyles.lightText.r, ToonShaderStyles.lightText.g, ToonShaderStyles.lightText.b, 0.7f) },
+                alignment = TextAnchor.MiddleCenter
+            };
             
+            GUILayout.Label("Gorgonize Games © 2025", copyrightStyle);
+            GUILayout.Space(2);
+            GUILayout.Label("Gorgonize Toon Shader v0.7 Beta", versionStyle);
+            
+            GUILayout.Space(15);
             EditorGUILayout.EndVertical();
+            
             EditorGUILayout.Space(10);
         }
 

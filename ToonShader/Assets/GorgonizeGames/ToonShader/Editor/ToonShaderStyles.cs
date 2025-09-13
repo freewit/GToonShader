@@ -11,12 +11,22 @@ namespace Gorgonize.ToonShader.Editor
         // Textures
         public static Texture2D logoTexture;
         
-        // Colors
-        public static readonly Color primaryColor = new Color(0.2f, 0.6f, 1.0f, 1f);
-        public static readonly Color secondaryColor = new Color(0.8f, 0.4f, 0.2f, 1f);
-        public static readonly Color accentColor = new Color(0.4f, 0.8f, 0.6f, 1f);
-        public static readonly Color backgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
-        public static readonly Color sectionColor = new Color(0.25f, 0.25f, 0.25f, 0.3f);
+        // Colors - Modern renk paleti
+        public static readonly Color darkBackground = new Color(0x22/255f, 0x28/255f, 0x31/255f, 1f);     // #222831
+        public static readonly Color mediumBackground = new Color(0x39/255f, 0x3E/255f, 0x46/255f, 1f);   // #393E46  
+        public static readonly Color accentColor = new Color(0x00/255f, 0xAD/255f, 0xB5/255f, 1f);        // #00ADB5
+        public static readonly Color lightText = new Color(0xEE/255f, 0xEE/255f, 0xEE/255f, 1f);          // #EEEEEE
+        
+        // Derived colors
+        public static readonly Color sectionColor = new Color(0x39/255f, 0x3E/255f, 0x46/255f, 0.8f);
+        public static readonly Color hoverColor = new Color(0x00/255f, 0xAD/255f, 0xB5/255f, 0.2f);
+        public static readonly Color activeColor = new Color(0x00/255f, 0xAD/255f, 0xB5/255f, 0.6f);
+        public static readonly Color borderColor = new Color(0x00/255f, 0xAD/255f, 0xB5/255f, 0.3f);
+        
+        // Legacy colors
+        public static readonly Color primaryColor = accentColor;
+        public static readonly Color secondaryColor = mediumBackground;
+        public static readonly Color backgroundColor = darkBackground;
         
         // Styles
         public static GUIStyle headerStyle;
@@ -28,17 +38,11 @@ namespace Gorgonize.ToonShader.Editor
         public static GUIStyle labelStyle;
         public static GUIStyle helpBoxStyle;
         public static GUIStyle foldoutStyle;
-        
-        private static bool isInitialized = false;
 
         public static void Initialize()
         {
-            if (isInitialized) return;
-            
             LoadTextures();
             InitializeStyles();
-            
-            isInitialized = true;
         }
 
         private static void LoadTextures()
@@ -51,7 +55,7 @@ namespace Gorgonize.ToonShader.Editor
                 logoTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
             }
             
-            // Eğer logo bulunamazsa, Resources klasöründen dene
+            // Resources klasöründen dene
             if (logoTexture == null)
             {
                 logoTexture = Resources.Load<Texture2D>("GorgonizeLogo");
@@ -60,93 +64,112 @@ namespace Gorgonize.ToonShader.Editor
 
         private static void InitializeStyles()
         {
-            // Header Style - Ana başlık
+            // Header Style
             headerStyle = new GUIStyle(EditorStyles.largeLabel)
             {
                 fontSize = 24,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = new Color(0.9f, 0.9f, 0.9f, 1f) },
+                normal = { textColor = lightText },
                 padding = new RectOffset(10, 10, 10, 10),
                 margin = new RectOffset(0, 0, 5, 5)
             };
 
-            // Sub Header Style - Alt başlık
+            // Sub Header Style
             subHeaderStyle = new GUIStyle(EditorStyles.label)
             {
                 fontSize = 12,
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = new Color(0.7f, 0.8f, 0.9f, 0.8f) },
+                normal = { textColor = new Color(lightText.r, lightText.g, lightText.b, 0.7f) },
                 padding = new RectOffset(5, 5, 2, 8)
             };
 
-            // Section Style - Bölüm kutuları
+            // Section Style
             sectionStyle = new GUIStyle(EditorStyles.helpBox)
             {
-                padding = new RectOffset(15, 15, 10, 15),
+                padding = new RectOffset(15, 15, 12, 15),
                 margin = new RectOffset(5, 5, 5, 5),
-                normal = { background = CreateColorTexture(sectionColor) }
+                normal = { background = CreateGradientTexture(sectionColor, darkBackground) },
+                border = new RectOffset(1, 1, 1, 1)
             };
 
-            // Box Style - Özel kutular
+            // Box Style
             boxStyle = new GUIStyle(GUI.skin.box)
             {
-                padding = new RectOffset(10, 10, 8, 8),
+                padding = new RectOffset(12, 12, 10, 10),
                 margin = new RectOffset(2, 2, 2, 2),
-                normal = { background = CreateColorTexture(sectionColor) }
+                normal = { 
+                    background = CreateColorTexture(mediumBackground),
+                    textColor = lightText 
+                },
+                border = new RectOffset(1, 1, 1, 1)
             };
 
-            // Button Style - Butonlar
+            // Button Style
             buttonStyle = new GUIStyle(EditorStyles.miniButton)
             {
                 fontSize = 11,
                 fontStyle = FontStyle.Bold,
-                padding = new RectOffset(8, 8, 4, 4),
-                normal = 
-                { 
-                    textColor = Color.white,
-                    background = CreateColorTexture(primaryColor)
+                padding = new RectOffset(10, 10, 6, 6),
+                normal = { 
+                    textColor = lightText,
+                    background = CreateColorTexture(mediumBackground)
+                },
+                hover = { 
+                    textColor = darkBackground,
+                    background = CreateColorTexture(accentColor)
+                },
+                active = { 
+                    textColor = darkBackground,
+                    background = CreateColorTexture(new Color(accentColor.r * 0.8f, accentColor.g * 0.8f, accentColor.b * 0.8f, 1f))
                 }
             };
 
-            // Toggle Style - Toggle butonları
+            // Toggle Style
             toggleStyle = new GUIStyle(EditorStyles.toggle)
             {
                 fontSize = 11,
                 fontStyle = FontStyle.Normal,
-                normal = { textColor = new Color(0.9f, 0.9f, 0.9f, 1f) }
+                normal = { textColor = lightText },
+                onNormal = { textColor = accentColor }
             };
 
-            // Label Style - Etiketler
+            // Label Style
             labelStyle = new GUIStyle(EditorStyles.label)
             {
                 fontSize = 11,
-                normal = { textColor = new Color(0.85f, 0.85f, 0.85f, 1f) },
+                normal = { textColor = new Color(lightText.r, lightText.g, lightText.b, 0.9f) },
                 wordWrap = true
             };
 
-            // Help Box Style - Yardım kutuları
+            // Help Box Style
             helpBoxStyle = new GUIStyle(EditorStyles.helpBox)
             {
-                fontSize = 10,
-                fontStyle = FontStyle.Italic,
-                padding = new RectOffset(10, 10, 8, 8),
+                fontSize = 11,
+                fontStyle = FontStyle.Normal,
+                padding = new RectOffset(12, 12, 10, 10),
                 margin = new RectOffset(5, 5, 5, 5),
-                normal = 
-                { 
-                    textColor = new Color(0.7f, 0.8f, 0.9f, 1f),
-                    background = CreateColorTexture(new Color(0.3f, 0.5f, 0.7f, 0.15f))
-                }
+                normal = { 
+                    textColor = lightText,
+                    background = CreateColorTexture(new Color(accentColor.r, accentColor.g, accentColor.b, 0.15f))
+                },
+                border = new RectOffset(1, 1, 1, 1)
             };
 
-            // Foldout Style - Açılır bölümler
+            // Foldout Style
             foldoutStyle = new GUIStyle(EditorStyles.foldout)
             {
-                fontSize = 13,
+                fontSize = 14,
                 fontStyle = FontStyle.Bold,
-                normal = { textColor = new Color(0.9f, 0.9f, 0.9f, 1f) },
-                onNormal = { textColor = primaryColor }
+                normal = { textColor = lightText },
+                onNormal = { textColor = accentColor },
+                hover = { textColor = new Color(accentColor.r * 1.2f, accentColor.g * 1.2f, accentColor.b * 1.2f, 1f) },
+                onHover = { textColor = new Color(accentColor.r * 1.2f, accentColor.g * 1.2f, accentColor.b * 1.2f, 1f) },
+                active = { textColor = accentColor },
+                onActive = { textColor = accentColor },
+                focused = { textColor = accentColor },
+                onFocused = { textColor = accentColor }
             };
         }
 
@@ -159,44 +182,186 @@ namespace Gorgonize.ToonShader.Editor
             return texture;
         }
 
-        // Özel çizim metodları
-        public static void DrawSeparator(float thickness = 1f, Color? color = null)
+        private static Texture2D CreateGradientTexture(Color topColor, Color bottomColor)
         {
-            var separatorColor = color ?? new Color(0.5f, 0.5f, 0.5f, 0.4f);
+            int height = 32;
+            var texture = new Texture2D(1, height);
+            
+            for (int y = 0; y < height; y++)
+            {
+                float t = (float)y / (height - 1);
+                Color color = Color.Lerp(bottomColor, topColor, t);
+                texture.SetPixel(0, y, color);
+            }
+            
+            texture.Apply();
+            return texture;
+        }
+
+        // Çizim metodları
+        public static void DrawSeparator(float thickness = 2f, Color? color = null)
+        {
+            var separatorColor = color ?? accentColor;
             var rect = EditorGUILayout.GetControlRect(GUILayout.Height(thickness));
             EditorGUI.DrawRect(rect, separatorColor);
         }
 
         public static void DrawHeader(string title, string subtitle = "")
         {
-            EditorGUILayout.Space(10);
+            EditorGUILayout.Space(8);
+            
+            // Stilize header container
+            var headerRect = EditorGUILayout.BeginVertical();
+            
+            // Gradient background
+            EditorGUI.DrawRect(headerRect, new Color(darkBackground.r, darkBackground.g, darkBackground.b, 0.95f));
+            
+            // Top accent border
+            var topBorderRect = new Rect(headerRect.x, headerRect.y, headerRect.width, 3);
+            EditorGUI.DrawRect(topBorderRect, accentColor);
+            
+            GUILayout.Space(12);
+            
+            // Logo ve yazı container
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Space(15); // Sol padding
+            
+            // Logo ile glow effect
+            if (logoTexture != null)
+            {
+                // Logo background glow
+                var logoRect = GUILayoutUtility.GetRect(40, 40);
+                var glowRect = new Rect(logoRect.x - 4, logoRect.y - 4, logoRect.width + 8, logoRect.height + 8);
+                EditorGUI.DrawRect(glowRect, new Color(accentColor.r, accentColor.g, accentColor.b, 0.15f));
+                
+                // Logo border
+                var borderRect = new Rect(logoRect.x - 1, logoRect.y - 1, logoRect.width + 2, logoRect.height + 2);
+                EditorGUI.DrawRect(borderRect, new Color(accentColor.r, accentColor.g, accentColor.b, 0.4f));
+                
+                // Logo
+                GUI.DrawTexture(logoRect, logoTexture);
+                
+                GUILayout.Space(15);
+            }
+            
+            // Yazılar container
+            EditorGUILayout.BeginVertical();
+            GUILayout.Space(6);
+            
+            // Ana başlık
+            var headerLabelStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 18,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = lightText }
+            };
+            
+            // Alt başlık  
+            var subHeaderLabelStyle = new GUIStyle(EditorStyles.label)
+            {
+                fontSize = 11,
+                fontStyle = FontStyle.Italic,
+                normal = { textColor = new Color(accentColor.r, accentColor.g, accentColor.b, 0.9f) }
+            };
+            
+            GUILayout.Label(title, headerLabelStyle);
+            GUILayout.Space(2);
+            GUILayout.Label(subtitle, subHeaderLabelStyle);
+            
+            EditorGUILayout.EndVertical();
+            
+            GUILayout.FlexibleSpace(); // Sağ padding
+            EditorGUILayout.EndHorizontal();
+            
+            GUILayout.Space(12);
+            
+            // Bottom gradient line
+            var bottomGradientRect = EditorGUILayout.GetControlRect(GUILayout.Height(2));
+            
+            // Manuel gradient çizimi
+            for (int i = 0; i < bottomGradientRect.width; i++)
+            {
+                float t = (float)i / bottomGradientRect.width;
+                Color currentColor;
+                
+                if (t < 0.5f)
+                    currentColor = Color.Lerp(Color.clear, accentColor, t * 2f);
+                else
+                    currentColor = Color.Lerp(accentColor, Color.clear, (t - 0.5f) * 2f);
+                
+                var pixelRect = new Rect(bottomGradientRect.x + i, bottomGradientRect.y, 1, 2);
+                EditorGUI.DrawRect(pixelRect, currentColor);
+            }
+            
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.Space(8);
+        }
+
+        public static void DrawMinimalHeader(string title, string subtitle = "")
+        {
+            EditorGUILayout.Space(5);
+            
+            var separatorRect = EditorGUILayout.GetControlRect(GUILayout.Height(2));
+            EditorGUI.DrawRect(separatorRect, accentColor);
+            
+            EditorGUILayout.Space(8);
+            
+            var minimalHeaderStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 16,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = accentColor }
+            };
+            
+            var minimalSubStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+            {
+                fontSize = 9,
+                normal = { textColor = new Color(lightText.r, lightText.g, lightText.b, 0.6f) }
+            };
+            
+            GUILayout.Label(title, minimalHeaderStyle);
+            if (!string.IsNullOrEmpty(subtitle))
+            {
+                GUILayout.Label(subtitle, minimalSubStyle);
+            }
+            
+            EditorGUILayout.Space(8);
+            
+            var separatorRect2 = EditorGUILayout.GetControlRect(GUILayout.Height(1));
+            EditorGUI.DrawRect(separatorRect2, new Color(accentColor.r, accentColor.g, accentColor.b, 0.3f));
+        }
+
+        public static void DrawNoLogoHeader(string title, string subtitle = "")
+        {
+            EditorGUILayout.Space(8);
             
             var headerRect = EditorGUILayout.BeginVertical();
-            EditorGUI.DrawRect(headerRect, new Color(0.2f, 0.3f, 0.5f, 0.2f));
+            EditorGUI.DrawRect(headerRect, new Color(darkBackground.r, darkBackground.g, darkBackground.b, 0.7f));
+            
+            var borderRect = new Rect(headerRect.x, headerRect.y, headerRect.width, 3);
+            EditorGUI.DrawRect(borderRect, accentColor);
             
             GUILayout.Space(15);
             
-            // Logo'yu üstte ortala
-            if (logoTexture != null)
+            var bigHeaderStyle = new GUIStyle(headerStyle)
             {
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                GUILayout.Label(logoTexture, GUILayout.Width(64), GUILayout.Height(64));
-                GUILayout.FlexibleSpace();
-                EditorGUILayout.EndHorizontal();
-                
-                GUILayout.Space(10);
-            }
+                fontSize = 20,
+                alignment = TextAnchor.MiddleCenter
+            };
             
-            // Başlık ve alt başlığı ortala
-            EditorGUILayout.BeginVertical();
-            GUILayout.Label(title, headerStyle);
+            var bigSubHeaderStyle = new GUIStyle(subHeaderStyle)
+            {
+                fontSize = 11,
+                alignment = TextAnchor.MiddleCenter
+            };
+            
+            GUILayout.Label(title, bigHeaderStyle);
             
             if (!string.IsNullOrEmpty(subtitle))
             {
-                GUILayout.Label(subtitle, subHeaderStyle);
+                GUILayout.Space(3);
+                GUILayout.Label(subtitle, bigSubHeaderStyle);
             }
-            EditorGUILayout.EndVertical();
             
             GUILayout.Space(15);
             EditorGUILayout.EndVertical();
@@ -205,7 +370,35 @@ namespace Gorgonize.ToonShader.Editor
         public static bool DrawFoldoutHeader(string title, bool foldout, string icon = "")
         {
             var displayTitle = string.IsNullOrEmpty(icon) ? title : $"{icon} {title}";
-            return EditorGUILayout.Foldout(foldout, displayTitle, foldoutStyle);
+            
+            EditorGUILayout.BeginHorizontal();
+            
+            var rect = EditorGUILayout.GetControlRect();
+            var backgroundRect = new Rect(rect.x - 5, rect.y - 2, rect.width + 10, rect.height + 4);
+            
+            if (Event.current.type == EventType.Repaint)
+            {
+                if (backgroundRect.Contains(Event.current.mousePosition))
+                {
+                    EditorGUI.DrawRect(backgroundRect, hoverColor);
+                }
+                else
+                {
+                    EditorGUI.DrawRect(backgroundRect, new Color(mediumBackground.r, mediumBackground.g, mediumBackground.b, 0.3f));
+                }
+                
+                if (foldout)
+                {
+                    var accentRect = new Rect(backgroundRect.x, backgroundRect.y, 3, backgroundRect.height);
+                    EditorGUI.DrawRect(accentRect, accentColor);
+                }
+            }
+            
+            var result = EditorGUI.Foldout(rect, foldout, displayTitle, foldoutStyle);
+            
+            EditorGUILayout.EndHorizontal();
+            
+            return result;
         }
 
         public static void DrawPropertyField(MaterialEditor editor, MaterialProperty property, 
@@ -219,21 +412,72 @@ namespace Gorgonize.ToonShader.Editor
 
         public static void DrawInfoBox(string message, MessageType messageType = MessageType.Info)
         {
-            EditorGUILayout.Space(3);
-            EditorGUILayout.HelpBox(message, messageType);
-            EditorGUILayout.Space(3);
+            EditorGUILayout.Space(5);
+            
+            Color bgColor;
+            Color borderColor;
+            Color textColor = lightText;
+            string icon;
+            
+            switch (messageType)
+            {
+                case MessageType.Warning:
+                    bgColor = new Color(1f, 0.8f, 0.2f, 0.15f);
+                    borderColor = new Color(1f, 0.8f, 0.2f, 0.6f);
+                    icon = "⚠️";
+                    break;
+                case MessageType.Error:
+                    bgColor = new Color(1f, 0.3f, 0.3f, 0.15f);
+                    borderColor = new Color(1f, 0.3f, 0.3f, 0.6f);
+                    icon = "❌";
+                    break;
+                case MessageType.None:
+                    bgColor = new Color(mediumBackground.r, mediumBackground.g, mediumBackground.b, 0.3f);
+                    borderColor = new Color(lightText.r, lightText.g, lightText.b, 0.3f);
+                    icon = "💡";
+                    break;
+                default:
+                    bgColor = new Color(accentColor.r, accentColor.g, accentColor.b, 0.15f);
+                    borderColor = new Color(accentColor.r, accentColor.g, accentColor.b, 0.6f);
+                    icon = "ℹ️";
+                    break;
+            }
+            
+            var rect = EditorGUILayout.BeginVertical();
+            
+            EditorGUI.DrawRect(rect, bgColor);
+            
+            var topBorder = new Rect(rect.x, rect.y, rect.width, 2);
+            EditorGUI.DrawRect(topBorder, borderColor);
+            
+            GUILayout.Space(10);
+            
+            var style = new GUIStyle(EditorStyles.label)
+            {
+                fontSize = 11,
+                wordWrap = true,
+                normal = { textColor = textColor },
+                padding = new RectOffset(15, 15, 0, 0)
+            };
+            
+            EditorGUILayout.LabelField($"{icon} {message}", style);
+            
+            GUILayout.Space(10);
+            EditorGUILayout.EndVertical();
+            
+            EditorGUILayout.Space(5);
         }
 
         public static void DrawToggleGroup(string title, ref bool toggle, System.Action drawContent)
         {
             EditorGUILayout.BeginVertical(sectionStyle);
             
-            var toggleStyle = new GUIStyle(EditorStyles.boldLabel)
+            var toggleStyle_custom = new GUIStyle(EditorStyles.boldLabel)
             {
                 normal = { textColor = toggle ? accentColor : Color.gray }
             };
             
-            toggle = EditorGUILayout.ToggleLeft(title, toggle, toggleStyle);
+            toggle = EditorGUILayout.ToggleLeft(title, toggle, toggleStyle_custom);
             
             if (toggle)
             {
@@ -244,12 +488,6 @@ namespace Gorgonize.ToonShader.Editor
             }
             
             EditorGUILayout.EndVertical();
-        }
-
-        // Cleanup
-        public static void Cleanup()
-        {
-            isInitialized = false;
         }
     }
 }
