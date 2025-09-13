@@ -12,13 +12,17 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - TCP2_RIM_LIGHTING_LIGHTMASK
+  - TCP2_SHADOW_LIGHT_COLOR
+  m_InvalidKeywords:
   - _ENABLEADDITIONALLIGHTS_ON
   - _ENABLEHIGHLIGHTS_ON
   - _ENABLEOUTLINE_ON
+  - _ENABLEREALSHADOWS_ON
   - _ENABLERIM_ON
   - _LIGHTINGMODE_STEPPED
+  - _MAINLIGHTAFFECTSSHADOWCOLOR_ON
   - _RECEIVESHADOWS_ON
-  m_InvalidKeywords:
   - _SHADOWMODE_SIMPLE
   - _USEADAPTIVEBIAS_ON
   - _USEPANCAKING_ON
@@ -67,17 +71,23 @@ Material:
     - _BandSmooth: 0.1
     - _BandedShadowIntensity: 1
     - _BandedShadowThreshold: 0.5
+    - _Cull: 2
+    - _Cutoff: 0.5
     - _DetailStrength: 1
+    - _DstBlend: 0
     - _EmissionIntensity: 0
     - _EnableAdditionalLights: 1
     - _EnableHighlights: 1
     - _EnableOutline: 1
+    - _EnableRealShadows: 1
     - _EnableRim: 1
     - _EnableSubsurface: 0
     - _EnableWind: 0
+    - _HighlightThreshold: 0.8
     - _LightFalloff: 1
     - _LightingMode: 0
     - _LightmapInfluence: 1
+    - _MainLightAffectsShadowColor: 1
     - _MyNormalBias: 0
     - _MyShadowBias: 0.65
     - _NormalStrength: 1
@@ -85,12 +95,19 @@ Material:
     - _OutlineFadeEnd: 30
     - _OutlineFadeStart: 20
     - _OutlineWidth: 0.6
+    - _RampSmoothing: 0.1
+    - _RampThreshold: 0.75
     - _ReceiveShadows: 1
+    - _ReceiveShadowsOff: 1
+    - _RenderingMode: 0
     - _RimIntensity: 0.28
+    - _RimMax: 1
+    - _RimMin: 0.5
     - _RimOffset: 0.42
     - _RimPower: 7.94
     - _ShadowBias: 0.005
     - _ShadowColorBlend: 0.378
+    - _ShadowColorLightAtten: 1
     - _ShadowDepthBias: 0.5
     - _ShadowDistanceFade: 0.8
     - _ShadowIntensity: 1
@@ -108,24 +125,35 @@ Material:
     - _SpecularSize: 0.1
     - _SpecularSmoothness: 0.5
     - _SpecularSteps: 2
+    - _SrcBlend: 1
     - _SubsurfaceDistortion: 0.2
     - _SubsurfaceIntensity: 0.5
     - _SubsurfacePower: 1
+    - _TintShadowOnBase: 0
     - _ToonNormalBias: 0.58
     - _ToonShadowBias: 0.0006
     - _ToonSteps: 4.72
     - _UseAdaptiveBias: 1
+    - _UseAlphaTest: 0
     - _UsePancaking: 1
+    - _UseRim: 0
+    - _UseRimLightMask: 1
     - _UseShadowColor: 0.006
     - _UseVertexColor: 0
     - _WindSpeed: 1
     - _WindStrength: 0.1
+    - _ZWrite: 1
     m_Colors:
     - _BandedShadowColor: {r: 0.6, g: 0.6, b: 0.8, a: 1}
     - _BaseColor: {r: 1, g: 0.42267364, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _HColor: {r: 1, g: 1, b: 1, a: 1}
+    - _HighlightColor: {r: 1, g: 1, b: 1, a: 1}
+    - _LightColor: {r: 1, g: 0.95, b: 0.8, a: 1}
+    - _LightDirection: {r: 0.3, g: -0.8, b: 0.5, a: 0}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _RimColor: {r: 1, g: 0.9058824, b: 0.5921569, a: 1}
+    - _SColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _ShadowColor: {r: 0.7058824, g: 0.32156864, b: 0.3254902, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _SubsurfaceColor: {r: 1, g: 0.39999998, b: 0.39999998, a: 1}
