@@ -54,7 +54,7 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty subsurfaceDistortion;
         public MaterialProperty subsurfacePower;
         
-        // Outline Properties
+        // Outline Properties - FİX: Tam tanımlar
         public MaterialProperty enableOutline;
         public MaterialProperty outlineColor;
         public MaterialProperty outlineWidth;
@@ -142,7 +142,6 @@ namespace Gorgonize.ToonShader.Editor
                         break;
                         
                     case "_SpecularSize":
-                    case "_Glossiness":
                         specularSize = prop;
                         break;
                         
@@ -176,13 +175,13 @@ namespace Gorgonize.ToonShader.Editor
                         break;
                     
                     // Advanced Feature Properties
-                    case "_BumpMap":
                     case "_NormalMap":
+                    case "_BumpMap":
                         normalMap = prop;
                         break;
                         
-                    case "_BumpScale":
                     case "_NormalStrength":
+                    case "_BumpScale":
                         normalStrength = prop;
                         break;
                         
@@ -198,7 +197,6 @@ namespace Gorgonize.ToonShader.Editor
                         emissionIntensity = prop;
                         break;
                         
-                    case "_DetailAlbedoMap":
                     case "_DetailMap":
                         detailMap = prop;
                         break;
@@ -232,7 +230,7 @@ namespace Gorgonize.ToonShader.Editor
                         subsurfacePower = prop;
                         break;
                     
-                    // Outline Properties
+                    // Outline Properties - FİX: Doğru property eşleştirmesi
                     case "_EnableOutline":
                         enableOutline = prop;
                         break;
@@ -279,21 +277,63 @@ namespace Gorgonize.ToonShader.Editor
         }
 
         /// <summary>
-        /// Verilen property'nin aktif olup olmadığını kontrol eder
+        /// Feature'ın aktif olup olmadığını kontrol eder
         /// </summary>
         public bool IsFeatureEnabled(MaterialProperty property)
         {
-            return property != null && property.floatValue > 0.5f;
+            if (property == null) return false;
+            
+            if (property.type == MaterialProperty.PropType.Float || 
+                property.type == MaterialProperty.PropType.Range)
+            {
+                return property.floatValue > 0.5f;
+            }
+            
+            return false;
         }
 
         /// <summary>
-        /// Feature'ı aktif/pasif yapar
+        /// Float property değerini güvenli şekilde alır
         /// </summary>
-        public void SetFeatureEnabled(MaterialProperty property, bool enabled)
+        public float GetFloatValue(MaterialProperty property)
         {
-            if (property != null)
+            if (property == null) return 0.0f;
+            
+            if (property.type == MaterialProperty.PropType.Float || 
+                property.type == MaterialProperty.PropType.Range)
             {
-                property.floatValue = enabled ? 1.0f : 0.0f;
+                return property.floatValue;
+            }
+            
+            return 0.0f;
+        }
+
+        /// <summary>
+        /// Color property değerini güvenli şekilde alır
+        /// </summary>
+        public Color GetColorValue(MaterialProperty property)
+        {
+            if (property == null) return Color.white;
+            
+            if (property.type == MaterialProperty.PropType.Color)
+            {
+                return property.colorValue;
+            }
+            
+            return Color.white;
+        }
+
+        /// <summary>
+        /// Toggle property'yi güvenli şekilde set eder
+        /// </summary>
+        public void SetToggleValue(MaterialProperty property, bool value)
+        {
+            if (property == null) return;
+            
+            if (property.type == MaterialProperty.PropType.Float || 
+                property.type == MaterialProperty.PropType.Range)
+            {
+                property.floatValue = value ? 1.0f : 0.0f;
             }
         }
 
@@ -303,19 +343,19 @@ namespace Gorgonize.ToonShader.Editor
         public void UpdateKeywords(Material material)
         {
             // Highlights
-            SetKeyword(material, "_ENABLE_HIGHLIGHTS", IsFeatureEnabled(enableHighlights));
+            SetKeyword(material, "_ENABLEHIGHLIGHTS_ON", IsFeatureEnabled(enableHighlights));
             
             // Rim Lighting
-            SetKeyword(material, "_ENABLE_RIM", IsFeatureEnabled(enableRim));
+            SetKeyword(material, "_ENABLERIM_ON", IsFeatureEnabled(enableRim));
             
             // Subsurface Scattering
-            SetKeyword(material, "_ENABLE_SUBSURFACE", IsFeatureEnabled(enableSubsurface));
+            SetKeyword(material, "_ENABLESUBSURFACE_ON", IsFeatureEnabled(enableSubsurface));
             
-            // Outline
-            SetKeyword(material, "_ENABLE_OUTLINE", IsFeatureEnabled(enableOutline));
+            // Outline - FİX: Doğru keyword
+            SetKeyword(material, "_ENABLEOUTLINE_ON", IsFeatureEnabled(enableOutline));
             
             // Wind Animation
-            SetKeyword(material, "_ENABLE_WIND", IsFeatureEnabled(enableWind));
+            SetKeyword(material, "_ENABLEWIND_ON", IsFeatureEnabled(enableWind));
             
             // Normal Map
             SetKeyword(material, "_NORMALMAP", normalMap?.textureValue != null);
@@ -326,13 +366,13 @@ namespace Gorgonize.ToonShader.Editor
             SetKeyword(material, "_EMISSION", hasEmission);
             
             // Detail Maps
-            SetKeyword(material, "_DETAIL_MULX2", detailMap?.textureValue != null);
+            SetKeyword(material, "_DETAIL", detailMap?.textureValue != null);
             
             // Additional Lights
-            SetKeyword(material, "_ADDITIONAL_LIGHTS", IsFeatureEnabled(enableAdditionalLights));
+            SetKeyword(material, "_ENABLEADDITIONALLIGHTS_ON", IsFeatureEnabled(enableAdditionalLights));
             
             // Receive Shadows
-            SetKeyword(material, "_RECEIVE_SHADOWS_OFF", !IsFeatureEnabled(receiveShadows));
+            SetKeyword(material, "_RECEIVESHADOWS_OFF", !IsFeatureEnabled(receiveShadows));
         }
 
         private void SetKeyword(Material material, string keyword, bool state)

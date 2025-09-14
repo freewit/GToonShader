@@ -4,14 +4,17 @@ using UnityEngine;
 namespace Gorgonize.ToonShader.Editor
 {
     /// <summary>
-    /// Gorgonize Toon Shader için profesyonel material editor GUI
+    /// Professional Asset Store Quality Material Editor for Gorgonize Toon Shader
+    /// Designed for commercial distribution with premium user experience
     /// </summary>
     public class GorgonizeToonShaderGUI : ShaderGUI
     {
+        #region Private Fields
+        
         private ToonShaderProperties props;
         
-        // Foldout durumları - Hepsi kapalı başlasın
-        private static bool showBase = false;
+        // Foldout states - Professional defaults
+        private static bool showBase = true;
         private static bool showShadows = false;
         private static bool showHighlights = false;
         private static bool showRim = false;
@@ -20,480 +23,548 @@ namespace Gorgonize.ToonShader.Editor
         private static bool showOutline = false;
         private static bool showWind = false;
         private static bool showPerformance = false;
-
+        private static bool showHelp = false;
+        
+        // Animation
+        private static double lastUpdateTime;
+        
+        #endregion
+        
+        #region Main GUI Override
+        
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
-            // Her seferinde force initialize (cache problemi için)
+            // Initialize professional styles
             ToonShaderStyles.Initialize();
             
+            // Initialize properties
             props = new ToonShaderProperties(properties);
             
+            // Begin change detection
             EditorGUI.BeginChangeCheck();
             
-            // Ana başlık
-            DrawHeader();
+            // Professional header
+            DrawProfessionalHeader();
             
-            // Ana bölümler
-            DrawBaseSectionWithStyle(materialEditor);
-            DrawShadowSectionWithStyle(materialEditor);
-            DrawHighlightsSectionWithStyle(materialEditor);
-            DrawRimSectionWithStyle(materialEditor);
-            DrawAdvancedSectionWithStyle(materialEditor);
-            DrawSubsurfaceSectionWithStyle(materialEditor);
-            DrawOutlineSectionWithStyle(materialEditor);
-            DrawWindSectionWithStyle(materialEditor);
-            DrawPerformanceSectionWithStyle(materialEditor);
+            // Main content sections
+            DrawMainContentSections(materialEditor);
             
-            // Footer
-            DrawFooter();
+            // Professional footer
+            ToonShaderStyles.DrawProfessionalFooter();
             
+            // Apply changes and update keywords
             if (EditorGUI.EndChangeCheck())
             {
-                // Değişiklikleri uygula
-                foreach (var obj in materialEditor.targets)
-                    EditorUtility.SetDirty(obj);
+                ApplyChanges(materialEditor);
             }
-        }
-
-        private void DrawHeader()
-        {
-            // SEÇENEK 1: Kompakt Header (Logo + Yazı yan yana, küçük) - AKTİF
-            ToonShaderStyles.DrawHeader("Gorgonize Toon Shader", "BETA (v0.7)");
             
-            ToonShaderStyles.DrawSeparator();
+            // Force repaint for animations
+            HandleAnimationRepaint();
+        }
+        
+        #endregion
+        
+        #region Header Section
+        
+        private void DrawProfessionalHeader()
+        {
+            ToonShaderStyles.DrawProfessionalHeader(
+                "GORGONIZE GAMES",
+                "Professional Toon Shader",
+                "v1.0 Asset Store Edition"
+            );
+            
+            // Quick stats or info bar
+            DrawQuickStatsBar();
+        }
+        
+        private void DrawQuickStatsBar()
+        {
+            EditorGUILayout.Space(5);
+            
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+                
+                var statsStyle = new GUIStyle(EditorStyles.miniLabel)
+                {
+                    normal = { textColor = new Color(0.8f, 0.8f, 0.8f, 1f) },
+                    fontSize = 9
+                };
+                
+                // Feature count
+                int enabledFeatures = CountEnabledFeatures();
+                GUILayout.Label($"🎛️ {enabledFeatures} Features Active", statsStyle);
+                
+                GUILayout.Label("•", statsStyle);
+                
+                // Performance indicator
+                string perfLevel = GetPerformanceLevel();
+                GUILayout.Label("⚡ " + perfLevel + " Performance", statsStyle);
+                
+                GUILayout.Label("•", statsStyle);
+                
+                // Render pipeline
+                GUILayout.Label("🔧 URP Compatible", statsStyle);
+                
+                GUILayout.FlexibleSpace();
+            }
+            
             EditorGUILayout.Space(8);
         }
-
-        private void DrawBaseSectionWithStyle(MaterialEditor materialEditor)
+        
+        #endregion
+        
+        #region Main Content Sections
+        
+        private void DrawMainContentSections(MaterialEditor materialEditor)
         {
-            showBase = DrawFoldoutSection("🎨 Base Properties", showBase, () =>
-            {
-                EditorGUILayout.Space(5);
-                
-                // Base Color
-                ToonShaderStyles.DrawPropertyField(materialEditor, props.baseColor, "Base Color", 
-                    "The main color of the material");
-                
-                // Base Texture
-                ToonShaderStyles.DrawPropertyField(materialEditor, props.baseMap, "Base Texture", 
-                    "The main albedo texture");
-                
-                EditorGUILayout.Space(5);
-            });
+            // Base Properties - Always visible and important
+            DrawBaseSectionProfessional(materialEditor);
+            
+            // Lighting & Shadows - Core toon functionality
+            DrawShadowSectionProfessional(materialEditor);
+            
+            // Visual Effects
+            DrawHighlightsSectionProfessional(materialEditor);
+            DrawRimSectionProfessional(materialEditor);
+            DrawOutlineSectionProfessional(materialEditor);
+            DrawSubsurfaceSectionProfessional(materialEditor);
+            
+            // Advanced Features
+            DrawAdvancedSectionProfessional(materialEditor);
+            DrawWindSectionProfessional(materialEditor);
+            
+            // System & Performance
+            DrawPerformanceSectionProfessional(materialEditor);
+            
+            // Help & Documentation
+            DrawHelpSectionProfessional();
         }
-
-        private void DrawShadowSectionWithStyle(MaterialEditor materialEditor)
+        
+        #endregion
+        
+        #region Individual Sections - Professional Implementation
+        
+        private void DrawBaseSectionProfessional(MaterialEditor materialEditor)
         {
-            showShadows = DrawFoldoutSection("🌙 Shadow Properties", showShadows, () =>
+            showBase = ToonShaderStyles.DrawProfessionalFoldout("Base Properties", showBase, "🎨");
+            
+            if (showBase)
             {
-                EditorGUILayout.Space(5);
-                
-                // Lighting Mode dropdown
-                if (props.lightingMode != null)
+                ToonShaderStyles.DrawPropertyGroup("Surface", () =>
                 {
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.lightingMode, "Lighting Mode", 
-                        "Choose the lighting calculation method");
-                }
+                    if (props.IsPropertyValid(props.baseColor))
+                        materialEditor.ShaderProperty(props.baseColor, "🎨 Albedo Color");
+                        
+                    if (props.IsPropertyValid(props.baseMap))
+                        materialEditor.TexturePropertySingleLine(new GUIContent("🖼️ Albedo Texture"), props.baseMap);
+                }, true);
                 
-                // Tint Shadow On Base toggle
-                if (props.tintShadowOnBase != null)
-                {
-                    DrawToggleProperty(materialEditor, props.tintShadowOnBase, "Tint Shadow On Base", 
-                        "Apply shadow color tinting to base color");
-                }
-                
-                // Shadow properties
-                ToonShaderStyles.DrawPropertyField(materialEditor, props.shadowSteps, "Shadow Steps", 
-                    "Number of shadow gradient steps for toon effect");
-                
-                ToonShaderStyles.DrawPropertyField(materialEditor, props.shadowSmoothness, "Shadow Smoothness", 
-                    "Smoothness of shadow transitions");
-                
-                if (props.shadowRamp != null)
-                {
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.shadowRamp, "Shadow Ramp", 
-                        "Custom shadow gradient texture");
-                }
-                
-                ToonShaderStyles.DrawPropertyField(materialEditor, props.shadowColor, "Shadow Color", 
-                    "Color tint for shadowed areas");
-                
-                ToonShaderStyles.DrawPropertyField(materialEditor, props.shadowIntensity, "Shadow Intensity", 
-                    "Overall shadow intensity multiplier");
-                
-                ToonShaderStyles.DrawPropertyField(materialEditor, props.shadowOffset, "Shadow Offset", 
-                    "Offset to prevent shadow acne and z-fighting");
-                
-                if (props.occlusionStrength != null)
-                {
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.occlusionStrength, "Occlusion Strength", 
-                        "Ambient occlusion influence on shadows");
-                }
-                
-                EditorGUILayout.Space(5);
-            });
-        }
-
-        private void DrawHighlightsSectionWithStyle(MaterialEditor materialEditor)
-        {
-            if (props.enableHighlights == null) return;
-            
-            showHighlights = DrawFoldoutSection("✨ Highlights", showHighlights, () =>
-            {
-                EditorGUILayout.Space(5);
-                
-                bool highlightsEnabled = DrawToggleProperty(materialEditor, props.enableHighlights, 
-                    "Enable Highlights", "Enable specular highlights");
-                
-                if (highlightsEnabled)
-                {
-                    EditorGUI.indentLevel++;
-                    
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.specularColor, "Specular Color", 
-                        "Color of the specular highlights");
-                    
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.specularSize, "Specular Size", 
-                        "Size of the specular highlights");
-                    
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.specularSmoothness, "Specular Smoothness", 
-                        "Smoothness of specular transition");
-                    
-                    if (props.specularSteps != null)
-                    {
-                        ToonShaderStyles.DrawPropertyField(materialEditor, props.specularSteps, "Specular Steps", 
-                            "Number of steps in specular gradient");
-                    }
-                    
-                    EditorGUI.indentLevel--;
-                }
-                
-                EditorGUILayout.Space(5);
-            });
-        }
-
-        private void DrawRimSectionWithStyle(MaterialEditor materialEditor)
-        {
-            if (props.enableRim == null) return;
-            
-            showRim = DrawFoldoutSection("🌟 Rim Lighting", showRim, () =>
-            {
-                EditorGUILayout.Space(5);
-                
-                bool rimEnabled = DrawToggleProperty(materialEditor, props.enableRim, 
-                    "Enable Rim Lighting", "Enable rim lighting effect");
-                
-                if (rimEnabled)
-                {
-                    EditorGUI.indentLevel++;
-                    
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.rimColor, "Rim Color", 
-                        "Color of the rim lighting");
-                    
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.rimPower, "Rim Power", 
-                        "Falloff power of rim lighting");
-                    
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.rimIntensity, "Rim Intensity", 
-                        "Intensity of rim lighting");
-                    
-                    if (props.rimOffset != null)
-                    {
-                        ToonShaderStyles.DrawPropertyField(materialEditor, props.rimOffset, "Rim Offset", 
-                            "Offset for rim lighting calculation");
-                    }
-                    
-                    EditorGUI.indentLevel--;
-                }
-                
-                EditorGUILayout.Space(5);
-            });
-        }
-
-        private void DrawAdvancedSectionWithStyle(MaterialEditor materialEditor)
-        {
-            showAdvanced = DrawFoldoutSection("⚙️ Advanced Features", showAdvanced, () =>
-            {
-                EditorGUILayout.Space(5);
-                
-                // Normal mapping
-                if (props.normalMap != null)
-                {
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.normalMap, "Normal Map", 
-                        "Normal map for surface detail");
-                    
-                    if (props.normalStrength != null)
-                    {
-                        ToonShaderStyles.DrawPropertyField(materialEditor, props.normalStrength, "Normal Strength", 
-                            "Strength of the normal map effect");
-                    }
-                }
-                
-                // Emission
-                if (props.emissionMap != null || props.emissionColor != null)
-                {
-                    EditorGUILayout.Space(3);
-                    EditorGUILayout.LabelField("Emission", EditorStyles.miniBoldLabel);
-                    
-                    if (props.emissionColor != null)
-                    {
-                        ToonShaderStyles.DrawPropertyField(materialEditor, props.emissionColor, "Emission Color", 
-                            "Emissive color");
-                    }
-                    
-                    if (props.emissionMap != null)
-                    {
-                        ToonShaderStyles.DrawPropertyField(materialEditor, props.emissionMap, "Emission Map", 
-                            "Emissive texture");
-                    }
-                    
-                    if (props.emissionIntensity != null)
-                    {
-                        ToonShaderStyles.DrawPropertyField(materialEditor, props.emissionIntensity, "Emission Intensity", 
-                            "Intensity of emission");
-                    }
-                }
-                
-                // Detail textures
-                if (props.detailMap != null || props.detailNormalMap != null)
-                {
-                    EditorGUILayout.Space(3);
-                    EditorGUILayout.LabelField("Detail Textures", EditorStyles.miniBoldLabel);
-                    
-                    if (props.detailMap != null)
-                    {
-                        ToonShaderStyles.DrawPropertyField(materialEditor, props.detailMap, "Detail Map", 
-                            "Detail albedo texture");
-                    }
-                    
-                    if (props.detailNormalMap != null)
-                    {
-                        ToonShaderStyles.DrawPropertyField(materialEditor, props.detailNormalMap, "Detail Normal", 
-                            "Detail normal map");
-                    }
-                    
-                    if (props.detailStrength != null)
-                    {
-                        ToonShaderStyles.DrawPropertyField(materialEditor, props.detailStrength, "Detail Strength", 
-                            "Strength of detail textures");
-                    }
-                }
-                
-                EditorGUILayout.Space(5);
-            });
-        }
-
-        private void DrawSubsurfaceSectionWithStyle(MaterialEditor materialEditor)
-        {
-            if (props.enableSubsurface == null) return;
-            
-            showSubsurface = DrawFoldoutSection("🔆 Subsurface Scattering", showSubsurface, () =>
-            {
-                EditorGUILayout.Space(5);
-                
-                bool subsurfaceEnabled = DrawToggleProperty(materialEditor, props.enableSubsurface, 
-                    "Enable Subsurface", "Enable subsurface scattering");
-                
-                if (subsurfaceEnabled)
-                {
-                    EditorGUI.indentLevel++;
-                    
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.subsurfaceColor, "Subsurface Color", 
-                        "Color of subsurface scattering");
-                    
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.subsurfaceIntensity, "Intensity", 
-                        "Intensity of subsurface effect");
-                    
-                    if (props.subsurfaceDistortion != null)
-                    {
-                        ToonShaderStyles.DrawPropertyField(materialEditor, props.subsurfaceDistortion, "Distortion", 
-                            "Light distortion in subsurface");
-                    }
-                    
-                    if (props.subsurfacePower != null)
-                    {
-                        ToonShaderStyles.DrawPropertyField(materialEditor, props.subsurfacePower, "Power", 
-                            "Falloff power of subsurface effect");
-                    }
-                    
-                    EditorGUI.indentLevel--;
-                }
-                
-                EditorGUILayout.Space(5);
-            });
-        }
-
-        private void DrawOutlineSectionWithStyle(MaterialEditor materialEditor)
-        {
-            if (props.enableOutline == null) return;
-            
-            showOutline = DrawFoldoutSection("📝 Outline", showOutline, () =>
-            {
-                EditorGUILayout.Space(5);
-                
-                bool outlineEnabled = DrawToggleProperty(materialEditor, props.enableOutline, 
-                    "Enable Outline", "Enable toon-style outline");
-                
-                if (outlineEnabled)
-                {
-                    EditorGUI.indentLevel++;
-                    
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.outlineColor, "Outline Color", 
-                        "Color of the outline");
-                    
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.outlineWidth, "Outline Width", 
-                        "Width of the outline");
-                    
-                    EditorGUI.indentLevel--;
-                }
-                
-                EditorGUILayout.Space(5);
-            });
-        }
-
-        private void DrawWindSectionWithStyle(MaterialEditor materialEditor)
-        {
-            if (props.enableWind == null) return;
-            
-            showWind = DrawFoldoutSection("🍃 Wind Animation", showWind, () =>
-            {
-                EditorGUILayout.Space(5);
-                
-                bool windEnabled = DrawToggleProperty(materialEditor, props.enableWind, 
-                    "Enable Wind", "Enable wind animation for vegetation");
-                
-                if (windEnabled)
-                {
-                    EditorGUI.indentLevel++;
-                    
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.windSpeed, "Wind Speed", 
-                        "Speed of wind animation");
-                    
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.windStrength, "Wind Strength", 
-                        "Strength of wind effect");
-                    
-                    if (props.windDirection != null)
-                    {
-                        ToonShaderStyles.DrawPropertyField(materialEditor, props.windDirection, "Wind Direction", 
-                            "Direction of wind (as vector)");
-                    }
-                    
-                    EditorGUI.indentLevel--;
-                }
-                
-                EditorGUILayout.Space(5);
-            });
-        }
-
-        private void DrawPerformanceSectionWithStyle(MaterialEditor materialEditor)
-        {
-            showPerformance = DrawFoldoutSection("⚡ Performance Settings", showPerformance, () =>
-            {
-                EditorGUILayout.Space(5);
-                
-                if (props.receiveShadows != null)
-                {
-                    DrawToggleProperty(materialEditor, props.receiveShadows, "Receive Shadows", 
-                        "Allow this material to receive shadows");
-                }
-                
-                if (props.enableAdditionalLights != null)
-                {
-                    DrawToggleProperty(materialEditor, props.enableAdditionalLights, "Additional Lights", 
-                        "Enable additional light sources (impacts performance)");
-                }
-                
-                if (props.lightmapInfluence != null)
-                {
-                    ToonShaderStyles.DrawPropertyField(materialEditor, props.lightmapInfluence, "Lightmap Influence", 
-                        "Influence of baked lightmaps");
-                }
-                
-                // Performance tips
-                EditorGUILayout.Space(8);
-                ToonShaderStyles.DrawInfoBox(
-                    "💡 Performance Tips:\n" +
-                    "• Disable unused features to improve performance\n" +
-                    "• Use lower shadow steps for better performance\n" +
-                    "• Consider disabling additional lights on mobile",
-                    MessageType.Info);
-                
-                EditorGUILayout.Space(5);
-            });
-        }
-
-        private void DrawFooter()
-        {
-            EditorGUILayout.Space(15);
-            ToonShaderStyles.DrawSeparator();
-            EditorGUILayout.Space(15);
-            
-            // Modern footer
-            var footerRect = EditorGUILayout.BeginVertical();
-            EditorGUI.DrawRect(footerRect, new Color(ToonShaderStyles.darkBackground.r, ToonShaderStyles.darkBackground.g, ToonShaderStyles.darkBackground.b, 0.5f));
-            
-            GUILayout.Space(15);
-            
-            var copyrightStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
-            {
-                fontSize = 11,
-                fontStyle = FontStyle.Bold,
-                normal = { textColor = ToonShaderStyles.accentColor },
-                alignment = TextAnchor.MiddleCenter
-            };
-            
-            var versionStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
-            {
-                fontSize = 10,
-                fontStyle = FontStyle.Italic,
-                normal = { textColor = new Color(ToonShaderStyles.lightText.r, ToonShaderStyles.lightText.g, ToonShaderStyles.lightText.b, 0.7f) },
-                alignment = TextAnchor.MiddleCenter
-            };
-            
-            GUILayout.Label("Gorgonize Games © 2025", copyrightStyle);
-            GUILayout.Space(2);
-            GUILayout.Label("Gorgonize Toon Shader v0.7 Beta", versionStyle);
-            
-            GUILayout.Space(15);
-            EditorGUILayout.EndVertical();
-            
-            EditorGUILayout.Space(10);
-        }
-
-        // Yardımcı metodlar
-        private bool DrawFoldoutSection(string title, bool foldout, System.Action drawContent)
-        {
-            EditorGUILayout.BeginVertical(ToonShaderStyles.sectionStyle);
-            
-            GUILayout.Space(5);
-            foldout = ToonShaderStyles.DrawFoldoutHeader(title, foldout);
-            
-            if (foldout)
-            {
-                EditorGUI.indentLevel++;
-                drawContent?.Invoke();
-                EditorGUI.indentLevel--;
+                // Live preview tip
+                ToonShaderStyles.DrawInfoBox("Changes are applied in real-time to the scene view for instant feedback.");
             }
-            
-            GUILayout.Space(5);
-            EditorGUILayout.EndVertical();
-            
-            return foldout;
         }
-
-        private bool DrawToggleProperty(MaterialEditor editor, MaterialProperty prop, string label, string tooltip)
+        
+        private void DrawShadowSectionProfessional(MaterialEditor materialEditor)
         {
-            if (prop == null) return false;
+            showShadows = ToonShaderStyles.DrawProfessionalFoldout("Toon Lighting System", showShadows, "🌑");
             
-            var content = new GUIContent(label, tooltip);
-            
-            EditorGUI.BeginChangeCheck();
-            bool value = EditorGUILayout.Toggle(content, prop.floatValue > 0.5f);
-            
-            if (EditorGUI.EndChangeCheck())
+            if (showShadows)
             {
-                prop.floatValue = value ? 1.0f : 0.0f;
+                ToonShaderStyles.DrawPropertyGroup("Lighting Mode", () =>
+                {
+                    if (props.IsPropertyValid(props.lightingMode))
+                        materialEditor.ShaderProperty(props.lightingMode, "⚙️ Lighting Method");
+                        
+                    if (props.IsPropertyValid(props.tintShadowOnBase))
+                        ToonShaderStyles.DrawFeatureToggle(props.tintShadowOnBase, "Shadow Tinting", "Apply shadow color to entire object", "🎭");
+                }, true);
+                
+                ToonShaderStyles.DrawPropertyGroup("Shadow Control", () =>
+                {
+                    if (props.IsPropertyValid(props.shadowSteps))
+                        materialEditor.ShaderProperty(props.shadowSteps, "📊 Shadow Steps");
+                        
+                    if (props.IsPropertyValid(props.shadowSmoothness))
+                        materialEditor.ShaderProperty(props.shadowSmoothness, "🌊 Smoothness");
+                        
+                    if (props.IsPropertyValid(props.shadowRamp))
+                        materialEditor.TexturePropertySingleLine(new GUIContent("📈 Shadow Ramp Texture"), props.shadowRamp);
+                }, true);
+                
+                ToonShaderStyles.DrawPropertyGroup("Shadow Appearance", () =>
+                {
+                    if (props.IsPropertyValid(props.shadowColor))
+                        materialEditor.ShaderProperty(props.shadowColor, "🎨 Shadow Color");
+                        
+                    if (props.IsPropertyValid(props.shadowIntensity))
+                        materialEditor.ShaderProperty(props.shadowIntensity, "💪 Shadow Intensity");
+                        
+                    if (props.IsPropertyValid(props.shadowOffset))
+                        materialEditor.ShaderProperty(props.shadowOffset, "📏 Shadow Bias");
+                        
+                    if (props.IsPropertyValid(props.occlusionStrength))
+                        materialEditor.ShaderProperty(props.occlusionStrength, "🕳️ Ambient Occlusion");
+                }, true);
+                
+                ToonShaderStyles.DrawInfoBox("Shadow system creates the characteristic stepped lighting of toon shaders. Use fewer steps for more dramatic cartoon look.");
             }
-            
-            return value;
         }
+        
+        private void DrawHighlightsSectionProfessional(MaterialEditor materialEditor)
+        {
+            showHighlights = ToonShaderStyles.DrawProfessionalFoldout("Specular Highlights", showHighlights, "✨");
+            
+            if (showHighlights)
+            {
+                if (props.IsPropertyValid(props.enableHighlights))
+                {
+                    ToonShaderStyles.DrawFeatureToggle(props.enableHighlights, "Enable Specular Highlights", "Add cartoon-style reflections", "✨");
+                }
+                
+                if (props.IsFeatureEnabled(props.enableHighlights))
+                {
+                    ToonShaderStyles.DrawPropertyGroup("Highlight Properties", () =>
+                    {
+                        if (props.IsPropertyValid(props.specularColor))
+                            materialEditor.ShaderProperty(props.specularColor, "💎 Highlight Color");
+                            
+                        if (props.IsPropertyValid(props.specularSize))
+                            materialEditor.ShaderProperty(props.specularSize, "🔍 Highlight Size");
+                            
+                        if (props.IsPropertyValid(props.specularSmoothness))
+                            materialEditor.ShaderProperty(props.specularSmoothness, "🌊 Edge Smoothness");
+                            
+                        if (props.IsPropertyValid(props.specularSteps))
+                            materialEditor.ShaderProperty(props.specularSteps, "📊 Highlight Steps");
+                    }, true);
+                    
+                    ToonShaderStyles.DrawInfoBox("Lower step values create more dramatic, anime-style highlights.");
+                }
+            }
+        }
+        
+        private void DrawRimSectionProfessional(MaterialEditor materialEditor)
+        {
+            showRim = ToonShaderStyles.DrawProfessionalFoldout("Rim Lighting", showRim, "🌟");
+            
+            if (showRim)
+            {
+                if (props.IsPropertyValid(props.enableRim))
+                {
+                    ToonShaderStyles.DrawFeatureToggle(props.enableRim, "Enable Rim Lighting", "Creates glowing edge effect", "🌟");
+                }
+                
+                if (props.IsFeatureEnabled(props.enableRim))
+                {
+                    ToonShaderStyles.DrawPropertyGroup("Rim Properties", () =>
+                    {
+                        if (props.IsPropertyValid(props.rimColor))
+                            materialEditor.ShaderProperty(props.rimColor, "🌈 Rim Color");
+                            
+                        if (props.IsPropertyValid(props.rimPower))
+                            materialEditor.ShaderProperty(props.rimPower, "⚡ Rim Power");
+                            
+                        if (props.IsPropertyValid(props.rimIntensity))
+                            materialEditor.ShaderProperty(props.rimIntensity, "💪 Rim Intensity");
+                            
+                        if (props.IsPropertyValid(props.rimOffset))
+                            materialEditor.ShaderProperty(props.rimOffset, "📏 Rim Offset");
+                    }, true);
+                    
+                    ToonShaderStyles.DrawInfoBox("Rim lighting helps separate characters from backgrounds and adds dramatic flair.");
+                }
+            }
+        }
+        
+        private void DrawOutlineSectionProfessional(MaterialEditor materialEditor)
+        {
+            showOutline = ToonShaderStyles.DrawProfessionalFoldout("Cartoon Outline", showOutline, "📝");
+            
+            if (showOutline)
+            {
+                if (props.IsPropertyValid(props.enableOutline))
+                {
+                    ToonShaderStyles.DrawFeatureToggle(props.enableOutline, "Enable Outline Effect", "Classic toon shader outline", "📝");
+                }
+                
+                if (props.IsFeatureEnabled(props.enableOutline))
+                {
+                    ToonShaderStyles.DrawPropertyGroup("Outline Settings", () =>
+                    {
+                        if (props.IsPropertyValid(props.outlineColor))
+                            materialEditor.ShaderProperty(props.outlineColor, "🖍️ Outline Color");
+                            
+                        if (props.IsPropertyValid(props.outlineWidth))
+                            materialEditor.ShaderProperty(props.outlineWidth, "📏 Outline Thickness");
+                    }, true);
+                    
+                    ToonShaderStyles.DrawInfoBox("For best results, ensure your mesh has smooth normals. Outline uses vertex expansion technique.");
+                    
+                    if (props.IsPropertyValid(props.outlineWidth) && props.outlineWidth.floatValue > 5f)
+                    {
+                        ToonShaderStyles.DrawInfoBox("Very thick outlines may cause visual artifacts on complex geometry.", MessageType.Warning);
+                    }
+                }
+            }
+        }
+        
+        private void DrawSubsurfaceSectionProfessional(MaterialEditor materialEditor)
+        {
+            showSubsurface = ToonShaderStyles.DrawProfessionalFoldout("Subsurface Scattering", showSubsurface, "🌸");
+            
+            if (showSubsurface)
+            {
+                if (props.IsPropertyValid(props.enableSubsurface))
+                {
+                    ToonShaderStyles.DrawFeatureToggle(props.enableSubsurface, "Enable Subsurface Scattering", "Light transmission through thin materials", "🌸");
+                }
+                
+                if (props.IsFeatureEnabled(props.enableSubsurface))
+                {
+                    ToonShaderStyles.DrawPropertyGroup("Subsurface Properties", () =>
+                    {
+                        if (props.IsPropertyValid(props.subsurfaceColor))
+                            materialEditor.ShaderProperty(props.subsurfaceColor, "🌺 Subsurface Color");
+                            
+                        if (props.IsPropertyValid(props.subsurfaceIntensity))
+                            materialEditor.ShaderProperty(props.subsurfaceIntensity, "💪 Scattering Intensity");
+                            
+                        if (props.IsPropertyValid(props.subsurfaceDistortion))
+                            materialEditor.ShaderProperty(props.subsurfaceDistortion, "🌊 Light Distortion");
+                            
+                        if (props.IsPropertyValid(props.subsurfacePower))
+                            materialEditor.ShaderProperty(props.subsurfacePower, "⚡ Scattering Power");
+                    }, true);
+                    
+                    ToonShaderStyles.DrawInfoBox("Perfect for skin, leaves, fabric, and other translucent materials.");
+                }
+            }
+        }
+        
+        private void DrawAdvancedSectionProfessional(MaterialEditor materialEditor)
+        {
+            showAdvanced = ToonShaderStyles.DrawProfessionalFoldout("Surface Details", showAdvanced, "⚙️");
+            
+            if (showAdvanced)
+            {
+                ToonShaderStyles.DrawPropertyGroup("Normal Mapping", () =>
+                {
+                    if (props.IsPropertyValid(props.normalMap))
+                    {
+                        materialEditor.TexturePropertySingleLine(new GUIContent("🗺️ Normal Map"), props.normalMap, 
+                            props.IsPropertyValid(props.normalStrength) ? props.normalStrength : null);
+                    }
+                }, true);
+                
+                ToonShaderStyles.DrawPropertyGroup("Detail Textures", () =>
+                {
+                    if (props.IsPropertyValid(props.detailMap))
+                        materialEditor.TexturePropertySingleLine(new GUIContent("🔍 Detail Albedo"), props.detailMap);
+                        
+                    if (props.IsPropertyValid(props.detailNormalMap))
+                        materialEditor.TexturePropertySingleLine(new GUIContent("🗺️ Detail Normal"), props.detailNormalMap);
+                        
+                    if (props.IsPropertyValid(props.detailStrength))
+                        materialEditor.ShaderProperty(props.detailStrength, "💪 Detail Strength");
+                }, true);
+                
+                ToonShaderStyles.DrawPropertyGroup("Emission", () =>
+                {
+                    if (props.IsPropertyValid(props.emissionMap))
+                    {
+                        materialEditor.TexturePropertyWithHDRColor(new GUIContent("💡 Emission Map"), props.emissionMap, 
+                            props.IsPropertyValid(props.emissionColor) ? props.emissionColor : null, false);
+                    }
+                    
+                    if (props.IsPropertyValid(props.emissionIntensity))
+                        materialEditor.ShaderProperty(props.emissionIntensity, "🔆 Emission Intensity");
+                }, true);
+            }
+        }
+        
+        private void DrawWindSectionProfessional(MaterialEditor materialEditor)
+        {
+            showWind = ToonShaderStyles.DrawProfessionalFoldout("Wind Animation", showWind, "🌬️");
+            
+            if (showWind)
+            {
+                if (props.IsPropertyValid(props.enableWind))
+                {
+                    ToonShaderStyles.DrawFeatureToggle(props.enableWind, "Enable Wind Animation", "Procedural vertex animation", "🌬️");
+                }
+                
+                if (props.IsFeatureEnabled(props.enableWind))
+                {
+                    ToonShaderStyles.DrawPropertyGroup("Wind Settings", () =>
+                    {
+                        if (props.IsPropertyValid(props.windSpeed))
+                            materialEditor.ShaderProperty(props.windSpeed, "💨 Wind Speed");
+                            
+                        if (props.IsPropertyValid(props.windStrength))
+                            materialEditor.ShaderProperty(props.windStrength, "💪 Wind Strength");
+                            
+                        if (props.IsPropertyValid(props.windDirection))
+                            materialEditor.ShaderProperty(props.windDirection, "🧭 Wind Direction");
+                    }, true);
+                    
+                    ToonShaderStyles.DrawInfoBox("Wind animation works best on vegetation and cloth objects.");
+                }
+            }
+        }
+        
+        private void DrawPerformanceSectionProfessional(MaterialEditor materialEditor)
+        {
+            showPerformance = ToonShaderStyles.DrawProfessionalFoldout("Rendering & Performance", showPerformance, "⚡");
+            
+            if (showPerformance)
+            {
+                ToonShaderStyles.DrawPropertyGroup("Lighting Options", () =>
+                {
+                    if (props.IsPropertyValid(props.receiveShadows))
+                        materialEditor.ShaderProperty(props.receiveShadows, "🌑 Receive Shadows");
+                        
+                    if (props.IsPropertyValid(props.enableAdditionalLights))
+                        materialEditor.ShaderProperty(props.enableAdditionalLights, "💡 Additional Lights");
+                        
+                    if (props.IsPropertyValid(props.lightmapInfluence))
+                        materialEditor.ShaderProperty(props.lightmapInfluence, "🗺️ Lightmap Influence");
+                }, true);
+                
+                // Performance recommendations
+                ToonShaderStyles.DrawPropertyGroup("Optimization Tips", () =>
+                {
+                    string perfTips = GetPerformanceTips();
+                    ToonShaderStyles.DrawInfoBox(perfTips);
+                }, false);
+            }
+        }
+        
+        private void DrawHelpSectionProfessional()
+        {
+            showHelp = ToonShaderStyles.DrawProfessionalFoldout("Help & Resources", showHelp, "📚");
+            
+            if (showHelp)
+            {
+                ToonShaderStyles.DrawPropertyGroup("Quick Start", () =>
+                {
+                    EditorGUILayout.LabelField("1. 🎨 Set your base color and texture");
+                    EditorGUILayout.LabelField("2. 🌑 Configure shadow steps (2-4 for cartoon look)");
+                    EditorGUILayout.LabelField("3. 📝 Enable outline for classic toon style");
+                    EditorGUILayout.LabelField("4. ✨ Add highlights and rim lighting as needed");
+                    EditorGUILayout.LabelField("5. ⚡ Optimize performance settings");
+                }, false);
+                
+                ToonShaderStyles.DrawPropertyGroup("Common Use Cases", () =>
+                {
+                    if (GUILayout.Button("🎭 Anime Character Setup"))
+                        ApplyAnimePreset();
+                    if (GUILayout.Button("🌿 Vegetation Setup"))
+                        ApplyVegetationPreset();
+                    if (GUILayout.Button("🏢 Environment Setup"))
+                        ApplyEnvironmentPreset();
+                }, false);
+            }
+        }
+        
+        #endregion
+        
+        #region Helper Methods
+        
+        private void ApplyChanges(MaterialEditor materialEditor)
+        {
+            foreach (var obj in materialEditor.targets)
+            {
+                EditorUtility.SetDirty(obj);
+                if (obj is Material material)
+                {
+                    props.UpdateKeywords(material);
+                }
+            }
+        }
+        
+        private void HandleAnimationRepaint()
+        {
+            double currentTime = EditorApplication.timeSinceStartup;
+            if (currentTime - lastUpdateTime > 0.1) // 10 FPS for smooth animations
+            {
+                lastUpdateTime = currentTime;
+                if (EditorWindow.focusedWindow != null)
+                {
+                    EditorWindow.focusedWindow.Repaint();
+                }
+            }
+        }
+        
+        private int CountEnabledFeatures()
+        {
+            int count = 0;
+            if (props.IsFeatureEnabled(props.enableHighlights)) count++;
+            if (props.IsFeatureEnabled(props.enableRim)) count++;
+            if (props.IsFeatureEnabled(props.enableOutline)) count++;
+            if (props.IsFeatureEnabled(props.enableSubsurface)) count++;
+            if (props.IsFeatureEnabled(props.enableWind)) count++;
+            return count;
+        }
+        
+        private string GetPerformanceLevel()
+        {
+            int features = CountEnabledFeatures();
+            return features switch
+            {
+                0 => "Maximum",
+                1 or 2 => "High",
+                3 or 4 => "Medium",
+                _ => "Custom"
+            };
+        }
+        
+        private string GetPerformanceTips()
+        {
+            int features = CountEnabledFeatures();
+            if (features > 3)
+                return "💡 Consider disabling unused features for better performance on mobile devices.";
+            else if (features == 0)
+                return "⚡ Maximum performance mode active. Enable features as needed for your visual style.";
+            else
+                return "✅ Good balance of features and performance.";
+        }
+        
+        #endregion
+        
+        #region Preset Methods
+        
+        private void ApplyAnimePreset()
+        {
+            if (props.IsPropertyValid(props.shadowSteps))
+                props.shadowSteps.floatValue = 3f;
+            if (props.IsPropertyValid(props.enableOutline))
+                props.enableOutline.floatValue = 1f;
+            if (props.IsPropertyValid(props.enableHighlights))
+                props.enableHighlights.floatValue = 1f;
+            if (props.IsPropertyValid(props.enableRim))
+                props.enableRim.floatValue = 1f;
+        }
+        
+        private void ApplyVegetationPreset()
+        {
+            if (props.IsPropertyValid(props.enableWind))
+                props.enableWind.floatValue = 1f;
+            if (props.IsPropertyValid(props.enableSubsurface))
+                props.enableSubsurface.floatValue = 1f;
+            if (props.IsPropertyValid(props.shadowSteps))
+                props.shadowSteps.floatValue = 2f;
+        }
+        
+        private void ApplyEnvironmentPreset()
+        {
+            if (props.IsPropertyValid(props.shadowSteps))
+                props.shadowSteps.floatValue = 4f;
+            if (props.IsPropertyValid(props.enableOutline))
+                props.enableOutline.floatValue = 0f;
+        }
+        
+        #endregion
     }
 }

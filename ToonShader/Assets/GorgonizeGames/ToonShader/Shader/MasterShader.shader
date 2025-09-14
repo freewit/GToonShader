@@ -76,10 +76,105 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             "Queue" = "Geometry"
         }
         
+        // OUTLINE PASS - İlk olarak render edilir
+        Pass
+        {
+            Name "Outline"
+            Tags { "LightMode" = "SRPDefaultUnlit" }
+            
+            Cull Front
+            ZWrite On
+            ZTest LEqual
+            
+            HLSLPROGRAM
+            #pragma target 4.5
+            #pragma vertex OutlineVert
+            #pragma fragment OutlineFrag
+            
+            #pragma shader_feature_local _ENABLEOUTLINE_ON
+            #pragma shader_feature_local _ENABLEWIND_ON
+            
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            
+            CBUFFER_START(UnityPerMaterial)
+                half4 _OutlineColor;
+                half _OutlineWidth;
+                half _WindSpeed;
+                half _WindStrength;
+                float4 _WindDirection;
+            CBUFFER_END
+            
+            struct OutlineAttributes
+            {
+                float4 positionOS   : POSITION;
+                float3 normalOS     : NORMAL;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct OutlineVaryings
+            {
+                float4 positionCS   : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+            
+            OutlineVaryings OutlineVert(OutlineAttributes input)
+            {
+                OutlineVaryings output = (OutlineVaryings)0;
+                
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                
+                #if defined(_ENABLEOUTLINE_ON)
+                
+                // Wind animation
+                float3 positionOS = input.positionOS.xyz;
+                #if defined(_ENABLEWIND_ON)
+                float time = _Time.y * _WindSpeed;
+                float windFactor = sin(time + positionOS.x * 2 + positionOS.z * 2) * _WindStrength;
+                positionOS += _WindDirection.xyz * windFactor * input.positionOS.y;
+                #endif
+                
+                // Outline expansion
+                float3 normalOS = normalize(input.normalOS);
+                positionOS += normalOS * _OutlineWidth * 0.001; // Scale down for reasonable values
+                
+                output.positionCS = TransformObjectToHClip(positionOS);
+                
+                #else
+                // Outline disabled, move vertex outside clip space
+                output.positionCS = float4(0, 0, 0, -1);
+                #endif
+                
+                return output;
+            }
+            
+            half4 OutlineFrag(OutlineVaryings input) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                
+                #if defined(_ENABLEOUTLINE_ON)
+                return _OutlineColor;
+                #else
+                discard;
+                return half4(0, 0, 0, 0);
+                #endif
+            }
+            
+            ENDHLSL
+        }
+        
+        // MAIN FORWARD PASS
         Pass
         {
             Name "ToonForward"
             Tags { "LightMode" = "UniversalForward" }
+            
+            Cull Back
+            ZWrite On
+            ZTest LEqual
             
             HLSLPROGRAM
             #pragma target 4.5
@@ -100,7 +195,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             #pragma shader_feature_local _EMISSION
             #pragma shader_feature_local _DETAIL
             
-            // URP keywords - with SHADOW FIX
+            // URP keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
@@ -190,108 +285,132 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             {
                 float4 positionCS               : SV_POSITION;
                 float2 uv                       : TEXCOORD0;
-                float3 positionWS               : TEXCOORD1;
-                float3 normalWS                 : TEXCOORD2;
-                float3 tangentWS                : TEXCOORD3;
-                float3 bitangentWS              : TEXCOORD4;
-                float3 viewDirWS                : TEXCOORD5;
-                #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-                    float4 shadowCoord          : TEXCOORD6;
+                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
+                float3 positionWS               : TEXCOORD2;
+                float3 normalWS                 : TEXCOORD3;
+                #if defined(_NORMALMAP)
+                half4 tangentWS                 : TEXCOORD4;
                 #endif
-                float distanceToCamera          : TEXCOORD7;
-                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 8);
-                half fogFactor                  : TEXCOORD9;
+                float3 viewDirWS                : TEXCOORD5;
+                half4 fogFactorAndVertexLight   : TEXCOORD6;
+                #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+                float4 shadowCoord              : TEXCOORD7;
+                #endif
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
             
+            // Helper functions
+            half3 BlendNormal(half3 n1, half3 n2)
+            {
+                return normalize(half3(n1.xy + n2.xy, n1.z * n2.z));
+            }
+            
+            // Toon lighting calculation
+            half3 CalculateToonLighting(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half shadowAtten, float3 positionWS)
+            {
+                half NdotL = dot(normal, lightDir);
+                half lightIntensity = NdotL * shadowAtten + _ShadowOffset;
+                
+                #if defined(_LIGHTINGMODE_STEPPED)
+                // Stepped lighting
+                lightIntensity = floor(lightIntensity * _ShadowSteps) / _ShadowSteps;
+                #elif defined(_LIGHTINGMODE_SMOOTH)
+                // Smooth lighting with smoothstep
+                lightIntensity = smoothstep(0, _ShadowSmoothness, lightIntensity);
+                #elif defined(_LIGHTINGMODE_RAMP)
+                // Ramp texture based lighting
+                lightIntensity = SAMPLE_TEXTURE2D(_ShadowRamp, sampler_ShadowRamp, float2(lightIntensity, 0.5)).r;
+                #endif
+                
+                lightIntensity = saturate(lightIntensity);
+                
+                // Shadow tinting
+                half3 shadowTint = lerp(half3(1,1,1), _ShadowColor.rgb, _ShadowIntensity);
+                half3 finalColor = lerp(shadowTint, half3(1,1,1), lightIntensity);
+                
+                #if defined(_TINT_SHADOW_ON_BASE)
+                return finalColor * lightColor;
+                #else
+                return lerp(shadowTint * lightColor, lightColor, lightIntensity);
+                #endif
+            }
+            
+            // Rim lighting calculation
+            half3 CalculateRimLighting(half3 normal, half3 viewDir, half3 lightColor)
+            {
+                #if defined(_ENABLERIM_ON)
+                half rim = 1.0 - saturate(dot(viewDir, normal));
+                rim = pow(rim + _RimOffset, _RimPower) * _RimIntensity;
+                return _RimColor.rgb * rim * lightColor;
+                #else
+                return half3(0,0,0);
+                #endif
+            }
+            
+            // Specular calculation
+            half3 CalculateSpecular(half3 normal, half3 lightDir, half3 viewDir, half3 lightColor, half shadowAttenuation)
+            {
+                #if defined(_ENABLEHIGHLIGHTS_ON)
+                half3 halfVector = normalize(lightDir + viewDir);
+                half NdotH = saturate(dot(normal, halfVector));
+                half spec = pow(NdotH, (1.0 - _SpecularSize) * 128.0);
+                
+                // Toon-style stepped specular
+                spec = floor(spec * _SpecularSteps) / _SpecularSteps;
+                spec = smoothstep(0, _SpecularSmoothness, spec);
+                
+                return _SpecularColor.rgb * lightColor * spec * shadowAttenuation;
+                #else
+                return half3(0,0,0);
+                #endif
+            }
+
             Varyings vert(Attributes input)
             {
                 Varyings output = (Varyings)0;
+
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-                
-                VertexPositionInputs positionInputs = GetVertexPositionInputs(input.positionOS.xyz);
-                VertexNormalInputs normalInputs = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+
+                float3 positionOS = input.positionOS.xyz;
                 
                 // Wind animation
                 #if defined(_ENABLEWIND_ON)
-                float3 worldPos = positionInputs.positionWS;
-                float windPhase = (_Time.y * _WindSpeed) + (worldPos.x + worldPos.z) * 0.1;
-                float3 windOffset = _WindDirection.xyz * sin(windPhase) * _WindStrength;
-                positionInputs.positionWS += windOffset * input.positionOS.y; // vertex height affects wind
-                positionInputs.positionCS = TransformWorldToHClip(positionInputs.positionWS);
+                float time = _Time.y * _WindSpeed;
+                float windFactor = sin(time + positionOS.x * 2 + positionOS.z * 2) * _WindStrength;
+                positionOS += _WindDirection.xyz * windFactor * input.positionOS.y;
                 #endif
-                
-                output.positionCS = positionInputs.positionCS;
+
+                VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS);
+                VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+
                 output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
-                output.positionWS = positionInputs.positionWS;
-                output.normalWS = normalInputs.normalWS;
-                output.tangentWS = normalInputs.tangentWS;
-                output.bitangentWS = normalInputs.bitangentWS;
-                output.viewDirWS = GetCameraPositionWS() - positionInputs.positionWS;
-                output.distanceToCamera = distance(_WorldSpaceCameraPos, positionInputs.positionWS);
+                output.normalWS = normalInput.normalWS;
+                #if defined(_NORMALMAP)
+                real sign = input.tangentOS.w * GetOddNegativeScale();
+                half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
+                output.tangentWS = tangentWS;
+                #endif
+                output.viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+
+                half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
+                half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+                output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
                 OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
-                OUTPUT_SH(output.normalWS, output.vertexSH);
-                
-                // SHADOW FIX - New URP shadow coordinate system
+                OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
+
+                output.positionWS = vertexInput.positionWS;
+
                 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-                    output.shadowCoord = GetShadowCoord(positionInputs);
+                output.shadowCoord = GetShadowCoord(vertexInput);
                 #endif
-                
-                output.fogFactor = ComputeFogFactor(output.positionCS.z);
-                
+
+                output.positionCS = vertexInput.positionCS;
+
                 return output;
-            }
-
-            // Toon lighting calculation - enhanced
-            half3 CalculateToonLighting(half3 lightColor, half3 lightDir, half3 normalWS, half3 viewDirWS, half shadowAttenuation, float3 positionWS)
-            {
-                half NdotL = dot(normalWS, lightDir);
-                half lightIntensity = saturate(NdotL) * shadowAttenuation;
-                
-                // Apply shadow offset
-                lightIntensity = saturate(lightIntensity + _ShadowOffset);
-                
-                half3 diffuse;
-                
-                // Lighting modes
-                #if defined(_LIGHTINGMODE_STEPPED)
-                    // Stepped lighting
-                    lightIntensity = round(lightIntensity * _ShadowSteps) / _ShadowSteps;
-                    diffuse = lerp(_ShadowColor.rgb, lightColor, lightIntensity * _ShadowIntensity);
-                    
-                #elif defined(_LIGHTINGMODE_RAMP)
-                    // Ramp texture lighting
-                    half2 rampUV = half2(lightIntensity, 0.5);
-                    half3 ramp = SAMPLE_TEXTURE2D(_ShadowRamp, sampler_ShadowRamp, rampUV).rgb;
-                    diffuse = lightColor * ramp * _ShadowIntensity;
-                    
-                #else
-                    // Smooth lighting (default)
-                    lightIntensity = smoothstep(0.0, _ShadowSmoothness, lightIntensity);
-                    diffuse = lerp(_ShadowColor.rgb, lightColor, lightIntensity * _ShadowIntensity);
-                #endif
-                
-                return diffuse;
-            }
-
-            // Enhanced specular calculation
-            half3 CalculateSpecular(half3 lightColor, half3 lightDir, half3 normalWS, half3 viewDirWS, half shadowAttenuation)
-            {
-                half3 halfDir = normalize(lightDir + viewDirWS);
-                half NdotH = saturate(dot(normalWS, halfDir));
-                half spec = pow(NdotH, (1.0 - _SpecularSize) * 128.0);
-                
-                #if defined(_LIGHTINGMODE_STEPPED)
-                    spec = round(spec * _SpecularSteps) / _SpecularSteps;
-                #else
-                    spec = smoothstep(0.5 - _SpecularSmoothness, 0.5 + _SpecularSmoothness, spec);
-                #endif
-                
-                return _SpecularColor.rgb * lightColor * spec * shadowAttenuation;
             }
 
             half4 frag(Varyings input) : SV_Target
@@ -316,13 +435,13 @@ Shader "Gorgonize/Gorgonize Toon Shader"
                 half3 detailNormalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, input.uv * _DetailMap_ST.xy + _DetailMap_ST.zw), _DetailStrength);
                 normalTS = BlendNormal(normalTS, detailNormalTS);
                 #endif
-                half3x3 tangentToWorld = half3x3(input.tangentWS, input.bitangentWS, input.normalWS);
+                half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, input.tangentWS.w * cross(input.normalWS, input.tangentWS.xyz), input.normalWS);
                 normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
                 #endif
                 normalWS = normalize(normalWS);
                 half3 viewDirWS = normalize(input.viewDirWS);
                 
-                // SHADOW FIX - New URP shadow coordinate system
+                // Shadow coordinate calculation
                 float4 shadowCoord;
                 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
                     shadowCoord = input.shadowCoord;
@@ -332,223 +451,156 @@ Shader "Gorgonize/Gorgonize Toon Shader"
                     shadowCoord = float4(0, 0, 0, 0);
                 #endif
 
-                // Main lighting with fixed shadows
+                // Main lighting
                 Light mainLight = GetMainLight(shadowCoord);
                 half shadowAttenuation = mainLight.shadowAttenuation;
                 
                 half3 diffuseColor = CalculateToonLighting(mainLight.color, mainLight.direction, normalWS, viewDirWS, shadowAttenuation, input.positionWS);
                 
-                half3 specularColor = half3(0,0,0);
-                #if defined(_ENABLEHIGHLIGHTS_ON)
-                specularColor = CalculateSpecular(mainLight.color, mainLight.direction, normalWS, viewDirWS, shadowAttenuation);
-                #endif
+                half3 specularColor = CalculateSpecular(normalWS, mainLight.direction, viewDirWS, mainLight.color, shadowAttenuation);
                 
-                // Rim lighting
-                half3 rimColor = half3(0,0,0);
-                #if defined(_ENABLERIM_ON)
-                half VdotN = 1.0 - saturate(dot(viewDirWS, normalWS));
-                half rimIntensity = pow(VdotN, _RimPower) * _RimIntensity;
-                rimIntensity = saturate(rimIntensity + _RimOffset);
-                rimColor = _RimColor.rgb * rimIntensity * shadowAttenuation;
-                #endif
+                half3 rimColor = CalculateRimLighting(normalWS, viewDirWS, mainLight.color);
                 
                 // Subsurface scattering
                 half3 subsurfaceColor = half3(0,0,0);
                 #if defined(_ENABLESUBSURFACE_ON)
-                half3 lightDir = mainLight.direction;
-                half3 subsurfaceDir = normalize(lightDir + normalWS * _SubsurfaceDistortion);
-                half subsurface = pow(saturate(dot(viewDirWS, -subsurfaceDir)), _SubsurfacePower);
-                subsurfaceColor = _SubsurfaceColor.rgb * subsurface * _SubsurfaceIntensity * shadowAttenuation;
+                half3 subsurfaceDir = mainLight.direction + normalWS * _SubsurfaceDistortion;
+                half subsurfaceDot = pow(saturate(dot(viewDirWS, -subsurfaceDir)), _SubsurfacePower) * _SubsurfaceIntensity;
+                subsurfaceColor = _SubsurfaceColor.rgb * subsurfaceDot * mainLight.color;
                 #endif
-                
+
                 // Additional lights
                 #if defined(_ENABLEADDITIONALLIGHTS_ON)
                 uint pixelLightCount = GetAdditionalLightsCount();
                 for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
                 {
                     Light light = GetAdditionalLight(lightIndex, input.positionWS);
-                    half3 additionalDiffuse = CalculateToonLighting(light.color, light.direction, normalWS, viewDirWS, light.shadowAttenuation, input.positionWS);
-                    diffuseColor += additionalDiffuse * 0.5;
+                    half3 additionalDiffuse = CalculateToonLighting(light.color, light.direction, normalWS, viewDirWS, light.shadowAttenuation * light.distanceAttenuation, input.positionWS);
+                    diffuseColor += additionalDiffuse;
                     
-                    #if defined(_ENABLEHIGHLIGHTS_ON)
-                    specularColor += CalculateSpecular(light.color, light.direction, normalWS, viewDirWS, light.shadowAttenuation) * 0.5;
-                    #endif
+                    specularColor += CalculateSpecular(normalWS, light.direction, viewDirWS, light.color, light.shadowAttenuation * light.distanceAttenuation);
+                    rimColor += CalculateRimLighting(normalWS, viewDirWS, light.color);
                 }
                 #endif
+
+                // Lightmap support
+                half3 bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 
-                // Combine colors
-                half3 color = baseColor.rgb * diffuseColor + specularColor + rimColor + subsurfaceColor;
+                // Combine all lighting
+                half3 finalColor = baseColor.rgb * diffuseColor;
+                finalColor += specularColor;
+                finalColor += rimColor;
+                finalColor += subsurfaceColor;
+                finalColor += bakedGI * baseColor.rgb * _LightmapInfluence;
                 
                 // Emission
                 #if defined(_EMISSION)
                 half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).rgb * _EmissionColor.rgb * _EmissionIntensity;
-                color += emission;
+                finalColor += emission;
                 #endif
                 
-                // Global illumination
-                half3 bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
-                color += baseColor.rgb * bakedGI * _LightmapInfluence * _OcclusionStrength;
+                // Fog
+                finalColor = MixFog(finalColor, input.fogFactorAndVertexLight.x);
                 
-                // Apply fog
-                color = MixFog(color, input.fogFactor);
-                
-                return half4(color, baseColor.a);
+                return half4(finalColor, baseColor.a);
             }
             ENDHLSL
         }
         
-        // Enhanced Shadow Caster Pass - with SHADOW FIX
+        // Shadow Caster Pass
         Pass
         {
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
+
             ZWrite On
             ZTest LEqual
             ColorMask 0
-            Cull Back
-            
+            Cull[_Cull]
+
             HLSLPROGRAM
             #pragma target 4.5
+
+            // Material Keywords
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
-            
-            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
-            #pragma multi_compile_instancing
-            
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            
-            // LerpWhiteTo functions - must be defined before Shadows.hlsl for URP 17.0.4
-            half LerpWhiteTo(half b, half t)
-            {
-                half oneMinusT = 1.0 - t;
-                return oneMinusT + b * t;
-            }
 
-            half3 LerpWhiteTo(half3 b, half t)
-            {
-                half oneMinusT = 1.0 - t;
-                return half3(oneMinusT, oneMinusT, oneMinusT) + b * t;
-            }
-
-            half4 LerpWhiteTo(half4 b, half t)
-            {
-                half oneMinusT = 1.0 - t;
-                return half4(oneMinusT, oneMinusT, oneMinusT, oneMinusT) + b * t;
-            }
-            
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
-            
-            float3 _LightDirection;
-            float3 _LightPosition;
-
-            struct Attributes
-            {
-                float4 positionOS   : POSITION;
-                float3 normalOS     : NORMAL;
-                float2 texcoord     : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
-            
-            struct Varyings
-            {
-                float4 positionCS   : SV_POSITION;
-                float2 uv           : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-                UNITY_VERTEX_OUTPUT_STEREO
-            };
-
-            float4 GetShadowPositionHClip(Attributes input)
-            {
-                float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
-                float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
-
-                #if _CASTING_PUNCTUAL_LIGHT_SHADOW
-                    float3 lightDirectionWS = normalize(_LightPosition - positionWS);
-                #else
-                    float3 lightDirectionWS = _LightDirection;
-                #endif
-
-                float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
-
-                #if UNITY_REVERSED_Z
-                    positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE);
-                #else
-                    positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE);
-                #endif
-
-                return positionCS;
-            }
-
-            Varyings ShadowPassVertex(Attributes input)
-            {
-                Varyings output = (Varyings)0;
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-                output.positionCS = GetShadowPositionHClip(input);
-                output.uv = input.texcoord;
-                return output;
-            }
-
-            half4 ShadowPassFragment(Varyings input) : SV_TARGET
-            {
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                return 0;
-            }
-
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
             ENDHLSL
         }
-        
-        // Enhanced Depth Pass
+
+        // Depth Only Pass
         Pass
         {
             Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
+
             ZWrite On
             ColorMask 0
-            Cull Back
-            
+            Cull[_Cull]
+
             HLSLPROGRAM
             #pragma target 4.5
+
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
+
+            // Material Keywords
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+
+            //--------------------------------------
+            // GPU Instancing
             #pragma multi_compile_instancing
-            
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            
-            struct Attributes
-            {
-                float4 position     : POSITION;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
-            struct Varyings
-            {
-                float4 positionCS   : SV_POSITION;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-                UNITY_VERTEX_OUTPUT_STEREO
-            };
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
+            ENDHLSL
+        }
 
-            Varyings DepthOnlyVertex(Attributes input)
-            {
-                Varyings output = (Varyings)0;
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+        // Depth Normals Pass
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
 
-                output.positionCS = TransformObjectToHClip(input.position.xyz);
-                return output;
-            }
+            ZWrite On
+            Cull[_Cull]
 
-            half4 DepthOnlyFragment(Varyings input) : SV_TARGET
-            {
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                return 0;
-            }
+            HLSLPROGRAM
+            #pragma target 4.5
 
+            #pragma vertex DepthNormalsVertex
+            #pragma fragment DepthNormalsFragment
+
+            // Material Keywords
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitDepthNormalsPass.hlsl"
             ENDHLSL
         }
     }
+
+    // Material Editor GUI
+    CustomEditor "Gorgonize.ToonShader.Editor.GorgonizeToonShaderGUI"
     
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
-    CustomEditor "Gorgonize.ToonShader.Editor.GorgonizeToonShaderGUI"
 }

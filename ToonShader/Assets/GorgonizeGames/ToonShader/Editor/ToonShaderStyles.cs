@@ -4,490 +4,590 @@ using UnityEditor;
 namespace Gorgonize.ToonShader.Editor
 {
     /// <summary>
-    /// Gorgonize Toon Shader GUI için modern stil sistemi
+    /// Professional Asset Store Quality GUI Styles for Gorgonize Toon Shader
     /// </summary>
     public static class ToonShaderStyles
     {
-        // Textures
-        public static Texture2D logoTexture;
+        #region Color Palette - Professional Dark Theme
         
-        // Colors - Modern renk paleti
-        public static readonly Color darkBackground = new Color(0x22/255f, 0x28/255f, 0x31/255f, 1f);     // #222831
-        public static readonly Color mediumBackground = new Color(0x39/255f, 0x3E/255f, 0x46/255f, 1f);   // #393E46  
-        public static readonly Color accentColor = new Color(0x00/255f, 0xAD/255f, 0xB5/255f, 1f);        // #00ADB5
-        public static readonly Color lightText = new Color(0xEE/255f, 0xEE/255f, 0xEE/255f, 1f);          // #EEEEEE
+        // Ana Arka Plan - Koyu antrasit
+        private static readonly Color MainBackground = new Color32(30, 30, 36, 255); // #1E1E24
         
-        // Derived colors
-        public static readonly Color sectionColor = new Color(0x39/255f, 0x3E/255f, 0x46/255f, 0.8f);
-        public static readonly Color hoverColor = new Color(0x00/255f, 0xAD/255f, 0xB5/255f, 0.2f);
-        public static readonly Color activeColor = new Color(0x00/255f, 0xAD/255f, 0xB5/255f, 0.6f);
-        public static readonly Color borderColor = new Color(0x00/255f, 0xAD/255f, 0xB5/255f, 0.3f);
+        // İkincil Arka Plan - Soğuk gri panel
+        private static readonly Color SecondaryBackground = new Color32(45, 48, 58, 255); // #2D303A
         
-        // Legacy colors
-        public static readonly Color primaryColor = accentColor;
-        public static readonly Color secondaryColor = mediumBackground;
-        public static readonly Color backgroundColor = darkBackground;
+        // Ana Vurgu Rengi - Canlı mavi
+        private static readonly Color AccentBlue = new Color32(0, 157, 255, 255); // #009DFF
         
-        // Styles
-        public static GUIStyle headerStyle;
-        public static GUIStyle subHeaderStyle;
-        public static GUIStyle sectionStyle;
-        public static GUIStyle boxStyle;
-        public static GUIStyle buttonStyle;
-        public static GUIStyle toggleStyle;
-        public static GUIStyle labelStyle;
-        public static GUIStyle helpBoxStyle;
-        public static GUIStyle foldoutStyle;
-
+        // Metin/İkonlar - Temiz beyaz
+        private static readonly Color TextWhite = new Color32(234, 234, 234, 255); // #EAEAEA
+        
+        // Yardımcı renkler
+        private static readonly Color AccentBlueDim = new Color32(0, 157, 255, 180); // Yarı şeffaf mavi
+        private static readonly Color AccentBlueGlow = new Color32(0, 157, 255, 60); // Parlama efekti
+        private static readonly Color BorderColor = new Color32(60, 60, 70, 255); // Çerçeve rengi
+        private static readonly Color HoverColor = new Color32(0, 140, 220, 255); // Hover efekti
+        
+        #endregion
+        
+        #region Style Variables
+        
+        private static GUIStyle _headerStyle;
+        private static GUIStyle _subHeaderStyle;
+        private static GUIStyle _sectionStyle;
+        private static GUIStyle _foldoutStyle;
+        private static GUIStyle _versionStyle;
+        private static GUIStyle _brandStyle;
+        private static GUIStyle _featureToggleStyle;
+        private static GUIStyle _infoBoxStyle;
+        private static GUIStyle _warningBoxStyle;
+        private static GUIStyle _buttonPrimaryStyle;
+        private static GUIStyle _buttonSecondaryStyle;
+        private static GUIStyle _propertyLabelStyle;
+        private static GUIStyle _groupHeaderStyle;
+        private static GUIStyle _footerStyle;
+        
+        private static Texture2D _headerBackgroundTexture;
+        private static Texture2D _sectionBackgroundTexture;
+        private static Texture2D _glowTexture;
+        private static Texture2D _gradientTexture;
+        
+        private static bool _initialized = false;
+        
+        #endregion
+        
+        #region Public Properties
+        
+        public static GUIStyle HeaderStyle { get { if (!_initialized) Initialize(); return _headerStyle; } }
+        public static GUIStyle SubHeaderStyle { get { if (!_initialized) Initialize(); return _subHeaderStyle; } }
+        public static GUIStyle SectionStyle { get { if (!_initialized) Initialize(); return _sectionStyle; } }
+        public static GUIStyle FoldoutStyle { get { if (!_initialized) Initialize(); return _foldoutStyle; } }
+        public static GUIStyle VersionStyle { get { if (!_initialized) Initialize(); return _versionStyle; } }
+        public static GUIStyle BrandStyle { get { if (!_initialized) Initialize(); return _brandStyle; } }
+        public static GUIStyle FeatureToggleStyle { get { if (!_initialized) Initialize(); return _featureToggleStyle; } }
+        public static GUIStyle InfoBoxStyle { get { if (!_initialized) Initialize(); return _infoBoxStyle; } }
+        public static GUIStyle WarningBoxStyle { get { if (!_initialized) Initialize(); return _warningBoxStyle; } }
+        public static GUIStyle ButtonPrimaryStyle { get { if (!_initialized) Initialize(); return _buttonPrimaryStyle; } }
+        public static GUIStyle ButtonSecondaryStyle { get { if (!_initialized) Initialize(); return _buttonSecondaryStyle; } }
+        public static GUIStyle PropertyLabelStyle { get { if (!_initialized) Initialize(); return _propertyLabelStyle; } }
+        public static GUIStyle GroupHeaderStyle { get { if (!_initialized) Initialize(); return _groupHeaderStyle; } }
+        public static GUIStyle FooterStyle { get { if (!_initialized) Initialize(); return _footerStyle; } }
+        
+        #endregion
+        
+        #region Initialization
+        
         public static void Initialize()
         {
-            LoadTextures();
-            InitializeStyles();
-        }
-
-        private static void LoadTextures()
-        {
-            // Logo yükleme
-            string[] guids = AssetDatabase.FindAssets("GorgonizeLogo t:Texture2D");
-            if (guids.Length > 0)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guids[0]);
-                logoTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-            }
+            if (_initialized) return;
             
-            // Resources klasöründen dene
-            if (logoTexture == null)
-            {
-                logoTexture = Resources.Load<Texture2D>("GorgonizeLogo");
-            }
+            CreateTextures();
+            CreateStyles();
+            
+            _initialized = true;
         }
-
-        private static void InitializeStyles()
+        
+        public static void ForceReinitialize()
         {
-            // Header Style
-            headerStyle = new GUIStyle(EditorStyles.largeLabel)
+            _initialized = false;
+            
+            // Clean up old textures
+            if (_headerBackgroundTexture) Object.DestroyImmediate(_headerBackgroundTexture);
+            if (_sectionBackgroundTexture) Object.DestroyImmediate(_sectionBackgroundTexture);
+            if (_glowTexture) Object.DestroyImmediate(_glowTexture);
+            if (_gradientTexture) Object.DestroyImmediate(_gradientTexture);
+            
+            Initialize();
+        }
+        
+        private static void CreateTextures()
+        {
+            // Header background with gradient
+            _headerBackgroundTexture = CreateGradientTexture(64, MainBackground, SecondaryBackground, true);
+            
+            // Section background
+            _sectionBackgroundTexture = CreateSolidTexture(SecondaryBackground);
+            
+            // Glow effect texture
+            _glowTexture = CreateGlowTexture(AccentBlueGlow);
+            
+            // Gradient accent texture
+            _gradientTexture = CreateGradientTexture(32, AccentBlueDim, AccentBlue, false);
+        }
+        
+        private static void CreateStyles()
+        {
+            // Brand/Logo Style - Ana başlık
+            _brandStyle = new GUIStyle(EditorStyles.boldLabel)
             {
-                fontSize = 24,
+                fontSize = 20,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = lightText },
-                padding = new RectOffset(10, 10, 10, 10),
-                margin = new RectOffset(0, 0, 5, 5)
+                normal = { textColor = TextWhite },
+                padding = new RectOffset(10, 10, 15, 5)
             };
-
-            // Sub Header Style
-            subHeaderStyle = new GUIStyle(EditorStyles.label)
+            
+            // Header Style - Shader adı
+            _headerStyle = new GUIStyle(EditorStyles.boldLabel)
             {
-                fontSize = 12,
-                fontStyle = FontStyle.Italic,
+                fontSize = 18,
+                fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = new Color(lightText.r, lightText.g, lightText.b, 0.7f) },
+                normal = { 
+                    textColor = AccentBlue,
+                    background = _headerBackgroundTexture
+                },
+                padding = new RectOffset(10, 10, 12, 8)
+            };
+            
+            // Version Style
+            _versionStyle = new GUIStyle(EditorStyles.miniLabel)
+            {
+                fontSize = 10,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = new Color(TextWhite.r, TextWhite.g, TextWhite.b, 0.7f) },
                 padding = new RectOffset(5, 5, 2, 8)
             };
-
-            // Section Style
-            sectionStyle = new GUIStyle(EditorStyles.helpBox)
-            {
-                padding = new RectOffset(15, 15, 12, 15),
-                margin = new RectOffset(5, 5, 5, 5),
-                normal = { background = CreateGradientTexture(sectionColor, darkBackground) },
-                border = new RectOffset(1, 1, 1, 1)
-            };
-
-            // Box Style
-            boxStyle = new GUIStyle(GUI.skin.box)
-            {
-                padding = new RectOffset(12, 12, 10, 10),
-                margin = new RectOffset(2, 2, 2, 2),
-                normal = { 
-                    background = CreateColorTexture(mediumBackground),
-                    textColor = lightText 
-                },
-                border = new RectOffset(1, 1, 1, 1)
-            };
-
-            // Button Style
-            buttonStyle = new GUIStyle(EditorStyles.miniButton)
-            {
-                fontSize = 11,
-                fontStyle = FontStyle.Bold,
-                padding = new RectOffset(10, 10, 6, 6),
-                normal = { 
-                    textColor = lightText,
-                    background = CreateColorTexture(mediumBackground)
-                },
-                hover = { 
-                    textColor = darkBackground,
-                    background = CreateColorTexture(accentColor)
-                },
-                active = { 
-                    textColor = darkBackground,
-                    background = CreateColorTexture(new Color(accentColor.r * 0.8f, accentColor.g * 0.8f, accentColor.b * 0.8f, 1f))
-                }
-            };
-
-            // Toggle Style
-            toggleStyle = new GUIStyle(EditorStyles.toggle)
-            {
-                fontSize = 11,
-                fontStyle = FontStyle.Normal,
-                normal = { textColor = lightText },
-                onNormal = { textColor = accentColor }
-            };
-
-            // Label Style
-            labelStyle = new GUIStyle(EditorStyles.label)
-            {
-                fontSize = 11,
-                normal = { textColor = new Color(lightText.r, lightText.g, lightText.b, 0.9f) },
-                wordWrap = true
-            };
-
-            // Help Box Style
-            helpBoxStyle = new GUIStyle(EditorStyles.helpBox)
-            {
-                fontSize = 11,
-                fontStyle = FontStyle.Normal,
-                padding = new RectOffset(12, 12, 10, 10),
-                margin = new RectOffset(5, 5, 5, 5),
-                normal = { 
-                    textColor = lightText,
-                    background = CreateColorTexture(new Color(accentColor.r, accentColor.g, accentColor.b, 0.15f))
-                },
-                border = new RectOffset(1, 1, 1, 1)
-            };
-
-            // Foldout Style
-            foldoutStyle = new GUIStyle(EditorStyles.foldout)
+            
+            // Sub Header Style - Section başlıkları
+            _subHeaderStyle = new GUIStyle(EditorStyles.boldLabel)
             {
                 fontSize = 14,
                 fontStyle = FontStyle.Bold,
-                normal = { textColor = lightText },
-                onNormal = { textColor = accentColor },
-                hover = { textColor = new Color(accentColor.r * 1.2f, accentColor.g * 1.2f, accentColor.b * 1.2f, 1f) },
-                onHover = { textColor = new Color(accentColor.r * 1.2f, accentColor.g * 1.2f, accentColor.b * 1.2f, 1f) },
-                active = { textColor = accentColor },
-                onActive = { textColor = accentColor },
-                focused = { textColor = accentColor },
-                onFocused = { textColor = accentColor }
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = AccentBlue },
+                padding = new RectOffset(8, 5, 5, 5)
+            };
+            
+            // Professional Foldout Style
+            _foldoutStyle = new GUIStyle(EditorStyles.foldout)
+            {
+                fontSize = 13,
+                fontStyle = FontStyle.Bold,
+                normal = { 
+                    textColor = TextWhite,
+                    background = _sectionBackgroundTexture
+                },
+                onNormal = { 
+                    textColor = AccentBlue,
+                    background = _sectionBackgroundTexture
+                },
+                hover = { 
+                    textColor = HoverColor,
+                    background = _sectionBackgroundTexture
+                },
+                padding = new RectOffset(20, 10, 8, 8),
+                margin = new RectOffset(2, 2, 2, 2),
+                border = new RectOffset(1, 1, 1, 1)
+            };
+            
+            // Section Container Style
+            _sectionStyle = new GUIStyle()
+            {
+                normal = { background = _sectionBackgroundTexture },
+                padding = new RectOffset(15, 15, 10, 12),
+                margin = new RectOffset(5, 5, 2, 8),
+                border = new RectOffset(1, 1, 1, 1)
+            };
+            
+            // Group Header Style
+            _groupHeaderStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 11,
+                fontStyle = FontStyle.Bold,
+                normal = { 
+                    textColor = AccentBlue,
+                    background = CreateSolidTexture(new Color32(0, 157, 255, 25))
+                },
+                padding = new RectOffset(8, 8, 4, 4),
+                margin = new RectOffset(0, 0, 5, 2)
+            };
+            
+            // Property Label Style
+            _propertyLabelStyle = new GUIStyle(EditorStyles.label)
+            {
+                normal = { textColor = TextWhite },
+                fontSize = 11,
+                padding = new RectOffset(0, 0, 2, 2)
+            };
+            
+            // Feature Toggle Style
+            _featureToggleStyle = new GUIStyle(EditorStyles.toggle)
+            {
+                normal = { textColor = TextWhite },
+                onNormal = { textColor = AccentBlue },
+                fontSize = 12,
+                fontStyle = FontStyle.Bold,
+                padding = new RectOffset(20, 5, 3, 3)
+            };
+            
+            // Info Box Style
+            _infoBoxStyle = new GUIStyle(EditorStyles.helpBox)
+            {
+                normal = { 
+                    background = CreateSolidTexture(new Color32(0, 157, 255, 20)),
+                    textColor = TextWhite
+                },
+                fontSize = 10,
+                padding = new RectOffset(10, 10, 8, 8),
+                margin = new RectOffset(5, 5, 5, 5),
+                border = new RectOffset(1, 1, 1, 1)
+            };
+            
+            // Warning Box Style
+            _warningBoxStyle = new GUIStyle(EditorStyles.helpBox)
+            {
+                normal = { 
+                    background = CreateSolidTexture(new Color32(255, 180, 0, 30)),
+                    textColor = TextWhite
+                },
+                fontSize = 10,
+                padding = new RectOffset(10, 10, 8, 8),
+                margin = new RectOffset(5, 5, 5, 5),
+                border = new RectOffset(1, 1, 1, 1)
+            };
+            
+            // Primary Button Style
+            _buttonPrimaryStyle = new GUIStyle(EditorStyles.miniButton)
+            {
+                normal = { 
+                    background = CreateSolidTexture(AccentBlue),
+                    textColor = Color.white
+                },
+                hover = { 
+                    background = CreateSolidTexture(HoverColor),
+                    textColor = Color.white
+                },
+                fontSize = 11,
+                fontStyle = FontStyle.Bold,
+                padding = new RectOffset(15, 15, 8, 8)
+            };
+            
+            // Secondary Button Style
+            _buttonSecondaryStyle = new GUIStyle(EditorStyles.miniButton)
+            {
+                normal = { 
+                    background = CreateSolidTexture(SecondaryBackground),
+                    textColor = TextWhite
+                },
+                hover = { 
+                    background = CreateSolidTexture(new Color32(60, 65, 75, 255)),
+                    textColor = AccentBlue
+                },
+                fontSize = 11,
+                padding = new RectOffset(15, 15, 8, 8),
+                border = new RectOffset(1, 1, 1, 1)
+            };
+            
+            // Footer Style
+            _footerStyle = new GUIStyle(EditorStyles.miniLabel)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = new Color(TextWhite.r, TextWhite.g, TextWhite.b, 0.6f) },
+                fontSize = 9,
+                padding = new RectOffset(5, 5, 5, 5)
             };
         }
-
-        // Yardımcı metodlar
-        private static Texture2D CreateColorTexture(Color color)
+        
+        #endregion
+        
+        #region Texture Creation Helpers
+        
+        private static Texture2D CreateSolidTexture(Color color)
         {
             var texture = new Texture2D(1, 1);
             texture.SetPixel(0, 0, color);
             texture.Apply();
+            texture.hideFlags = HideFlags.HideAndDontSave;
             return texture;
         }
-
-        private static Texture2D CreateGradientTexture(Color topColor, Color bottomColor)
+        
+        private static Texture2D CreateGradientTexture(int height, Color topColor, Color bottomColor, bool vertical = true)
         {
-            int height = 32;
-            var texture = new Texture2D(1, height);
+            var texture = vertical ? new Texture2D(1, height) : new Texture2D(height, 1);
             
-            for (int y = 0; y < height; y++)
+            for (int i = 0; i < height; i++)
             {
-                float t = (float)y / (height - 1);
-                Color color = Color.Lerp(bottomColor, topColor, t);
-                texture.SetPixel(0, y, color);
+                float t = (float)i / (height - 1);
+                Color color = Color.Lerp(topColor, bottomColor, t);
+                
+                if (vertical)
+                    texture.SetPixel(0, i, color);
+                else
+                    texture.SetPixel(i, 0, color);
             }
             
             texture.Apply();
+            texture.hideFlags = HideFlags.HideAndDontSave;
             return texture;
         }
-
-        // Çizim metodları
-        public static void DrawSeparator(float thickness = 2f, Color? color = null)
+        
+        private static Texture2D CreateGlowTexture(Color glowColor)
         {
-            var separatorColor = color ?? accentColor;
-            var rect = EditorGUILayout.GetControlRect(GUILayout.Height(thickness));
-            EditorGUI.DrawRect(rect, separatorColor);
+            int size = 16;
+            var texture = new Texture2D(size, size);
+            Vector2 center = new Vector2(size * 0.5f, size * 0.5f);
+            
+            for (int x = 0; x < size; x++)
+            {
+                for (int y = 0; y < size; y++)
+                {
+                    float distance = Vector2.Distance(new Vector2(x, y), center);
+                    float normalizedDistance = distance / (size * 0.5f);
+                    float alpha = Mathf.Clamp01(1f - normalizedDistance);
+                    alpha = Mathf.Pow(alpha, 2f); // Smooth falloff
+                    
+                    Color color = new Color(glowColor.r, glowColor.g, glowColor.b, glowColor.a * alpha);
+                    texture.SetPixel(x, y, color);
+                }
+            }
+            
+            texture.Apply();
+            texture.hideFlags = HideFlags.HideAndDontSave;
+            return texture;
         }
-
-        public static void DrawHeader(string title, string subtitle = "")
+        
+        #endregion
+        
+        #region Public Drawing Methods
+        
+        public static void DrawProfessionalHeader(string brandName, string shaderName, string version)
+        {
+            // Ana container
+            var headerRect = EditorGUILayout.GetControlRect(false, 80);
+            headerRect.x -= 15;
+            headerRect.width += 30;
+            
+            // Background gradient
+            EditorGUI.DrawRect(headerRect, MainBackground);
+            
+            // Accent glow at top
+            var glowRect = new Rect(headerRect.x, headerRect.y, headerRect.width, 4);
+            EditorGUI.DrawRect(glowRect, AccentBlue);
+            
+            EditorGUILayout.Space(5);
+            
+            // Brand name
+            GUILayout.Label("🎨 " + brandName, BrandStyle);
+            
+            // Shader name with accent
+            GUILayout.Label(shaderName, HeaderStyle);
+            
+            // Version
+            GUILayout.Label(version + " 🚀", VersionStyle);
+            
+            EditorGUILayout.Space(5);
+            
+            DrawAccentSeparator();
+        }
+        
+        public static void DrawAccentSeparator()
         {
             EditorGUILayout.Space(8);
             
-            // Stilize header container
-            var headerRect = EditorGUILayout.BeginVertical();
+            var rect = EditorGUILayout.GetControlRect(false, 3);
+            rect.x += 20;
+            rect.width -= 40;
             
-            // Gradient background
-            EditorGUI.DrawRect(headerRect, new Color(darkBackground.r, darkBackground.g, darkBackground.b, 0.95f));
+            // Animated accent line
+            float time = (float)EditorApplication.timeSinceStartup;
+            float pulse = (Mathf.Sin(time * 2f) + 1f) * 0.5f;
+            Color animatedColor = Color.Lerp(AccentBlueDim, AccentBlue, pulse);
             
-            // Top accent border
-            var topBorderRect = new Rect(headerRect.x, headerRect.y, headerRect.width, 3);
-            EditorGUI.DrawRect(topBorderRect, accentColor);
+            EditorGUI.DrawRect(rect, animatedColor);
             
-            GUILayout.Space(12);
+            EditorGUILayout.Space(8);
+        }
+        
+        public static bool DrawProfessionalFoldout(string title, bool isExpanded, string icon = "")
+        {
+            EditorGUILayout.Space(5);
             
-            // Logo ve yazı container
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.Space(15); // Sol padding
+            var rect = EditorGUILayout.GetControlRect(false, 30);
             
-            // Logo ile glow effect
-            if (logoTexture != null)
+            // Background with rounded effect simulation
+            var bgRect = new Rect(rect.x - 8, rect.y - 2, rect.width + 16, rect.height + 4);
+            EditorGUI.DrawRect(bgRect, SecondaryBackground);
+            
+            // Left accent border
+            var accentRect = new Rect(bgRect.x, bgRect.y, 4, bgRect.height);
+            EditorGUI.DrawRect(accentRect, isExpanded ? AccentBlue : AccentBlueDim);
+            
+            // Hover glow effect
+            if (bgRect.Contains(Event.current.mousePosition))
             {
-                // Logo background glow
-                var logoRect = GUILayoutUtility.GetRect(40, 40);
-                var glowRect = new Rect(logoRect.x - 4, logoRect.y - 4, logoRect.width + 8, logoRect.height + 8);
-                EditorGUI.DrawRect(glowRect, new Color(accentColor.r, accentColor.g, accentColor.b, 0.15f));
-                
-                // Logo border
-                var borderRect = new Rect(logoRect.x - 1, logoRect.y - 1, logoRect.width + 2, logoRect.height + 2);
-                EditorGUI.DrawRect(borderRect, new Color(accentColor.r, accentColor.g, accentColor.b, 0.4f));
-                
-                // Logo
-                GUI.DrawTexture(logoRect, logoTexture);
-                
-                GUILayout.Space(15);
+                var glowRect = new Rect(bgRect.x + 4, bgRect.y, bgRect.width - 4, bgRect.height);
+                EditorGUI.DrawRect(glowRect, AccentBlueGlow);
             }
             
-            // Yazılar container
-            EditorGUILayout.BeginVertical();
-            GUILayout.Space(6);
+            // Icon and title
+            var contentRect = new Rect(rect.x + 8, rect.y, rect.width - 8, rect.height);
+            string displayTitle = string.IsNullOrEmpty(icon) ? title : icon + "  " + title;
             
-            // Ana başlık
-            var headerLabelStyle = new GUIStyle(EditorStyles.boldLabel)
+            // Custom foldout drawing
+            var foldoutRect = new Rect(contentRect.x, contentRect.y + 5, 15, 15);
+            bool newState = EditorGUI.Foldout(foldoutRect, isExpanded, "", false);
+            
+            // Title
+            var titleRect = new Rect(contentRect.x + 20, contentRect.y, contentRect.width - 20, contentRect.height);
+            var titleStyle = new GUIStyle(EditorStyles.boldLabel)
             {
-                fontSize = 18,
+                fontSize = 13,
                 fontStyle = FontStyle.Bold,
-                normal = { textColor = lightText }
+                normal = { textColor = isExpanded ? AccentBlue : TextWhite }
             };
+            EditorGUI.LabelField(titleRect, displayTitle, titleStyle);
             
-            // Alt başlık  
-            var subHeaderLabelStyle = new GUIStyle(EditorStyles.label)
+            // Click detection for the entire area
+            if (Event.current.type == EventType.MouseDown && bgRect.Contains(Event.current.mousePosition))
             {
-                fontSize = 11,
-                fontStyle = FontStyle.Italic,
-                normal = { textColor = new Color(accentColor.r, accentColor.g, accentColor.b, 0.9f) }
-            };
-            
-            GUILayout.Label(title, headerLabelStyle);
-            GUILayout.Space(2);
-            GUILayout.Label(subtitle, subHeaderLabelStyle);
-            
-            EditorGUILayout.EndVertical();
-            
-            GUILayout.FlexibleSpace(); // Sağ padding
-            EditorGUILayout.EndHorizontal();
-            
-            GUILayout.Space(12);
-            
-            // Bottom gradient line
-            var bottomGradientRect = EditorGUILayout.GetControlRect(GUILayout.Height(2));
-            
-            // Manuel gradient çizimi
-            for (int i = 0; i < bottomGradientRect.width; i++)
-            {
-                float t = (float)i / bottomGradientRect.width;
-                Color currentColor;
-                
-                if (t < 0.5f)
-                    currentColor = Color.Lerp(Color.clear, accentColor, t * 2f);
-                else
-                    currentColor = Color.Lerp(accentColor, Color.clear, (t - 0.5f) * 2f);
-                
-                var pixelRect = new Rect(bottomGradientRect.x + i, bottomGradientRect.y, 1, 2);
-                EditorGUI.DrawRect(pixelRect, currentColor);
+                newState = !isExpanded;
+                Event.current.Use();
             }
             
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.Space(8);
+            EditorGUILayout.Space(3);
+            
+            return newState;
         }
-
-        public static void DrawMinimalHeader(string title, string subtitle = "")
+        
+        public static void DrawPropertyGroup(string groupName, System.Action drawContent, bool showBackground = true)
         {
+            if (!string.IsNullOrEmpty(groupName))
+            {
+                EditorGUILayout.Space(8);
+                
+                // Group header
+                var headerRect = EditorGUILayout.GetControlRect(false, 22);
+                EditorGUI.DrawRect(headerRect, new Color(0f/255f, 157f/255f, 255f/255f, 15f/255f));
+                
+                var labelStyle = new GUIStyle(EditorStyles.boldLabel)
+                {
+                    fontSize = 11,
+                    normal = { textColor = AccentBlue },
+                    padding = new RectOffset(8, 8, 4, 4)
+                };
+                
+                EditorGUI.LabelField(headerRect, groupName.ToUpper(), labelStyle);
+                EditorGUILayout.Space(2);
+            }
+            
+            if (showBackground)
+            {
+                EditorGUILayout.BeginVertical(SectionStyle);
+            }
+            
+            drawContent?.Invoke();
+            
+            if (showBackground)
+            {
+                EditorGUILayout.EndVertical();
+            }
+            
             EditorGUILayout.Space(5);
-            
-            var separatorRect = EditorGUILayout.GetControlRect(GUILayout.Height(2));
-            EditorGUI.DrawRect(separatorRect, accentColor);
-            
-            EditorGUILayout.Space(8);
-            
-            var minimalHeaderStyle = new GUIStyle(EditorStyles.boldLabel)
-            {
-                fontSize = 16,
-                alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = accentColor }
-            };
-            
-            var minimalSubStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
-            {
-                fontSize = 9,
-                normal = { textColor = new Color(lightText.r, lightText.g, lightText.b, 0.6f) }
-            };
-            
-            GUILayout.Label(title, minimalHeaderStyle);
-            if (!string.IsNullOrEmpty(subtitle))
-            {
-                GUILayout.Label(subtitle, minimalSubStyle);
-            }
-            
-            EditorGUILayout.Space(8);
-            
-            var separatorRect2 = EditorGUILayout.GetControlRect(GUILayout.Height(1));
-            EditorGUI.DrawRect(separatorRect2, new Color(accentColor.r, accentColor.g, accentColor.b, 0.3f));
         }
-
-        public static void DrawNoLogoHeader(string title, string subtitle = "")
+        
+        public static void DrawFeatureToggle(MaterialProperty property, string label, string description = "", string icon = "")
         {
-            EditorGUILayout.Space(8);
-            
-            var headerRect = EditorGUILayout.BeginVertical();
-            EditorGUI.DrawRect(headerRect, new Color(darkBackground.r, darkBackground.g, darkBackground.b, 0.7f));
-            
-            var borderRect = new Rect(headerRect.x, headerRect.y, headerRect.width, 3);
-            EditorGUI.DrawRect(borderRect, accentColor);
-            
-            GUILayout.Space(15);
-            
-            var bigHeaderStyle = new GUIStyle(headerStyle)
-            {
-                fontSize = 20,
-                alignment = TextAnchor.MiddleCenter
-            };
-            
-            var bigSubHeaderStyle = new GUIStyle(subHeaderStyle)
-            {
-                fontSize = 11,
-                alignment = TextAnchor.MiddleCenter
-            };
-            
-            GUILayout.Label(title, bigHeaderStyle);
-            
-            if (!string.IsNullOrEmpty(subtitle))
-            {
-                GUILayout.Space(3);
-                GUILayout.Label(subtitle, bigSubHeaderStyle);
-            }
-            
-            GUILayout.Space(15);
-            EditorGUILayout.EndVertical();
-        }
-
-        public static bool DrawFoldoutHeader(string title, bool foldout, string icon = "")
-        {
-            var displayTitle = string.IsNullOrEmpty(icon) ? title : $"{icon} {title}";
-            
             EditorGUILayout.BeginHorizontal();
             
-            var rect = EditorGUILayout.GetControlRect();
-            var backgroundRect = new Rect(rect.x - 5, rect.y - 2, rect.width + 10, rect.height + 4);
+            // Toggle
+            bool isEnabled = property.floatValue > 0.5f;
+            bool newValue = EditorGUILayout.Toggle(isEnabled, GUILayout.Width(18));
+            property.floatValue = newValue ? 1f : 0f;
             
-            if (Event.current.type == EventType.Repaint)
+            // Icon and label
+            string displayLabel = string.IsNullOrEmpty(icon) ? label : $"{icon} {label}";
+            
+            var labelStyle = new GUIStyle(EditorStyles.label)
             {
-                if (backgroundRect.Contains(Event.current.mousePosition))
-                {
-                    EditorGUI.DrawRect(backgroundRect, hoverColor);
-                }
-                else
-                {
-                    EditorGUI.DrawRect(backgroundRect, new Color(mediumBackground.r, mediumBackground.g, mediumBackground.b, 0.3f));
-                }
-                
-                if (foldout)
-                {
-                    var accentRect = new Rect(backgroundRect.x, backgroundRect.y, 3, backgroundRect.height);
-                    EditorGUI.DrawRect(accentRect, accentColor);
-                }
-            }
+                normal = { textColor = newValue ? AccentBlue : new Color(TextWhite.r, TextWhite.g, TextWhite.b, 0.7f) },
+                fontStyle = newValue ? FontStyle.Bold : FontStyle.Normal,
+                fontSize = 12
+            };
             
-            var result = EditorGUI.Foldout(rect, foldout, displayTitle, foldoutStyle);
+            EditorGUILayout.LabelField(displayLabel, labelStyle);
             
             EditorGUILayout.EndHorizontal();
             
-            return result;
-        }
-
-        public static void DrawPropertyField(MaterialEditor editor, MaterialProperty property, 
-            string label, string tooltip = "")
-        {
-            if (property == null) return;
-            
-            var content = new GUIContent(label, tooltip);
-            editor.ShaderProperty(property, content);
-        }
-
-        public static void DrawInfoBox(string message, MessageType messageType = MessageType.Info)
-        {
-            EditorGUILayout.Space(5);
-            
-            Color bgColor;
-            Color borderColor;
-            Color textColor = lightText;
-            string icon;
-            
-            switch (messageType)
-            {
-                case MessageType.Warning:
-                    bgColor = new Color(1f, 0.8f, 0.2f, 0.15f);
-                    borderColor = new Color(1f, 0.8f, 0.2f, 0.6f);
-                    icon = "⚠️";
-                    break;
-                case MessageType.Error:
-                    bgColor = new Color(1f, 0.3f, 0.3f, 0.15f);
-                    borderColor = new Color(1f, 0.3f, 0.3f, 0.6f);
-                    icon = "❌";
-                    break;
-                case MessageType.None:
-                    bgColor = new Color(mediumBackground.r, mediumBackground.g, mediumBackground.b, 0.3f);
-                    borderColor = new Color(lightText.r, lightText.g, lightText.b, 0.3f);
-                    icon = "💡";
-                    break;
-                default:
-                    bgColor = new Color(accentColor.r, accentColor.g, accentColor.b, 0.15f);
-                    borderColor = new Color(accentColor.r, accentColor.g, accentColor.b, 0.6f);
-                    icon = "ℹ️";
-                    break;
-            }
-            
-            var rect = EditorGUILayout.BeginVertical();
-            
-            EditorGUI.DrawRect(rect, bgColor);
-            
-            var topBorder = new Rect(rect.x, rect.y, rect.width, 2);
-            EditorGUI.DrawRect(topBorder, borderColor);
-            
-            GUILayout.Space(10);
-            
-            var style = new GUIStyle(EditorStyles.label)
-            {
-                fontSize = 11,
-                wordWrap = true,
-                normal = { textColor = textColor },
-                padding = new RectOffset(15, 15, 0, 0)
-            };
-            
-            EditorGUILayout.LabelField($"{icon} {message}", style);
-            
-            GUILayout.Space(10);
-            EditorGUILayout.EndVertical();
-            
-            EditorGUILayout.Space(5);
-        }
-
-        public static void DrawToggleGroup(string title, ref bool toggle, System.Action drawContent)
-        {
-            EditorGUILayout.BeginVertical(sectionStyle);
-            
-            var toggleStyle_custom = new GUIStyle(EditorStyles.boldLabel)
-            {
-                normal = { textColor = toggle ? accentColor : Color.gray }
-            };
-            
-            toggle = EditorGUILayout.ToggleLeft(title, toggle, toggleStyle_custom);
-            
-            if (toggle)
+            // Description
+            if (!string.IsNullOrEmpty(description) && newValue)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.Space(5);
-                drawContent?.Invoke();
+                var descStyle = new GUIStyle(EditorStyles.miniLabel)
+                {
+                    normal = { textColor = new Color(TextWhite.r, TextWhite.g, TextWhite.b, 0.8f) }
+                };
+                EditorGUILayout.LabelField($"└ {description}", descStyle);
                 EditorGUI.indentLevel--;
             }
-            
-            EditorGUILayout.EndVertical();
         }
+        
+        public static void DrawInfoBox(string message, MessageType type = MessageType.Info)
+        {
+            string icon = type switch
+            {
+                MessageType.Info => "💡",
+                MessageType.Warning => "⚠️",
+                MessageType.Error => "❌",
+                _ => "ℹ️"
+            };
+            
+            var style = type == MessageType.Warning ? WarningBoxStyle : InfoBoxStyle;
+            EditorGUILayout.LabelField($"{icon} {message}", style);
+        }
+        
+        public static void DrawProfessionalFooter()
+        {
+            EditorGUILayout.Space(20);
+            
+            // Separator line
+            var separatorRect = EditorGUILayout.GetControlRect(false, 1);
+            separatorRect.x += 20;
+            separatorRect.width -= 40;
+            EditorGUI.DrawRect(separatorRect, AccentBlueDim);
+            
+            EditorGUILayout.Space(15);
+            
+            // Action buttons
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+                
+                if (GUILayout.Button("📚 Documentation", ButtonSecondaryStyle, GUILayout.Width(140), GUILayout.Height(28)))
+                {
+                    Application.OpenURL("https://gorgonize.com/docs/toon-shader");
+                }
+                
+                GUILayout.Space(10);
+                
+                if (GUILayout.Button("💬 Support", ButtonPrimaryStyle, GUILayout.Width(120), GUILayout.Height(28)))
+                {
+                    Application.OpenURL("https://gorgonize.com/support");
+                }
+                
+                GUILayout.Space(10);
+                
+                if (GUILayout.Button("⭐ Review", ButtonPrimaryStyle, GUILayout.Width(100), GUILayout.Height(28)))
+                {
+                    Application.OpenURL("https://assetstore.unity.com/packages/your-package-url");
+                }
+                
+                GUILayout.FlexibleSpace();
+            }
+            
+            EditorGUILayout.Space(15);
+            
+            // Credits
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+                GUILayout.Label("Made with ❤️ by Gorgonize Games", FooterStyle);
+                GUILayout.FlexibleSpace();
+            }
+            
+            EditorGUILayout.Space(10);
+        }
+        
+        #endregion
     }
 }
