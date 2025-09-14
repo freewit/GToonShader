@@ -39,10 +39,10 @@ namespace Gorgonize.ToonShader.Editor
             public string tempName = "";
         }
 
-        [MenuItem("Gorgonize Game Tools/Ramp Texture Creator")]
+        [MenuItem("Gorgonize Game Tools/Ramp Texture Editor")]
         public static void ShowWindow()
         {
-            GetWindow<RampCreatorEditor>("Ramp Creator").minSize = new Vector2(600, 400);
+            GetWindow<RampCreatorEditor>("Ramp Editor").minSize = new Vector2(600, 400);
         }
 
         private void OnEnable()
@@ -62,7 +62,7 @@ namespace Gorgonize.ToonShader.Editor
             InitializeLocalStyles();
 
             // Simplified Header
-            GUILayout.Label("Ramp Texture Creator", ToonShaderStyles.HeaderStyle);
+            GUILayout.Label("Ramp Texture Editor", ToonShaderStyles.HeaderStyle);
             ToonShaderStyles.DrawAccentSeparator();
 
             EditorGUILayout.BeginHorizontal();
@@ -84,7 +84,7 @@ namespace Gorgonize.ToonShader.Editor
         private void DrawCreatorSection()
         {
             EditorGUILayout.BeginVertical();
-            ToonShaderStyles.DrawPropertyGroup("Create New Ramp", () =>
+            ToonShaderStyles.DrawPropertyGroup("Ramp Inspector", () =>
             {
                 EditorGUI.BeginChangeCheck();
                 currentGradient = EditorGUILayout.GradientField(new GUIContent("Gradient"), currentGradient);
@@ -130,7 +130,7 @@ namespace Gorgonize.ToonShader.Editor
 
         private void DrawPresetManagerSection()
         {
-            EditorGUILayout.BeginVertical(GUILayout.Width(220), GUILayout.ExpandHeight(true));
+            EditorGUILayout.BeginVertical(GUILayout.Width(250), GUILayout.ExpandHeight(true));
             
             GUILayout.Label("Saved Ramps", ToonShaderStyles.SubHeaderStyle);
             
