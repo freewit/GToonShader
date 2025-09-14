@@ -17,7 +17,7 @@ namespace Gorgonize.ToonShader.Editor
         private static readonly Color SecondaryBackground = new Color32(45, 48, 58, 255); // #2D303A
         
         // Ana Vurgu Rengi - Canlı mavi
-        private static readonly Color AccentBlue = new Color32(0, 157, 255, 255); // #009DFF
+        public static readonly Color AccentBlue = new Color32(0, 157, 255, 255); // #009DFF
         
         // Metin/İkonlar - Temiz beyaz
         private static readonly Color TextWhite = new Color32(234, 234, 234, 255); // #EAEAEA
@@ -588,4 +588,3 @@ namespace Gorgonize.ToonShader.Editor
         #endregion
     }
 }
-

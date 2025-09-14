@@ -29,6 +29,8 @@ namespace Gorgonize.ToonShader.Editor
         private static GUIStyle previewBoxStyle;
         private static GUIStyle presetLabelStyle;
         private static GUIStyle verticalSeparatorStyle;
+        private static GUIStyle selectTextStyle;
+
 
         private class RampPreset
         {
@@ -54,6 +56,7 @@ namespace Gorgonize.ToonShader.Editor
                 currentGradient.alphaKeys = new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(1.0f, 1.0f) };
             }
             LoadRampPresets();
+            wantsMouseMove = true;
         }
 
         private void OnGUI()
@@ -156,16 +159,15 @@ namespace Gorgonize.ToonShader.Editor
         {
             EditorGUILayout.BeginVertical(previewBoxStyle);
 
-            // Visual Preview
+            Rect previewRect = new Rect();
             if (preset.texture != null)
             {
-                Rect previewRect = GUILayoutUtility.GetRect(0, 30, GUILayout.ExpandWidth(true));
+                previewRect = GUILayoutUtility.GetRect(0, 40, GUILayout.ExpandWidth(true));
                 EditorGUI.DrawPreviewTexture(previewRect, preset.texture, null, ScaleMode.StretchToFill);
             }
             
             EditorGUILayout.Space(5);
 
-            // Name and Renaming
             if (preset.isRenaming)
             {
                 preset.tempName = EditorGUILayout.TextField(preset.tempName);
@@ -175,9 +177,7 @@ namespace Gorgonize.ToonShader.Editor
                 EditorGUILayout.LabelField(preset.name, presetLabelStyle);
             }
             
-            // Buttons
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Edit", ToonShaderStyles.ButtonSecondaryStyle)) { LoadRampFromTexture(preset.texture); }
             
             if (preset.isRenaming)
             {
@@ -193,7 +193,35 @@ namespace Gorgonize.ToonShader.Editor
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.EndVertical();
+
+            Rect containerRect = GUILayoutUtility.GetLastRect();
+            bool isMouseOver = previewRect.Contains(Event.current.mousePosition);
+
+            if (isMouseOver)
+            {
+                DrawOutline(containerRect, ToonShaderStyles.AccentBlue, 1.5f);
+                EditorGUI.DrawRect(previewRect, new Color(0, 0, 0, 0.5f));
+                GUI.Label(previewRect, "SELECT", selectTextStyle);
+
+                if (Event.current.type == EventType.MouseDown && Event.current.button == 0)
+                {
+                    LoadRampFromTexture(preset.texture);
+                    AssignRampToSelectedMaterial(preset.texture);
+                    Event.current.Use();
+                }
+                
+                Repaint();
+            }
+            
             EditorGUILayout.Space(5);
+        }
+
+        private void DrawOutline(Rect rect, Color color, float thickness)
+        {
+            EditorGUI.DrawRect(new Rect(rect.x, rect.y, rect.width, thickness), color);
+            EditorGUI.DrawRect(new Rect(rect.x, rect.yMax - thickness, rect.width, thickness), color);
+            EditorGUI.DrawRect(new Rect(rect.x, rect.y, thickness, rect.height), color);
+            EditorGUI.DrawRect(new Rect(rect.xMax - thickness, rect.y, thickness, rect.height), color);
         }
         
         private void LoadRampPresets()
@@ -265,6 +293,36 @@ namespace Gorgonize.ToonShader.Editor
                 
                 LoadRampPresets();
             }
+        }
+
+        private void AssignRampToSelectedMaterial(Texture2D rampTexture)
+        {
+            var selectedObject = Selection.activeObject;
+            if (selectedObject == null || !(selectedObject is Material))
+            {
+                return;
+            }
+
+            Material selectedMaterial = selectedObject as Material;
+
+            if (selectedMaterial.shader == null || selectedMaterial.shader.name != "Gorgonize/Gorgonize Toon Shader")
+            {
+                return;
+            }
+
+            if (!selectedMaterial.HasProperty("_ShadowRamp"))
+            {
+                return;
+            }
+
+            selectedMaterial.SetTexture("_ShadowRamp", rampTexture);
+            
+            if (selectedMaterial.HasProperty("_LightingMode"))
+            {
+                selectedMaterial.SetFloat("_LightingMode", 2); // 2 is the index for Ramp mode
+            }
+
+            Debug.Log($"Assigned ramp '{rampTexture.name}' to material '{selectedMaterial.name}'.");
         }
 
         private void DeletePreset(RampPreset preset)
@@ -382,6 +440,15 @@ namespace Gorgonize.ToonShader.Editor
                 verticalSeparatorStyle = new GUIStyle();
                 verticalSeparatorStyle.normal.background = EditorGUIUtility.whiteTexture;
                 verticalSeparatorStyle.margin = new RectOffset(4, 4, 4, 4);
+            }
+            if (selectTextStyle == null)
+            {
+                selectTextStyle = new GUIStyle(EditorStyles.boldLabel)
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    normal = { textColor = Color.white },
+                    fontSize = 14
+                };
             }
         }
     }

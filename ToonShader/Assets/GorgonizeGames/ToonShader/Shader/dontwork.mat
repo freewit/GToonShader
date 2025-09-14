@@ -64,15 +64,15 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ShadowRamp:
-        m_Texture: {fileID: 2800000, guid: 31a98595637c49b44a1fad0a3adf6637, type: 3}
+        m_Texture: {fileID: 2800000, guid: a069bfa9c5e4fc040b0e5f580d4ada4d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _AdditionalLightIntensity: 1.31
-    - _BandCount: 4
+    - _BandCount: 3
     - _BandSmooth: 0.1
-    - _BandSoftness: 0.001
+    - _BandSoftness: 0.443
     - _BandedShadowIntensity: 0.79
     - _BandedShadowThreshold: 0.5
     - _Cull: 2
@@ -95,7 +95,7 @@ Material:
     - _LightingMode: 2
     - _LightmapInfluence: 1
     - _MainLightAffectsShadowColor: 1
-    - _MidtoneThreshold: 0.664
+    - _MidtoneThreshold: 0.691
     - _MyNormalBias: 0
     - _MyShadowBias: 0.65
     - _NormalMapToggle: 0
@@ -147,7 +147,7 @@ Material:
     - _ShadowSmoothness: 0.413
     - _ShadowSoftness: 0.05
     - _ShadowSteps: 3.83
-    - _ShadowThreshold: 0.283
+    - _ShadowThreshold: 0.486
     - _SimpleSmooth: 0
     - _SpecularSize: 0.181
     - _SpecularSmoothness: 0
@@ -174,7 +174,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BandedShadowColor: {r: 0.6, g: 0.6, b: 0.8, a: 1}
-    - _BaseColor: {r: 0.49056602, g: 0.49056602, b: 0.49056602, a: 1}
+    - _BaseColor: {r: 0.6792453, g: 0.6792453, b: 0.6792453, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _HColor: {r: 1, g: 1, b: 1, a: 1}
     - _HighlightColor: {r: 1, g: 1, b: 1, a: 1}
@@ -185,7 +185,7 @@ Material:
     - _OutlineColorSecondary: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _RimColor: {r: 0.35970533, g: 0.09077963, b: 0.3773585, a: 1}
     - _SColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _ShadowColor: {r: 0, g: 0, b: 0, a: 1}
+    - _ShadowColor: {r: 0.312526, g: 0.17702028, b: 0.3207547, a: 1}
     - _SpecularColor: {r: 0.8640789, g: 0.8867924, b: 0.69855815, a: 1}
     - _SubsurfaceColor: {r: 1, g: 0.39999998, b: 0.39999998, a: 1}
     - _WindDirection: {r: 1, g: 0, b: 1, a: 0}
