@@ -87,10 +87,10 @@ namespace Gorgonize.ToonShader.Editor
             ToonShaderStyles.DrawPropertyGroup("Create New Ramp", () =>
             {
                 EditorGUI.BeginChangeCheck();
-                currentGradient = EditorGUILayout.GradientField(new GUIContent("🎨 Gradient"), currentGradient);
+                currentGradient = EditorGUILayout.GradientField(new GUIContent("Gradient"), currentGradient);
                 if (EditorGUI.EndChangeCheck()) Repaint();
 
-                textureWidth = EditorGUILayout.IntSlider("📏 Texture Width", textureWidth, 64, 1024);
+                textureWidth = EditorGUILayout.IntSlider("Texture Width", textureWidth, 64, 1024);
                 
                 EditorGUILayout.Space(5);
                 
@@ -107,9 +107,9 @@ namespace Gorgonize.ToonShader.Editor
                 }
 
                 EditorGUILayout.Space(10);
-                newRampName = EditorGUILayout.TextField("📝 New Ramp Name", newRampName);
+                newRampName = EditorGUILayout.TextField("Ramp Name", newRampName);
                 EditorGUILayout.Space(5);
-                if (GUILayout.Button("💾 Save New Ramp", ToonShaderStyles.ButtonPrimaryStyle, GUILayout.Height(35)))
+                if (GUILayout.Button("SAVE", ToonShaderStyles.ButtonPrimaryStyle, GUILayout.Height(35)))
                 {
                     SaveNewRamp();
                 }
@@ -119,7 +119,7 @@ namespace Gorgonize.ToonShader.Editor
             ToonShaderStyles.DrawPropertyGroup("Help & Tips", () =>
             {
                 ToonShaderStyles.DrawInfoBox("You can create custom lighting ramps using the tools above and use them in your materials.");
-                if (GUILayout.Button("📚 Open Detailed Guide", ToonShaderStyles.ButtonSecondaryStyle))
+                if (GUILayout.Button("Guide", ToonShaderStyles.ButtonSecondaryStyle))
                 {
                     Application.OpenURL(GuideURL);
                 }
