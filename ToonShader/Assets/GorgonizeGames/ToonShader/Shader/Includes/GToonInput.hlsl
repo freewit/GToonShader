@@ -29,6 +29,7 @@ CBUFFER_START(UnityPerMaterial)
     half _OcclusionStrength;
 
     // Banded Mode
+    half _BandCount;
     half _MidtoneThreshold;
     half _BandSoftness;
     

@@ -201,7 +201,7 @@ namespace Gorgonize.ToonShader.Editor
                         materialEditor.ShaderProperty(props.occlusionStrength, "🕳️ Baked AO Strength");
                 }, true);
                 
-                ToonShaderStyles.DrawInfoBox("The lighting system creates the characteristic stylized lighting. 'Single Cell' is great for classic cel-shading, 'Banded' adds more depth.");
+                ToonShaderStyles.DrawInfoBox("The lighting system creates the characteristic stylized lighting. 'Single Cell' is for classic cel-shading, 'Banded' adds more depth.");
             }
         }
 
@@ -227,17 +227,29 @@ namespace Gorgonize.ToonShader.Editor
         {
             ToonShaderStyles.DrawPropertyGroup("Banded (Çok Tonlu) Ayarları", () =>
             {
-                if (props.IsPropertyValid(props.shadowColor))
-                    materialEditor.ShaderProperty(props.shadowColor, "Gölge Rengi");
-                
-                if (props.IsPropertyValid(props.midtoneThreshold))
-                    materialEditor.ShaderProperty(props.midtoneThreshold, "Ara Ton Eşiği");
+                if (props.IsPropertyValid(props.bandCount))
+                    materialEditor.ShaderProperty(props.bandCount, "Bant Miktarı");
 
                 if (props.IsPropertyValid(props.shadowThreshold))
-                    materialEditor.ShaderProperty(props.shadowThreshold, "Gölge Eşiği");
+                    materialEditor.ShaderProperty(props.shadowThreshold, "Ana Gölge Eşiği");
+
+                if (props.IsPropertyValid(props.midtoneThreshold) && props.IsPropertyValid(props.shadowThreshold))
+                {
+                    float shadowThresholdValue = props.shadowThreshold.floatValue;
+                    // Ensure midtone threshold cannot go below shadow threshold
+                    if (props.midtoneThreshold.floatValue < shadowThresholdValue)
+                    {
+                        props.midtoneThreshold.floatValue = shadowThresholdValue;
+                    }
+                    // Correctly implement the slider
+                    props.midtoneThreshold.floatValue = EditorGUILayout.Slider("Ara Ton Bitişi", props.midtoneThreshold.floatValue, shadowThresholdValue, 1.0f);
+                }
                             
                 if (props.IsPropertyValid(props.bandSoftness))
                     materialEditor.ShaderProperty(props.bandSoftness, "Bant Yumuşaklığı");
+                
+                if (props.IsPropertyValid(props.shadowColor))
+                    materialEditor.ShaderProperty(props.shadowColor, "🎨 Gölge Rengi");
             }, true);
         }
 

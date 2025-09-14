@@ -22,13 +22,27 @@ half CalculateToonLightIntensity(half3 lightDir, half3 normal, half shadowAtten)
         half halfSoftness = _TransitionSoftness / 2.0;
         lightIntensity = smoothstep(_ShadowThreshold - halfSoftness, _ShadowThreshold + halfSoftness, lightIntensity);
     #elif defined(_LIGHTINGMODE_BANDED)
+        // Ara Ton Eşiği'nin her zaman Ana Gölge Eşiği'nden büyük veya ona eşit olmasını sağla
+        half clampedMidtoneThreshold = max(_ShadowThreshold, _MidtoneThreshold);
+        
+        half totalIntensity = 0;
+        // Toplam adım sayısı = ara ton sayısı + 1 (ana gölge için)
+        // _BandCount 1-4 arasındadır, bu da 1-4 ara ton demektir.
+        // Bu yüzden toplamda _BandCount + 1 adım (seviye) vardır.
+        float totalSteps = floor(_BandCount) + 1.0; 
         half halfSoftness = _BandSoftness / 2.0;
-        // Gölgeden ara tona geçiş
-        half shadowStep = smoothstep(_ShadowThreshold - halfSoftness, _ShadowThreshold + halfSoftness, lightIntensity);
-        // Ara tondan aydınlığa geçiş
-        half midtoneStep = smoothstep(_MidtoneThreshold - halfSoftness, _MidtoneThreshold + halfSoftness, lightIntensity);
-        // İki adımı birleştirerek 0 (gölge), 0.5 (ara ton) ve 1 (aydınlık) değerlerini elde et
-        lightIntensity = (shadowStep + midtoneStep) / 2.0;
+
+        // Her bir bant için eşik değerini hesapla ve topla
+        for (float i = 0.0; i < totalSteps; i += 1.0)
+        {
+            // Eşikleri Ana Gölge ve Ara Ton Bitişi arasında eşit olarak dağıt
+            half threshold = lerp(_ShadowThreshold, clampedMidtoneThreshold, i / (totalSteps - 1.0));
+            totalIntensity += smoothstep(threshold - halfSoftness, threshold + halfSoftness, lightIntensity);
+        }
+        
+        // Ortalamayı alarak nihai aydınlatma değerini bul
+        lightIntensity = totalIntensity / totalSteps;
+
     #elif defined(_LIGHTINGMODE_RAMP)
         lightIntensity = SAMPLE_TEXTURE2D(_ShadowRamp, sampler_ShadowRamp, float2(lightIntensity, 0.5)).r;
     #else // Fallback

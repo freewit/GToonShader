@@ -17,7 +17,8 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _TransitionSoftness ("Transition Softness", Range(0.001, 1)) = 0.05
         
         // Banded
-        _MidtoneThreshold("Mid-tone Threshold", Range(0, 1)) = 0.75
+        [IntRange] _BandCount ("Band Count", Range(1, 4)) = 1
+        _MidtoneThreshold("Mid-tone End", Range(0, 1)) = 0.75
         _BandSoftness("Band Softness", Range(0.001, 1)) = 0.05
 
         // General

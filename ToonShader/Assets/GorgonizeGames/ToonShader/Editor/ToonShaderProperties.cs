@@ -22,6 +22,7 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty occlusionStrength;
         
         // Banded Mode Properties
+        public MaterialProperty bandCount;
         public MaterialProperty midtoneThreshold;
         public MaterialProperty bandSoftness;
 
@@ -127,6 +128,9 @@ namespace Gorgonize.ToonShader.Editor
                         break;
 
                     // Banded Mode
+                    case "_BandCount":
+                        bandCount = prop;
+                        break;
                     case "_MidtoneThreshold":
                         midtoneThreshold = prop;
                         break;
