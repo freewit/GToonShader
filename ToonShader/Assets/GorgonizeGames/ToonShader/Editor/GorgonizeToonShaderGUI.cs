@@ -187,7 +187,7 @@ namespace Gorgonize.ToonShader.Editor
                         DrawSingleCellModeControls(materialEditor);
                         break;
                     case 1: // Banded Mode
-                        ToonShaderStyles.DrawInfoBox("Banded (Multi-Tone) mode is coming soon!");
+                        DrawBandedModeControls(materialEditor);
                         break;
                     case 2: // Ramp Mode
                         ToonShaderStyles.DrawInfoBox("Ramp Texture mode is coming soon!");
@@ -201,7 +201,7 @@ namespace Gorgonize.ToonShader.Editor
                         materialEditor.ShaderProperty(props.occlusionStrength, "🕳️ Baked AO Strength");
                 }, true);
                 
-                ToonShaderStyles.DrawInfoBox("The lighting system creates the characteristic stylized lighting. 'Single Cell' mode is great for classic cel-shading.");
+                ToonShaderStyles.DrawInfoBox("The lighting system creates the characteristic stylized lighting. 'Single Cell' is great for classic cel-shading, 'Banded' adds more depth.");
             }
         }
 
@@ -220,6 +220,24 @@ namespace Gorgonize.ToonShader.Editor
                         
                 if (props.IsPropertyValid(props.tintShadowOnBase))
                     ToonShaderStyles.DrawFeatureToggle(props.tintShadowOnBase, "Shadow Tinting", "Apply shadow color to entire object", "🎭");
+            }, true);
+        }
+
+        private void DrawBandedModeControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Banded (Çok Tonlu) Ayarları", () =>
+            {
+                if (props.IsPropertyValid(props.shadowColor))
+                    materialEditor.ShaderProperty(props.shadowColor, "Gölge Rengi");
+                
+                if (props.IsPropertyValid(props.midtoneThreshold))
+                    materialEditor.ShaderProperty(props.midtoneThreshold, "Ara Ton Eşiği");
+
+                if (props.IsPropertyValid(props.shadowThreshold))
+                    materialEditor.ShaderProperty(props.shadowThreshold, "Gölge Eşiği");
+                            
+                if (props.IsPropertyValid(props.bandSoftness))
+                    materialEditor.ShaderProperty(props.bandSoftness, "Bant Yumuşaklığı");
             }, true);
         }
 

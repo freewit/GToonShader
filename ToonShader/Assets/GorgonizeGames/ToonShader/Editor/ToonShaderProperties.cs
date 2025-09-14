@@ -21,6 +21,10 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty shadowColor;
         public MaterialProperty occlusionStrength;
         
+        // Banded Mode Properties
+        public MaterialProperty midtoneThreshold;
+        public MaterialProperty bandSoftness;
+
         // Highlight Properties
         public MaterialProperty enableHighlights;
         public MaterialProperty specularColor;
@@ -78,7 +82,6 @@ namespace Gorgonize.ToonShader.Editor
         /// </summary>
         private void FindAllProperties(MaterialProperty[] properties)
         {
-            // _ShadowIntensity kaldırıldı
             foreach (var prop in properties)
             {
                 switch (prop.name)
@@ -121,6 +124,14 @@ namespace Gorgonize.ToonShader.Editor
                         
                     case "_OcclusionStrength":
                         occlusionStrength = prop;
+                        break;
+
+                    // Banded Mode
+                    case "_MidtoneThreshold":
+                        midtoneThreshold = prop;
+                        break;
+                    case "_BandSoftness":
+                        bandSoftness = prop;
                         break;
                     
                     // Highlight Properties

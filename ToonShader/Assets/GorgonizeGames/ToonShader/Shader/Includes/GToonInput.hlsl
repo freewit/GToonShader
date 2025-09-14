@@ -27,6 +27,10 @@ CBUFFER_START(UnityPerMaterial)
     half _TransitionSoftness;
     half4 _ShadowColor;
     half _OcclusionStrength;
+
+    // Banded Mode
+    half _MidtoneThreshold;
+    half _BandSoftness;
     
     // Specular
     half4 _SpecularColor;

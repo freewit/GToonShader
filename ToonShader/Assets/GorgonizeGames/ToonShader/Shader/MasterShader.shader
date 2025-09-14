@@ -8,9 +8,19 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         
         [Header(Shadow System)]
         [KeywordEnum(Single Cell, Banded, Ramp)] _LightingMode ("Lighting Mode", Float) = 0
-        [Toggle(_TINT_SHADOW_ON_BASE)] _TintShadowOnBase ("Tint On Full Object", Float) = 0
+        
+        // Single Cell & Banded
         _ShadowThreshold ("Shadow Threshold", Range(0, 1)) = 0.5
+        [Toggle(_TINT_SHADOW_ON_BASE)] _TintShadowOnBase ("Tint On Full Object", Float) = 0
+
+        // Single Cell
         _TransitionSoftness ("Transition Softness", Range(0.001, 1)) = 0.05
+        
+        // Banded
+        _MidtoneThreshold("Mid-tone Threshold", Range(0, 1)) = 0.75
+        _BandSoftness("Band Softness", Range(0.001, 1)) = 0.05
+
+        // General
         _ShadowRamp ("Shadow Ramp", 2D) = "white" {} [NoScaleOffset]
         _ShadowColor ("Shadow Color", Color) = (0.5, 0.5, 0.8, 1)
         _OcclusionStrength ("Occlusion Strength", Range(0, 1)) = 1
