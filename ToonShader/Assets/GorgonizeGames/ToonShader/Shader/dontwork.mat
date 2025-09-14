@@ -12,15 +12,19 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _ADDITIONAL_LIGHTS
   - _ENABLEADDITIONALLIGHTS_ON
+  - _ENABLEOUTLINE_ON
   - _LIGHTINGMODE_STEPPED
   - _RECEIVESHADOWS_ON
-  - _TINT_SHADOW_ON_BASE
   m_InvalidKeywords:
   - TCP2_RIM_LIGHTING_LIGHTMASK
   - TCP2_SHADOW_LIGHT_COLOR
   - _ENABLEREALSHADOWS_ON
   - _MAINLIGHTAFFECTSSHADOWCOLOR_ON
+  - _OUTLINEANTIALIASING_ON
+  - _OUTLINELOD_ON
+  - _OUTLINEMODE_TRADITIONAL
   - _SHADOWMODE_SIMPLE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -70,11 +74,13 @@ Material:
     - _Cull: 2
     - _Cutoff: 0.38
     - _DetailStrength: 1
+    - _DetailToggle: 0
     - _DstBlend: 0
     - _EmissionIntensity: 0
+    - _EmissionToggle: 0
     - _EnableAdditionalLights: 1
     - _EnableHighlights: 0
-    - _EnableOutline: 0
+    - _EnableOutline: 1
     - _EnableRealShadows: 1
     - _EnableRim: 0
     - _EnableSubsurface: 0
@@ -86,21 +92,40 @@ Material:
     - _MainLightAffectsShadowColor: 1
     - _MyNormalBias: 0
     - _MyShadowBias: 0.65
+    - _NormalMapToggle: 0
     - _NormalStrength: 1
     - _OcclusionStrength: 0
+    - _OutlineAdaptiveMax: 2.5
+    - _OutlineAdaptiveMin: 0.3
+    - _OutlineAntiAliasing: 1
+    - _OutlineArtisticCurve: 1
+    - _OutlineComplexityThreshold: 1
     - _OutlineFadeEnd: 30
     - _OutlineFadeStart: 20
-    - _OutlineWidth: 3
+    - _OutlineInnerIntensity: 0.8
+    - _OutlineLOD: 1
+    - _OutlineLODDistance1: 50
+    - _OutlineLODDistance2: 150
+    - _OutlineLayerBlend: 0.5
+    - _OutlineMaxDistance: 100
+    - _OutlineMode: 0
+    - _OutlineQuality: 1
+    - _OutlineScreenSpaceScale: 1
+    - _OutlineSmoothness: 0.5
+    - _OutlineVariation: 1
+    - _OutlineViewAngleFactor: 1
+    - _OutlineWidth: 10
+    - _OutlineWidthSecondary: 0.6
     - _RampSmoothing: 0
     - _RampThreshold: 0.197
     - _ReceiveShadows: 1
     - _ReceiveShadowsOff: 1
     - _RenderingMode: 0
-    - _RimIntensity: 1.9
+    - _RimIntensity: 1.21
     - _RimMax: 1
     - _RimMin: 0.59
-    - _RimOffset: -0.53
-    - _RimPower: 0.63
+    - _RimOffset: 0.1
+    - _RimPower: 4.22
     - _ShadowBias: 0.005
     - _ShadowColorBlend: 0.528
     - _ShadowColorLightAtten: 1
@@ -109,13 +134,13 @@ Material:
     - _ShadowIntensity: 1
     - _ShadowMode: 0
     - _ShadowNormalBias: 0
-    - _ShadowOffset: 0
+    - _ShadowOffset: -0.22
     - _ShadowSharpness: 0.01
     - _ShadowSlopeBias: 0
     - _ShadowSmoothing: 0.02
-    - _ShadowSmoothness: 0
+    - _ShadowSmoothness: 0.647
     - _ShadowSoftness: 0.05
-    - _ShadowSteps: 2
+    - _ShadowSteps: 3
     - _ShadowThreshold: 0.3
     - _SimpleSmooth: 0
     - _SpecularSize: 0.181
@@ -125,7 +150,7 @@ Material:
     - _SubsurfaceDistortion: 0
     - _SubsurfaceIntensity: 0.71
     - _SubsurfacePower: 4.17
-    - _TintShadowOnBase: 1
+    - _TintShadowOnBase: 0
     - _ToonNormalBias: 0.58
     - _ToonShadowBias: 0.0006
     - _ToonSteps: 2.58
@@ -142,16 +167,17 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BandedShadowColor: {r: 0.6, g: 0.6, b: 0.8, a: 1}
-    - _BaseColor: {r: 0.28617838, g: 0.5566038, b: 0.54513437, a: 1}
+    - _BaseColor: {r: 0.4016999, g: 0.5566038, b: 0.549965, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _HColor: {r: 1, g: 1, b: 1, a: 1}
     - _HighlightColor: {r: 1, g: 1, b: 1, a: 1}
     - _LightColor: {r: 1, g: 0.95, b: 0.8, a: 1}
     - _LightDirection: {r: 0.3, g: -0.8, b: 0.5, a: 0}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
+    - _OutlineColorSecondary: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _RimColor: {r: 0.35970533, g: 0.09077963, b: 0.3773585, a: 1}
     - _SColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _ShadowColor: {r: 0.6285837, g: 0.5941171, b: 0.745283, a: 1}
+    - _ShadowColor: {r: 0.5320398, g: 0.41429335, b: 0.9245283, a: 1}
     - _SpecularColor: {r: 0.8640789, g: 0.8867924, b: 0.69855815, a: 1}
     - _SubsurfaceColor: {r: 1, g: 0.39999998, b: 0.39999998, a: 1}
     - _WindDirection: {r: 1, g: 0, b: 1, a: 0}
