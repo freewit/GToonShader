@@ -268,7 +268,7 @@ namespace Gorgonize.ToonShader.Editor
         
                 ToonShaderStyles.DrawInfoBox("Aydınlatma ve gölge renkleri doğrudan bu dokudan alınır. Soldan sağa doğru karanlıktan aydınlığa bir gradyan kullanın.");
 
-                if (GUILayout.Button("Rampa Oluşturucu'yu Aç", ToonShaderStyles.ButtonSecondaryStyle))
+                if (GUILayout.Button("Ramp Editor", ToonShaderStyles.ButtonSecondaryStyle))
                 {
                     EditorWindow.GetWindow<RampCreatorEditor>("Ramp Creator");
                 }
