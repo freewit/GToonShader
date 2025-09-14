@@ -13,8 +13,6 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _TransitionSoftness ("Transition Softness", Range(0.001, 1)) = 0.05
         _ShadowRamp ("Shadow Ramp", 2D) = "white" {} [NoScaleOffset]
         _ShadowColor ("Shadow Color", Color) = (0.5, 0.5, 0.8, 1)
-        _ShadowIntensity ("Shadow Intensity", Range(0, 1)) = 0.5
-        _ShadowOffset ("Shadow Offset", Range(-1, 1)) = 0
         _OcclusionStrength ("Occlusion Strength", Range(0, 1)) = 1
         
         [Header(Highlight System)]

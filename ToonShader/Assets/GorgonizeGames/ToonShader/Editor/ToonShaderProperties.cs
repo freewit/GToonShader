@@ -15,12 +15,10 @@ namespace Gorgonize.ToonShader.Editor
         // Lighting/Shadow Properties
         public MaterialProperty lightingMode;
         public MaterialProperty tintShadowOnBase;
-        public MaterialProperty shadowThreshold; // Replaced _ShadowSteps
-        public MaterialProperty transitionSoftness; // Replaced _ShadowSmoothness
+        public MaterialProperty shadowThreshold;
+        public MaterialProperty transitionSoftness;
         public MaterialProperty shadowRamp;
         public MaterialProperty shadowColor;
-        public MaterialProperty shadowIntensity;
-        public MaterialProperty shadowOffset;
         public MaterialProperty occlusionStrength;
         
         // Highlight Properties
@@ -80,6 +78,7 @@ namespace Gorgonize.ToonShader.Editor
         /// </summary>
         private void FindAllProperties(MaterialProperty[] properties)
         {
+            // _ShadowIntensity kaldırıldı
             foreach (var prop in properties)
             {
                 switch (prop.name)
@@ -118,14 +117,6 @@ namespace Gorgonize.ToonShader.Editor
                         
                     case "_ShadowColor":
                         shadowColor = prop;
-                        break;
-                        
-                    case "_ShadowIntensity":
-                        shadowIntensity = prop;
-                        break;
-                        
-                    case "_ShadowOffset":
-                        shadowOffset = prop;
                         break;
                         
                     case "_OcclusionStrength":

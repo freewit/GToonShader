@@ -16,12 +16,14 @@ Material:
   - _ENABLEHIGHLIGHTS_ON
   - _ENABLEOUTLINE_ON
   - _ENABLERIM_ON
-  - _LIGHTINGMODE_STEPPED
+  - _LIGHTINGMODE_SINGLE_CELL
   - _RECEIVESHADOWS_ON
   m_InvalidKeywords:
   - TCP2_RIM_LIGHTING_LIGHTMASK
   - TCP2_SHADOW_LIGHT_COLOR
   - _ENABLEREALSHADOWS_ON
+  - _LIGHTINGMODE_SIMPLE
+  - _LIGHTINGMODE_STEPPED
   - _MAINLIGHTAFFECTSSHADOWCOLOR_ON
   - _OUTLINEANTIALIASING_ON
   - _OUTLINELOD_ON
@@ -157,6 +159,7 @@ Material:
     - _ToonNormalBias: 0.58
     - _ToonShadowBias: 0.0006
     - _ToonSteps: 4.72
+    - _TransitionSoftness: 0.05
     - _UseAdaptiveBias: 1
     - _UseAlphaTest: 0
     - _UsePancaking: 1

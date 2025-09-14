@@ -187,29 +187,18 @@ namespace Gorgonize.ToonShader.Editor
                         DrawSingleCellModeControls(materialEditor);
                         break;
                     case 1: // Banded Mode
-                        // To be implemented
                         ToonShaderStyles.DrawInfoBox("Banded (Multi-Tone) mode is coming soon!");
                         break;
                     case 2: // Ramp Mode
-                        // To be implemented
                         ToonShaderStyles.DrawInfoBox("Ramp Texture mode is coming soon!");
                         break;
                 }
 
-                // Shared shadow appearance controls
-                ToonShaderStyles.DrawPropertyGroup("Shadow Appearance", () =>
+                // General lighting controls that apply to all modes
+                ToonShaderStyles.DrawPropertyGroup("General Lighting Settings", () =>
                 {
-                    if (props.IsPropertyValid(props.shadowColor))
-                        materialEditor.ShaderProperty(props.shadowColor, "🎨 Shadow Color");
-                        
-                    if (props.IsPropertyValid(props.shadowIntensity))
-                        materialEditor.ShaderProperty(props.shadowIntensity, "💪 Shadow Intensity");
-                        
-                    if (props.IsPropertyValid(props.shadowOffset))
-                        materialEditor.ShaderProperty(props.shadowOffset, "📏 Shadow Bias");
-                        
                     if (props.IsPropertyValid(props.occlusionStrength))
-                        materialEditor.ShaderProperty(props.occlusionStrength, "🕳️ Ambient Occlusion");
+                        materialEditor.ShaderProperty(props.occlusionStrength, "🕳️ Baked AO Strength");
                 }, true);
                 
                 ToonShaderStyles.DrawInfoBox("The lighting system creates the characteristic stylized lighting. 'Single Cell' mode is great for classic cel-shading.");
@@ -218,7 +207,7 @@ namespace Gorgonize.ToonShader.Editor
 
         private void DrawSingleCellModeControls(MaterialEditor materialEditor)
         {
-            ToonShaderStyles.DrawPropertyGroup("Single Cell (Tek Ton) Kontrolleri", () =>
+            ToonShaderStyles.DrawPropertyGroup("Single Cell (Tek Ton) Ayarları", () =>
             {
                 if (props.IsPropertyValid(props.shadowThreshold))
                     materialEditor.ShaderProperty(props.shadowThreshold, "Gölge Eşiği");
@@ -226,6 +215,9 @@ namespace Gorgonize.ToonShader.Editor
                 if (props.IsPropertyValid(props.transitionSoftness))
                     materialEditor.ShaderProperty(props.transitionSoftness, "Geçiş Yumuşaklığı");
 
+                if (props.IsPropertyValid(props.shadowColor))
+                    materialEditor.ShaderProperty(props.shadowColor, "🎨 Gölge Rengi");
+                        
                 if (props.IsPropertyValid(props.tintShadowOnBase))
                     ToonShaderStyles.DrawFeatureToggle(props.tintShadowOnBase, "Shadow Tinting", "Apply shadow color to entire object", "🎭");
             }, true);

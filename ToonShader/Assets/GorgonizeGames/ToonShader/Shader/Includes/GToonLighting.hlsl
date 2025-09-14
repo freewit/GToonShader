@@ -15,8 +15,9 @@ half3 BlendNormal(half3 n1, half3 n2)
 // Toon aydınlatma hesaplaması - Artık sadece 0-1 arasında bir aydınlatma yoğunluğu döndürüyor
 half CalculateToonLightIntensity(half3 lightDir, half3 normal, half shadowAtten)
 {
+    // _ShadowOffset kaldırıldı, artık doğrudan eşik değeriyle kontrol ediliyor
     half NdotL = dot(normal, lightDir);
-    half lightIntensity = NdotL * shadowAtten + _ShadowOffset;
+    half lightIntensity = NdotL * shadowAtten;
     
     #if defined(_LIGHTINGMODE_SINGLE_CELL)
         // Gölge eşiği etrafında yumuşak bir geçiş oluşturmak için smoothstep kullan

@@ -24,7 +24,6 @@ struct Varyings
 {
     float4 positionCS               : SV_POSITION;
     float2 uv                       : TEXCOORD0;
-    // DECLARE_LIGHTMAP_OR_SH artık burada güvenli çünkü Lighting.hlsl ana shader dosyasında bu dosyadan önce include ediliyor.
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
     float3 positionWS               : TEXCOORD2;
     float3 normalWS                 : TEXCOORD3;
@@ -104,7 +103,6 @@ half4 frag(Varyings input) : SV_Target
         #endif
         #if defined(_DETAIL)
             half3 detailNormalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, input.uv * _DetailMap_ST.xy + _DetailMap_ST.zw), 1.0);
-            // Detail normal map sadece _NORMALMAP aktif ise ana normal map ile birleştirilir.
             #if defined(_NORMALMAP)
                  normalTS = BlendNormal(normalTS, detailNormalTS);
             #else
@@ -136,24 +134,19 @@ half4 frag(Varyings input) : SV_Target
     Light mainLight = GetMainLight(shadowCoord);
     half shadowAttenuation = mainLight.shadowAttenuation;
 
-    // *** YENİ AYDINLATMA MANTIĞI ***
-    // Ham 0-1 aydınlatma yoğunluğunu al
+    // AYDINLATMA MANTIĞI
     half mainLightIntensity = CalculateToonLightIntensity(mainLight.direction, normalWS, shadowAttenuation);
     
-    // Aydınlatılmış rengi ve gölge rengini tanımla
     half3 litColor = baseColor.rgb * mainLight.color;
-    half3 shadowColor = _ShadowColor.rgb * _ShadowIntensity;
+    // _ShadowIntensity kaldırıldı, renk parlaklığı direkt _ShadowColor'dan geliyor.
+    half3 shadowColorResult = _ShadowColor.rgb; 
     
-    // Ana diffuse rengini tinting moduna göre hesapla
     half3 diffuseColor;
     #if defined(_TINT_SHADOW_ON_BASE)
-        // TINT AÇIK: Nihai renk, ham gölge rengi ile aydınlık renk arasında enterpolasyon yapar.
-        // Bu, gölgedeki rengin baseColor'dan bağımsız olarak doğrudan shadowColor olmasını sağlar.
-        diffuseColor = lerp(shadowColor, litColor, mainLightIntensity);
+        diffuseColor = lerp(shadowColorResult, litColor, mainLightIntensity);
     #else
-        // TINT KAPALI: Aydınlık renk temel alınır ve gölgeli alanlarda shadowTint ile çarpılır.
-        half3 shadowTint = lerp(half3(1,1,1), _ShadowColor.rgb, _ShadowIntensity);
-        diffuseColor = litColor * lerp(shadowTint, half3(1,1,1), mainLightIntensity);
+        // _ShadowIntensity kaldırıldı, artık direkt _ShadowColor.rgb kullanılıyor.
+        diffuseColor = litColor * lerp(_ShadowColor.rgb, half3(1,1,1), mainLightIntensity);
     #endif
 
     half3 finalColor = diffuseColor;
@@ -166,8 +159,6 @@ half4 frag(Varyings input) : SV_Target
             Light light = GetAdditionalLight(lightIndex, input.positionWS);
             half atten = light.shadowAttenuation * light.distanceAttenuation;
             half additionalLightIntensity = CalculateToonLightIntensity(light.direction, normalWS, atten);
-            
-            // Ek ışıklar renklendirme kullanmaz, sadece aydınlatma ekler
             finalColor += baseColor.rgb * light.color * additionalLightIntensity;
         }
     #endif
@@ -177,14 +168,15 @@ half4 frag(Varyings input) : SV_Target
     half3 rimColor = CalculateRimLighting(normalWS, viewDirWS, mainLight.color);
     half3 subsurfaceColor = CalculateSubsurface(normalWS, viewDirWS, mainLight);
 
-    // Lightmap
+    // Lightmap / Baked GI
     half3 bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
     
     // Tüm aydınlatma bileşenlerini birleştir
     finalColor += specularColor;
     finalColor += rimColor;
     finalColor += subsurfaceColor;
-    finalColor += bakedGI * baseColor.rgb * _LightmapInfluence;
+    // Baked GI contribution is scaled by Occlusion Strength
+    finalColor += bakedGI * baseColor.rgb * _LightmapInfluence * _OcclusionStrength;
     
     // Emission
     #if defined(_EMISSION)
@@ -199,3 +191,4 @@ half4 frag(Varyings input) : SV_Target
 }
 
 #endif // GTOON_FORWARD_PASS_INCLUDED
+

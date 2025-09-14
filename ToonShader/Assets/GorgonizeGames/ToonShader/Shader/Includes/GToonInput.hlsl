@@ -26,8 +26,6 @@ CBUFFER_START(UnityPerMaterial)
     half _ShadowThreshold;
     half _TransitionSoftness;
     half4 _ShadowColor;
-    half _ShadowIntensity;
-    half _ShadowOffset;
     half _OcclusionStrength;
     
     // Specular
@@ -67,8 +65,5 @@ CBUFFER_START(UnityPerMaterial)
     half _LightmapInfluence;
 CBUFFER_END
 
-// Not: Vertex ve Fragment shader'lar arasındaki veri yapıları (structs)
-// artık ilgili pass'in HLSL dosyası içinde tanımlanmıştır (örn. GToonForwardPass.hlsl).
-// Bu, her pass'in sadece ihtiyaç duyduğu veriyi tanımlamasını sağlar ve modülerliği artırır.
-
 #endif // GTOON_INPUT_INCLUDED
+
