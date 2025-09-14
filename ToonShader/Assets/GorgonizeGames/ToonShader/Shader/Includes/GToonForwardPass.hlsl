@@ -135,12 +135,28 @@ half4 frag(Varyings input) : SV_Target
     // Ana ışık ve gölge bilgileri
     Light mainLight = GetMainLight(shadowCoord);
     half shadowAttenuation = mainLight.shadowAttenuation;
+
+    // *** YENİ AYDINLATMA MANTIĞI ***
+    // Ham 0-1 aydınlatma yoğunluğunu al
+    half mainLightIntensity = CalculateToonLightIntensity(mainLight.direction, normalWS, shadowAttenuation);
     
-    // Aydınlatma fonksiyonlarını çağır
-    half3 diffuseColor = CalculateToonLighting(mainLight.color, mainLight.direction, normalWS, shadowAttenuation);
-    half3 specularColor = CalculateSpecular(normalWS, mainLight.direction, viewDirWS, mainLight.color, shadowAttenuation);
-    half3 rimColor = CalculateRimLighting(normalWS, viewDirWS, mainLight.color);
-    half3 subsurfaceColor = CalculateSubsurface(normalWS, viewDirWS, mainLight);
+    // Aydınlatılmış rengi ve gölge rengini tanımla
+    half3 litColor = baseColor.rgb * mainLight.color;
+    half3 shadowColor = _ShadowColor.rgb * _ShadowIntensity;
+    
+    // Ana diffuse rengini tinting moduna göre hesapla
+    half3 diffuseColor;
+    #if defined(_TINT_SHADOW_ON_BASE)
+        // TINT AÇIK: Nihai renk, ham gölge rengi ile aydınlık renk arasında enterpolasyon yapar.
+        // Bu, gölgedeki rengin baseColor'dan bağımsız olarak doğrudan shadowColor olmasını sağlar.
+        diffuseColor = lerp(shadowColor, litColor, mainLightIntensity);
+    #else
+        // TINT KAPALI: Aydınlık renk temel alınır ve gölgeli alanlarda shadowTint ile çarpılır.
+        half3 shadowTint = lerp(half3(1,1,1), _ShadowColor.rgb, _ShadowIntensity);
+        diffuseColor = litColor * lerp(shadowTint, half3(1,1,1), mainLightIntensity);
+    #endif
+
+    half3 finalColor = diffuseColor;
 
     // Ek ışıklar (Additional Lights)
     #ifdef _ADDITIONAL_LIGHTS
@@ -149,17 +165,22 @@ half4 frag(Varyings input) : SV_Target
         {
             Light light = GetAdditionalLight(lightIndex, input.positionWS);
             half atten = light.shadowAttenuation * light.distanceAttenuation;
-            diffuseColor += CalculateToonLighting(light.color, light.direction, normalWS, atten);
-            specularColor += CalculateSpecular(normalWS, light.direction, viewDirWS, light.color, atten);
-            rimColor += CalculateRimLighting(normalWS, viewDirWS, light.color);
+            half additionalLightIntensity = CalculateToonLightIntensity(light.direction, normalWS, atten);
+            
+            // Ek ışıklar renklendirme kullanmaz, sadece aydınlatma ekler
+            finalColor += baseColor.rgb * light.color * additionalLightIntensity;
         }
     #endif
+
+    // Eklemeli efektler
+    half3 specularColor = CalculateSpecular(normalWS, mainLight.direction, viewDirWS, mainLight.color, shadowAttenuation);
+    half3 rimColor = CalculateRimLighting(normalWS, viewDirWS, mainLight.color);
+    half3 subsurfaceColor = CalculateSubsurface(normalWS, viewDirWS, mainLight);
 
     // Lightmap
     half3 bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
     
     // Tüm aydınlatma bileşenlerini birleştir
-    half3 finalColor = baseColor.rgb * diffuseColor;
     finalColor += specularColor;
     finalColor += rimColor;
     finalColor += subsurfaceColor;
@@ -178,4 +199,3 @@ half4 frag(Varyings input) : SV_Target
 }
 
 #endif // GTOON_FORWARD_PASS_INCLUDED
-

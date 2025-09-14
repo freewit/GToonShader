@@ -23,8 +23,8 @@ CBUFFER_START(UnityPerMaterial)
     // Aydınlatma & Gölge
     half _LightingMode;
     half _TintShadowOnBase;
-    half _ShadowSteps;
-    half _ShadowSmoothness;
+    half _ShadowThreshold;
+    half _TransitionSoftness;
     half4 _ShadowColor;
     half _ShadowIntensity;
     half _ShadowOffset;
@@ -72,4 +72,3 @@ CBUFFER_END
 // Bu, her pass'in sadece ihtiyaç duyduğu veriyi tanımlamasını sağlar ve modülerliği artırır.
 
 #endif // GTOON_INPUT_INCLUDED
-

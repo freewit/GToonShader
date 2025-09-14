@@ -15,8 +15,8 @@ namespace Gorgonize.ToonShader.Editor
         // Lighting/Shadow Properties
         public MaterialProperty lightingMode;
         public MaterialProperty tintShadowOnBase;
-        public MaterialProperty shadowSteps;
-        public MaterialProperty shadowSmoothness;
+        public MaterialProperty shadowThreshold; // Replaced _ShadowSteps
+        public MaterialProperty transitionSoftness; // Replaced _ShadowSmoothness
         public MaterialProperty shadowRamp;
         public MaterialProperty shadowColor;
         public MaterialProperty shadowIntensity;
@@ -104,12 +104,12 @@ namespace Gorgonize.ToonShader.Editor
                         tintShadowOnBase = prop;
                         break;
                         
-                    case "_ShadowSteps":
-                        shadowSteps = prop;
+                    case "_ShadowThreshold":
+                        shadowThreshold = prop;
                         break;
                         
-                    case "_ShadowSmoothness":
-                        shadowSmoothness = prop;
+                    case "_TransitionSoftness":
+                        transitionSoftness = prop;
                         break;
                         
                     case "_ShadowRamp":
@@ -342,6 +342,18 @@ namespace Gorgonize.ToonShader.Editor
         /// </summary>
         public void UpdateKeywords(Material material)
         {
+            // Lighting Mode
+            if (IsPropertyValid(lightingMode))
+            {
+                var mode = GetFloatValue(lightingMode);
+                SetKeyword(material, "_LIGHTINGMODE_SINGLE_CELL", mode == 0f);
+                SetKeyword(material, "_LIGHTINGMODE_BANDED", mode == 1f);
+                SetKeyword(material, "_LIGHTINGMODE_RAMP", mode == 2f);
+            }
+            
+            // Tinting
+            SetKeyword(material, "_TINT_SHADOW_ON_BASE", IsFeatureEnabled(tintShadowOnBase));
+
             // Highlights
             SetKeyword(material, "_ENABLEHIGHLIGHTS_ON", IsFeatureEnabled(enableHighlights));
             

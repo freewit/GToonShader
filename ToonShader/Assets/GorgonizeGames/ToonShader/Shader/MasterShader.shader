@@ -7,10 +7,10 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _BaseMap ("Base Texture", 2D) = "white" {}
         
         [Header(Shadow System)]
-        [KeywordEnum(Stepped, Smooth, Ramp)] _LightingMode ("Lighting Mode", Float) = 0
+        [KeywordEnum(Single Cell, Banded, Ramp)] _LightingMode ("Lighting Mode", Float) = 0
         [Toggle(_TINT_SHADOW_ON_BASE)] _TintShadowOnBase ("Tint On Full Object", Float) = 0
-        _ShadowSteps ("Shadow Steps", Range(2, 8)) = 3
-        _ShadowSmoothness ("Shadow Smoothness", Range(0, 1)) = 0.1
+        _ShadowThreshold ("Shadow Threshold", Range(0, 1)) = 0.5
+        _TransitionSoftness ("Transition Softness", Range(0.001, 1)) = 0.05
         _ShadowRamp ("Shadow Ramp", 2D) = "white" {} [NoScaleOffset]
         _ShadowColor ("Shadow Color", Color) = (0.5, 0.5, 0.8, 1)
         _ShadowIntensity ("Shadow Intensity", Range(0, 1)) = 0.5
@@ -121,7 +121,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             #pragma shader_feature_local _ENABLEHIGHLIGHTS_ON
             #pragma shader_feature_local _ENABLERIM_ON
             #pragma shader_feature_local _ENABLESUBSURFACE_ON
-            #pragma shader_feature_local _LIGHTINGMODE_STEPPED _LIGHTINGMODE_SMOOTH _LIGHTINGMODE_RAMP
+            #pragma shader_feature_local _LIGHTINGMODE_SINGLE_CELL _LIGHTINGMODE_BANDED _LIGHTINGMODE_RAMP
             #pragma shader_feature_local _TINT_SHADOW_ON_BASE
             #pragma shader_feature_local _ENABLEWIND_ON
             #pragma shader_feature_local _RECEIVESHADOWS_ON
@@ -218,3 +218,4 @@ Shader "Gorgonize/Gorgonize Toon Shader"
     CustomEditor "Gorgonize.ToonShader.Editor.GorgonizeToonShaderGUI"
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }
+

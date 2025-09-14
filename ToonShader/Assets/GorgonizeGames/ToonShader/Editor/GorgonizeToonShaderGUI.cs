@@ -15,7 +15,7 @@ namespace Gorgonize.ToonShader.Editor
         
         // Foldout states - Professional defaults
         private static bool showBase = true;
-        private static bool showShadows = false;
+        private static bool showShadows = true;
         private static bool showHighlights = false;
         private static bool showRim = false;
         private static bool showAdvanced = false;
@@ -176,23 +176,27 @@ namespace Gorgonize.ToonShader.Editor
                 {
                     if (props.IsPropertyValid(props.lightingMode))
                         materialEditor.ShaderProperty(props.lightingMode, "⚙️ Lighting Method");
-                        
-                    if (props.IsPropertyValid(props.tintShadowOnBase))
-                        ToonShaderStyles.DrawFeatureToggle(props.tintShadowOnBase, "Shadow Tinting", "Apply shadow color to entire object", "🎭");
                 }, true);
-                
-                ToonShaderStyles.DrawPropertyGroup("Shadow Control", () =>
+
+                var lightingMode = (int)props.GetFloatValue(props.lightingMode);
+
+                // Draw controls based on selected mode
+                switch (lightingMode)
                 {
-                    if (props.IsPropertyValid(props.shadowSteps))
-                        materialEditor.ShaderProperty(props.shadowSteps, "📊 Shadow Steps");
-                        
-                    if (props.IsPropertyValid(props.shadowSmoothness))
-                        materialEditor.ShaderProperty(props.shadowSmoothness, "🌊 Smoothness");
-                        
-                    if (props.IsPropertyValid(props.shadowRamp))
-                        materialEditor.TexturePropertySingleLine(new GUIContent("📈 Shadow Ramp Texture"), props.shadowRamp);
-                }, true);
-                
+                    case 0: // Single Cell Mode
+                        DrawSingleCellModeControls(materialEditor);
+                        break;
+                    case 1: // Banded Mode
+                        // To be implemented
+                        ToonShaderStyles.DrawInfoBox("Banded (Multi-Tone) mode is coming soon!");
+                        break;
+                    case 2: // Ramp Mode
+                        // To be implemented
+                        ToonShaderStyles.DrawInfoBox("Ramp Texture mode is coming soon!");
+                        break;
+                }
+
+                // Shared shadow appearance controls
                 ToonShaderStyles.DrawPropertyGroup("Shadow Appearance", () =>
                 {
                     if (props.IsPropertyValid(props.shadowColor))
@@ -208,10 +212,25 @@ namespace Gorgonize.ToonShader.Editor
                         materialEditor.ShaderProperty(props.occlusionStrength, "🕳️ Ambient Occlusion");
                 }, true);
                 
-                ToonShaderStyles.DrawInfoBox("Shadow system creates the characteristic stepped lighting of toon shaders. Use fewer steps for more dramatic cartoon look.");
+                ToonShaderStyles.DrawInfoBox("The lighting system creates the characteristic stylized lighting. 'Single Cell' mode is great for classic cel-shading.");
             }
         }
-        
+
+        private void DrawSingleCellModeControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Single Cell (Tek Ton) Kontrolleri", () =>
+            {
+                if (props.IsPropertyValid(props.shadowThreshold))
+                    materialEditor.ShaderProperty(props.shadowThreshold, "Gölge Eşiği");
+                            
+                if (props.IsPropertyValid(props.transitionSoftness))
+                    materialEditor.ShaderProperty(props.transitionSoftness, "Geçiş Yumuşaklığı");
+
+                if (props.IsPropertyValid(props.tintShadowOnBase))
+                    ToonShaderStyles.DrawFeatureToggle(props.tintShadowOnBase, "Shadow Tinting", "Apply shadow color to entire object", "🎭");
+            }, true);
+        }
+
         private void DrawHighlightsSectionProfessional(MaterialEditor materialEditor)
         {
             showHighlights = ToonShaderStyles.DrawProfessionalFoldout("Specular Highlights", showHighlights, "✨");
@@ -537,8 +556,8 @@ namespace Gorgonize.ToonShader.Editor
         
         private void ApplyAnimePreset()
         {
-            if (props.IsPropertyValid(props.shadowSteps))
-                props.shadowSteps.floatValue = 3f;
+            if (props.IsPropertyValid(props.shadowThreshold))
+                props.shadowThreshold.floatValue = 0.5f;
             if (props.IsPropertyValid(props.enableOutline))
                 props.enableOutline.floatValue = 1f;
             if (props.IsPropertyValid(props.enableHighlights))
@@ -553,14 +572,14 @@ namespace Gorgonize.ToonShader.Editor
                 props.enableWind.floatValue = 1f;
             if (props.IsPropertyValid(props.enableSubsurface))
                 props.enableSubsurface.floatValue = 1f;
-            if (props.IsPropertyValid(props.shadowSteps))
-                props.shadowSteps.floatValue = 2f;
+            if (props.IsPropertyValid(props.shadowThreshold))
+                props.shadowThreshold.floatValue = 0.6f;
         }
         
         private void ApplyEnvironmentPreset()
         {
-            if (props.IsPropertyValid(props.shadowSteps))
-                props.shadowSteps.floatValue = 4f;
+            if (props.IsPropertyValid(props.shadowThreshold))
+                props.shadowThreshold.floatValue = 0.5f;
             if (props.IsPropertyValid(props.enableOutline))
                 props.enableOutline.floatValue = 0f;
         }

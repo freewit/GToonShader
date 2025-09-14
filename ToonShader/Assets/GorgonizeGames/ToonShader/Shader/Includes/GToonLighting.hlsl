@@ -12,32 +12,24 @@ half3 BlendNormal(half3 n1, half3 n2)
     return normalize(half3(n1.xy + n2.xy, n1.z * n2.z));
 }
 
-// Toon (cel-shading) aydınlatma hesaplaması
-half3 CalculateToonLighting(half3 lightColor, half3 lightDir, half3 normal, half shadowAtten)
+// Toon aydınlatma hesaplaması - Artık sadece 0-1 arasında bir aydınlatma yoğunluğu döndürüyor
+half CalculateToonLightIntensity(half3 lightDir, half3 normal, half shadowAtten)
 {
     half NdotL = dot(normal, lightDir);
     half lightIntensity = NdotL * shadowAtten + _ShadowOffset;
     
-    #if defined(_LIGHTINGMODE_STEPPED)
-    lightIntensity = floor(lightIntensity * _ShadowSteps) / _ShadowSteps;
-    #elif defined(_LIGHTINGMODE_SMOOTH)
-    lightIntensity = smoothstep(0, _ShadowSmoothness, lightIntensity);
+    #if defined(_LIGHTINGMODE_SINGLE_CELL)
+        // Gölge eşiği etrafında yumuşak bir geçiş oluşturmak için smoothstep kullan
+        half halfSoftness = _TransitionSoftness / 2.0;
+        lightIntensity = smoothstep(_ShadowThreshold - halfSoftness, _ShadowThreshold + halfSoftness, lightIntensity);
     #elif defined(_LIGHTINGMODE_RAMP)
-    lightIntensity = SAMPLE_TEXTURE2D(_ShadowRamp, sampler_ShadowRamp, float2(lightIntensity, 0.5)).r;
+        lightIntensity = SAMPLE_TEXTURE2D(_ShadowRamp, sampler_ShadowRamp, float2(lightIntensity, 0.5)).r;
+    #else // Default/Fallback to Single Cell
+        half halfSoftness = _TransitionSoftness / 2.0;
+        lightIntensity = smoothstep(_ShadowThreshold - halfSoftness, _ShadowThreshold + halfSoftness, lightIntensity);
     #endif
-    
-    lightIntensity = saturate(lightIntensity);
-    
-    half3 shadowTint = lerp(half3(1,1,1), _ShadowColor.rgb, _ShadowIntensity);
-    
-    #if defined(_TINT_SHADOW_ON_BASE)
-    // Gölge rengini tüm objeye uygula ve aydınlık alanları aydınlat
-    half3 finalColor = lerp(shadowTint, half3(1,1,1), lightIntensity);
-    return finalColor * lightColor;
-    #else
-    // Sadece gölgede kalan alanları renklendir
-    return lerp(shadowTint * lightColor, lightColor, lightIntensity);
-    #endif
+
+    return saturate(lightIntensity);
 }
 
 // Specular (parlama) hesaplaması
@@ -83,3 +75,4 @@ half3 CalculateSubsurface(half3 normal, half3 viewDir, Light mainLight)
 
 
 #endif // GTOON_LIGHTING_INCLUDED
+
