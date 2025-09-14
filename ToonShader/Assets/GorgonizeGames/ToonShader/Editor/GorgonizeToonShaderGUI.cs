@@ -568,3 +568,4 @@ namespace Gorgonize.ToonShader.Editor
         #endregion
     }
 }
+

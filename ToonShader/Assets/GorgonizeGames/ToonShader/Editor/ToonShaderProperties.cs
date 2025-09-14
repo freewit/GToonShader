@@ -54,7 +54,7 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty subsurfaceDistortion;
         public MaterialProperty subsurfacePower;
         
-        // Outline Properties - FİX: Tam tanımlar
+        // Outline Properties
         public MaterialProperty enableOutline;
         public MaterialProperty outlineColor;
         public MaterialProperty outlineWidth;
@@ -230,7 +230,7 @@ namespace Gorgonize.ToonShader.Editor
                         subsurfacePower = prop;
                         break;
                     
-                    // Outline Properties - FİX: Doğru property eşleştirmesi
+                    // Outline Properties
                     case "_EnableOutline":
                         enableOutline = prop;
                         break;
@@ -351,7 +351,7 @@ namespace Gorgonize.ToonShader.Editor
             // Subsurface Scattering
             SetKeyword(material, "_ENABLESUBSURFACE_ON", IsFeatureEnabled(enableSubsurface));
             
-            // Outline - FİX: Doğru keyword
+            // Outline
             SetKeyword(material, "_ENABLEOUTLINE_ON", IsFeatureEnabled(enableOutline));
             
             // Wind Animation
@@ -372,7 +372,7 @@ namespace Gorgonize.ToonShader.Editor
             SetKeyword(material, "_ENABLEADDITIONALLIGHTS_ON", IsFeatureEnabled(enableAdditionalLights));
             
             // Receive Shadows
-            SetKeyword(material, "_RECEIVESHADOWS_OFF", !IsFeatureEnabled(receiveShadows));
+            SetKeyword(material, "_RECEIVESHADOWS_ON", IsFeatureEnabled(receiveShadows));
         }
 
         private void SetKeyword(Material material, string keyword, bool state)
@@ -415,3 +415,4 @@ namespace Gorgonize.ToonShader.Editor
         }
     }
 }
+

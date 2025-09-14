@@ -135,9 +135,8 @@ namespace Gorgonize.ToonShader.Editor
                 alignment = TextAnchor.MiddleCenter,
                 normal = { 
                     textColor = AccentBlue,
-                    background = _headerBackgroundTexture
                 },
-                padding = new RectOffset(10, 10, 12, 8)
+                padding = new RectOffset(10, 10, 5, 5) 
             };
             
             // Version Style
@@ -248,7 +247,7 @@ namespace Gorgonize.ToonShader.Editor
             };
             
             // Primary Button Style
-            _buttonPrimaryStyle = new GUIStyle(EditorStyles.miniButton)
+            _buttonPrimaryStyle = new GUIStyle(GUI.skin.button)
             {
                 normal = { 
                     background = CreateSolidTexture(AccentBlue),
@@ -258,25 +257,37 @@ namespace Gorgonize.ToonShader.Editor
                     background = CreateSolidTexture(HoverColor),
                     textColor = Color.white
                 },
+                active = {
+                    background = CreateSolidTexture(AccentBlue),
+                    textColor = new Color(1f, 1f, 1f, 0.8f)
+                },
                 fontSize = 11,
                 fontStyle = FontStyle.Bold,
-                padding = new RectOffset(15, 15, 8, 8)
+                padding = new RectOffset(15, 15, 8, 8),
+                border = new RectOffset(0,0,0,0),
+                margin = new RectOffset(2,2,2,2)
             };
             
             // Secondary Button Style
-            _buttonSecondaryStyle = new GUIStyle(EditorStyles.miniButton)
+            _buttonSecondaryStyle = new GUIStyle(GUI.skin.button)
             {
                 normal = { 
-                    background = CreateSolidTexture(SecondaryBackground),
+                    background = CreateSolidTexture(new Color32(55, 58, 68, 255)),
                     textColor = TextWhite
                 },
                 hover = { 
-                    background = CreateSolidTexture(new Color32(60, 65, 75, 255)),
+                    background = CreateSolidTexture(new Color32(70, 75, 85, 255)),
+                    textColor = AccentBlue
+                },
+                active = {
+                    background = CreateSolidTexture(new Color32(55, 58, 68, 255)),
                     textColor = AccentBlue
                 },
                 fontSize = 11,
+                fontStyle = FontStyle.Bold,
                 padding = new RectOffset(15, 15, 8, 8),
-                border = new RectOffset(1, 1, 1, 1)
+                border = new RectOffset(0,0,0,0),
+                margin = new RectOffset(2,2,2,2)
             };
             
             // Footer Style
@@ -353,19 +364,7 @@ namespace Gorgonize.ToonShader.Editor
         
         public static void DrawProfessionalHeader(string brandName, string shaderName, string version)
         {
-            // Ana container
-            var headerRect = EditorGUILayout.GetControlRect(false, 80);
-            headerRect.x -= 15;
-            headerRect.width += 30;
-            
-            // Background gradient
-            EditorGUI.DrawRect(headerRect, MainBackground);
-            
-            // Accent glow at top
-            var glowRect = new Rect(headerRect.x, headerRect.y, headerRect.width, 4);
-            EditorGUI.DrawRect(glowRect, AccentBlue);
-            
-            EditorGUILayout.Space(5);
+            EditorGUILayout.Space(10);
             
             // Brand name
             GUILayout.Label("🎨 " + brandName, BrandStyle);
@@ -375,8 +374,6 @@ namespace Gorgonize.ToonShader.Editor
             
             // Version
             GUILayout.Label(version + " 🚀", VersionStyle);
-            
-            EditorGUILayout.Space(5);
             
             DrawAccentSeparator();
         }
@@ -591,3 +588,4 @@ namespace Gorgonize.ToonShader.Editor
         #endregion
     }
 }
+
