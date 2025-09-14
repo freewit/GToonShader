@@ -190,7 +190,7 @@ namespace Gorgonize.ToonShader.Editor
                         DrawBandedModeControls(materialEditor);
                         break;
                     case 2: // Ramp Mode
-                        ToonShaderStyles.DrawInfoBox("Ramp Texture mode is coming soon!");
+                        DrawRampModeControls(materialEditor);
                         break;
                 }
 
@@ -228,7 +228,15 @@ namespace Gorgonize.ToonShader.Editor
             ToonShaderStyles.DrawPropertyGroup("Banded (Çok Tonlu) Ayarları", () =>
             {
                 if (props.IsPropertyValid(props.bandCount))
-                    materialEditor.ShaderProperty(props.bandCount, "Bant Miktarı");
+                {
+                    EditorGUI.BeginChangeCheck();
+                    float bandCountFloat = props.bandCount.floatValue;
+                    int bandCountInt = EditorGUILayout.IntSlider("Bant Miktarı", (int)bandCountFloat, 1, 4);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        props.bandCount.floatValue = bandCountInt;
+                    }
+                }
 
                 if (props.IsPropertyValid(props.shadowThreshold))
                     materialEditor.ShaderProperty(props.shadowThreshold, "Ana Gölge Eşiği");
@@ -236,12 +244,10 @@ namespace Gorgonize.ToonShader.Editor
                 if (props.IsPropertyValid(props.midtoneThreshold) && props.IsPropertyValid(props.shadowThreshold))
                 {
                     float shadowThresholdValue = props.shadowThreshold.floatValue;
-                    // Ensure midtone threshold cannot go below shadow threshold
                     if (props.midtoneThreshold.floatValue < shadowThresholdValue)
                     {
                         props.midtoneThreshold.floatValue = shadowThresholdValue;
                     }
-                    // Correctly implement the slider
                     props.midtoneThreshold.floatValue = EditorGUILayout.Slider("Ara Ton Bitişi", props.midtoneThreshold.floatValue, shadowThresholdValue, 1.0f);
                 }
                             
@@ -250,6 +256,22 @@ namespace Gorgonize.ToonShader.Editor
                 
                 if (props.IsPropertyValid(props.shadowColor))
                     materialEditor.ShaderProperty(props.shadowColor, "🎨 Gölge Rengi");
+            }, true);
+        }
+        
+        private void DrawRampModeControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Ramp Texture (Doku) Ayarları", () =>
+            {
+                if (props.IsPropertyValid(props.shadowRamp))
+                    materialEditor.TexturePropertySingleLine(new GUIContent("📈 Rampa Dokusu"), props.shadowRamp);
+        
+                ToonShaderStyles.DrawInfoBox("Aydınlatma ve gölge renkleri doğrudan bu dokudan alınır. Soldan sağa doğru karanlıktan aydınlığa bir gradyan kullanın.");
+
+                if (GUILayout.Button("Rampa Oluşturucu'yu Aç", ToonShaderStyles.ButtonSecondaryStyle))
+                {
+                    EditorWindow.GetWindow<RampCreatorEditor>("Ramp Creator");
+                }
             }, true);
         }
 

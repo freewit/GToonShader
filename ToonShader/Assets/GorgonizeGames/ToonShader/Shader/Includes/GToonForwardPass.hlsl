@@ -135,22 +135,11 @@ half4 frag(Varyings input) : SV_Target
     half shadowAttenuation = mainLight.shadowAttenuation;
 
     // AYDINLATMA MANTIĞI
-    half mainLightIntensity = CalculateToonLightIntensity(mainLight.direction, normalWS, shadowAttenuation);
+    half3 mainLightDiffuse = CalculateToonDiffuse(mainLight, baseColor.rgb, normalWS, shadowAttenuation);
     
-    half3 litColor = baseColor.rgb * mainLight.color;
-    // _ShadowIntensity kaldırıldı, renk parlaklığı direkt _ShadowColor'dan geliyor.
-    half3 shadowColorResult = _ShadowColor.rgb; 
+    // Renkleri birleştirmeye başla
+    half3 finalColor = mainLightDiffuse;
     
-    half3 diffuseColor;
-    #if defined(_TINT_SHADOW_ON_BASE)
-        diffuseColor = lerp(shadowColorResult, litColor, mainLightIntensity);
-    #else
-        // _ShadowIntensity kaldırıldı, artık direkt _ShadowColor.rgb kullanılıyor.
-        diffuseColor = litColor * lerp(_ShadowColor.rgb, half3(1,1,1), mainLightIntensity);
-    #endif
-
-    half3 finalColor = diffuseColor;
-
     // Ek ışıklar (Additional Lights)
     #ifdef _ADDITIONAL_LIGHTS
         uint pixelLightCount = GetAdditionalLightsCount();
@@ -158,6 +147,8 @@ half4 frag(Varyings input) : SV_Target
         {
             Light light = GetAdditionalLight(lightIndex, input.positionWS);
             half atten = light.shadowAttenuation * light.distanceAttenuation;
+            
+            // Ek ışıklar her zaman daha basit bir aydınlatma kullanır, Ramp modu burada geçerli olmaz
             half additionalLightIntensity = CalculateToonLightIntensity(light.direction, normalWS, atten);
             finalColor += baseColor.rgb * light.color * additionalLightIntensity;
         }
@@ -175,7 +166,6 @@ half4 frag(Varyings input) : SV_Target
     finalColor += specularColor;
     finalColor += rimColor;
     finalColor += subsurfaceColor;
-    // Baked GI contribution is scaled by Occlusion Strength
     finalColor += bakedGI * baseColor.rgb * _LightmapInfluence * _OcclusionStrength;
     
     // Emission
