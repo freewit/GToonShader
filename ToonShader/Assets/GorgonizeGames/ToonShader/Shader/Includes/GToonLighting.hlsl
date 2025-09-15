@@ -63,31 +63,57 @@ half3 CalculateToonDiffuse(Light light, half3 baseColor, half3 normal, half shad
     #endif
 }
 
-// Specular (parlama) hesaplaması
-half3 CalculateSpecular(half3 normal, half3 lightDir, half3 viewDir, half3 lightColor, half shadowAttenuation)
+// Specular (parlama) hesaplaması için ana fonksiyon
+half3 CalculateSpecular(half3 normal, half3 lightDir, half3 viewDir, half3 lightColor, half shadowAttenuation, half4 tangentWS, float2 uv)
 {
-    #if defined(_ENABLEHIGHLIGHTS_ON)
-        half3 halfVector = normalize(lightDir + viewDir);
-        half NdotH = saturate(dot(normal, halfVector));
-        // DÜZELTME: 'pow' fonksiyonunun tabanının negatif olmasını engellemek için abs() kullanıldı.
-        // NdotH zaten 'saturate' ile 0-1 aralığına sıkıştırılmış olsa da, derleyici uyarısını gidermek için bu en güvenli yoldur.
-        half spec = pow(abs(NdotH), (1.0 - _SpecularSize) * 128.0);
-        
-        spec = floor(spec * _SpecularSteps) / _SpecularSteps;
-        spec = smoothstep(0, _SpecularSmoothness, spec);
-        
-        return _SpecularColor.rgb * lightColor * spec * shadowAttenuation;
-    #else
+    #if !defined(_ENABLEHIGHLIGHTS_ON)
         return half3(0,0,0);
     #endif
+
+    half3 halfVector = normalize(lightDir + viewDir);
+    half NdotH = saturate(dot(normal, halfVector));
+
+    half3 finalSpecular = half3(0,0,0);
+
+    #if defined(_SPECULARMODE_STEPPED)
+        half spec = pow(abs(NdotH), (1.0 - _SpecularSize) * 128.0);
+        spec = floor(spec * _SpecularSteps) / _SpecularSteps;
+        spec = smoothstep(0, _SpecularSmoothness, spec);
+        finalSpecular = _SpecularColor.rgb * spec;
+    #elif defined(_SPECULARMODE_SOFT)
+        half spec = pow(NdotH, _SoftSpecularGlossiness * 128.0);
+        finalSpecular = _SpecularColor.rgb * spec * _SoftSpecularStrength;
+    #elif defined(_SPECULARMODE_ANISOTROPIC)
+        half3 tangent = tangentWS.xyz;
+        half3 bitangent = cross(normal, tangent) * tangentWS.w;
+        half3 anisotropicDir = lerp(tangent, bitangent, _AnisotropicDirection * 0.5 + 0.5);
+        half aniso = 1.0 - pow(saturate(dot(anisotropicDir, halfVector) + _AnisotropicOffset), _AnisotropicSharpness * 64.0);
+        aniso = pow(saturate(aniso), _AnisotropicSharpness * 128.0);
+        finalSpecular = _SpecularColor.rgb * aniso * _AnisotropicIntensity * NdotH;
+    #elif defined(_SPECULARMODE_SPARKLE)
+        half sparkleNoise = SAMPLE_TEXTURE2D(_SparkleMap, sampler_SparkleMap, uv * _SparkleDensity).r;
+        half spec = pow(NdotH, 64.0);
+        half sparkleThreshold = smoothstep(0.9, 0.901, sparkleNoise);
+        finalSpecular = _SparkleColor.rgb * spec * sparkleThreshold;
+    #elif defined(_SPECULARMODE_DOUBLE_TONE)
+        half innerSpec = pow(abs(NdotH), (1.0 - _SpecularInnerSize) * 256.0);
+        innerSpec = smoothstep(0.5 - _SpecularDoubleToneSoftness, 0.5 + _SpecularDoubleToneSoftness, innerSpec);
+        
+        half outerSpec = pow(abs(NdotH), (1.0 - _SpecularOuterSize) * 128.0);
+        outerSpec = smoothstep(0.5 - _SpecularDoubleToneSoftness, 0.5 + _SpecularDoubleToneSoftness, outerSpec);
+        
+        finalSpecular = lerp(_SpecularOuterColor.rgb, _SpecularInnerColor.rgb, innerSpec) * outerSpec;
+    #endif
+
+    return finalSpecular * lightColor * shadowAttenuation;
 }
+
 
 // Rim light (kenar aydınlatması) hesaplaması
 half3 CalculateRimLighting(half3 normal, half3 viewDir, half3 lightColor)
 {
     #if defined(_ENABLERIM_ON)
         half rim = 1.0 - saturate(dot(viewDir, normal));
-        // DÜZELTME: rim + _RimOffset ifadesi negatif olabileceğinden, 'pow' fonksiyonuna girmeden önce 'saturate' ile 0'dan küçük olması engellendi.
         rim = pow(saturate(rim + _RimOffset), _RimPower) * _RimIntensity;
         return _RimColor.rgb * rim * lightColor;
     #else

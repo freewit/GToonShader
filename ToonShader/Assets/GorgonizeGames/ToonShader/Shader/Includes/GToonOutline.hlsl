@@ -39,7 +39,7 @@ OutlineVaryings OutlineVert(OutlineAttributes input)
     
     // Outline için vertex'leri normal yönünde genişlet
     float3 normalOS = normalize(input.normalOS);
-    positionOS += normalOS * _OutlineWidth * 0.001; // Değeri makul seviyelere ölçekle
+    positionOS += normalOS * _OutlineWidth * 0.005; // Değeri makul seviyelere ölçekle
     
     output.positionCS = TransformObjectToHClip(positionOS);
     

@@ -28,11 +28,36 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         
         [Header(Highlight System)]
         [Toggle(_ENABLEHIGHLIGHTS_ON)] _EnableHighlights ("Enable Highlights", Float) = 1
+        [KeywordEnum(Stepped, Soft, Anisotropic, Sparkle, Double Tone)] _SpecularMode ("Specular Mode", Float) = 0
+
+        [Header(Stepped Specular)]
         _SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
         _SpecularSize ("Specular Size", Range(0, 1)) = 0.1
         _SpecularSmoothness ("Specular Smoothness", Range(0, 1)) = 0.5
         _SpecularSteps ("Specular Steps", Range(1, 8)) = 2
-        
+
+        [Header(Soft Specular)]
+        _SoftSpecularGlossiness("Glossiness", Range(0, 1)) = 0.5
+        _SoftSpecularStrength("Strength", Range(0, 2)) = 1.0
+
+        [Header(Anisotropic Specular)]
+        _AnisotropicDirection("Direction", Range(-1, 1)) = 0.5
+        _AnisotropicSharpness("Sharpness", Range(0, 1)) = 0.5
+        _AnisotropicIntensity("Intensity", Range(0, 2)) = 1.0
+        _AnisotropicOffset("Offset", Range(-1, 1)) = 0.0
+
+        [Header(Sparkle Specular)]
+        _SparkleMap("Sparkle Pattern", 2D) = "white" {}
+        _SparkleDensity("Density", Range(1, 10)) = 1.0
+        _SparkleColor("Sparkle Color", Color) = (1,1,1,1)
+
+        [Header(Double Tone Specular)]
+        _SpecularInnerColor("Inner Color", Color) = (1,1,1,1)
+        _SpecularOuterColor("Outer Color", Color) = (0.8, 0.8, 0.8, 1)
+        _SpecularInnerSize("Inner Size", Range(0, 1)) = 0.1
+        _SpecularOuterSize("Outer Size", Range(0, 1)) = 0.3
+        _SpecularDoubleToneSoftness("Softness", Range(0.001, 0.5)) = 0.05
+
         [Header(Rim Lighting)]
         [Toggle(_ENABLERIM_ON)] _EnableRim ("Enable Rim Lighting", Float) = 1
         _RimColor ("Rim Color", Color) = (1, 1, 1, 1)
@@ -128,6 +153,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             
             // Feature keywords
             #pragma shader_feature_local _ENABLEHIGHLIGHTS_ON
+            #pragma shader_feature_local _SPECULARMODE_STEPPED _SPECULARMODE_SOFT _SPECULARMODE_ANISOTROPIC _SPECULARMODE_SPARKLE _SPECULARMODE_DOUBLE_TONE
             #pragma shader_feature_local _ENABLERIM_ON
             #pragma shader_feature_local _ENABLESUBSURFACE_ON
             #pragma shader_feature_local _LIGHTINGMODE_SINGLE_CELL _LIGHTINGMODE_BANDED _LIGHTINGMODE_RAMP
@@ -227,4 +253,3 @@ Shader "Gorgonize/Gorgonize Toon Shader"
     CustomEditor "Gorgonize.ToonShader.Editor.GorgonizeToonShaderGUI"
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }
-

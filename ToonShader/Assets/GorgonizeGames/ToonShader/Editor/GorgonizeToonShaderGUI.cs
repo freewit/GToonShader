@@ -16,7 +16,7 @@ namespace Gorgonize.ToonShader.Editor
         // Foldout states - Professional defaults
         private static bool showBase = true;
         private static bool showShadows = true;
-        private static bool showHighlights = false;
+        private static bool showHighlights = true;
         private static bool showRim = false;
         private static bool showAdvanced = false;
         private static bool showSubsurface = false;
@@ -274,10 +274,10 @@ namespace Gorgonize.ToonShader.Editor
                 }
             }, true);
         }
-
+        
         private void DrawHighlightsSectionProfessional(MaterialEditor materialEditor)
         {
-            showHighlights = ToonShaderStyles.DrawProfessionalFoldout("Specular Highlights", showHighlights, "✨");
+            showHighlights = ToonShaderStyles.DrawProfessionalFoldout("Specular System", showHighlights, "✨");
             
             if (showHighlights)
             {
@@ -288,26 +288,136 @@ namespace Gorgonize.ToonShader.Editor
                 
                 if (props.IsFeatureEnabled(props.enableHighlights))
                 {
-                    ToonShaderStyles.DrawPropertyGroup("Highlight Properties", () =>
+                    ToonShaderStyles.DrawPropertyGroup("Specular Mode", () =>
                     {
-                        if (props.IsPropertyValid(props.specularColor))
-                            materialEditor.ShaderProperty(props.specularColor, "💎 Highlight Color");
-                            
-                        if (props.IsPropertyValid(props.specularSize))
-                            materialEditor.ShaderProperty(props.specularSize, "🔍 Highlight Size");
-                            
-                        if (props.IsPropertyValid(props.specularSmoothness))
-                            materialEditor.ShaderProperty(props.specularSmoothness, "🌊 Edge Smoothness");
-                            
-                        if (props.IsPropertyValid(props.specularSteps))
-                            materialEditor.ShaderProperty(props.specularSteps, "📊 Highlight Steps");
+                        if (props.IsPropertyValid(props.specularMode))
+                            materialEditor.ShaderProperty(props.specularMode, "⚙️ Specular Method");
                     }, true);
-                    
-                    ToonShaderStyles.DrawInfoBox("Lower step values create more dramatic, anime-style highlights.");
+
+                    var specularMode = (int)props.GetFloatValue(props.specularMode);
+
+                    switch (specularMode)
+                    {
+                        case 0: // Stepped
+                            DrawSteppedSpecularControls(materialEditor);
+                            break;
+                        case 1: // Soft
+                            DrawSoftSpecularControls(materialEditor);
+                            break;
+                        case 2: // Anisotropic
+                            DrawAnisotropicSpecularControls(materialEditor);
+                            break;
+                        case 3: // Sparkle
+                            DrawSparkleSpecularControls(materialEditor);
+                            break;
+                        case 4: // Double Tone
+                            DrawDoubleToneSpecularControls(materialEditor);
+                            break;
+                    }
                 }
             }
         }
+
+        private void DrawSteppedSpecularControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Stepped (Cel) Specular", () =>
+            {
+                if (props.IsPropertyValid(props.specularColor))
+                    materialEditor.ShaderProperty(props.specularColor, "💎 Highlight Color");
+                            
+                if (props.IsPropertyValid(props.specularSize))
+                    materialEditor.ShaderProperty(props.specularSize, "🔍 Highlight Size");
+                            
+                if (props.IsPropertyValid(props.specularSmoothness))
+                    materialEditor.ShaderProperty(props.specularSmoothness, "🌊 Edge Smoothness");
+                            
+                if (props.IsPropertyValid(props.specularSteps))
+                    materialEditor.ShaderProperty(props.specularSteps, "📊 Highlight Steps");
+                
+                ToonShaderStyles.DrawInfoBox("Classic, sharp-edged anime highlight style.");
+            }, true);
+        }
+
+        private void DrawSoftSpecularControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Soft (Blinn-Phong) Specular", () =>
+            {
+                if (props.IsPropertyValid(props.specularColor))
+                    materialEditor.ShaderProperty(props.specularColor, "💎 Highlight Color");
+                
+                if (props.IsPropertyValid(props.softSpecularGlossiness))
+                    materialEditor.ShaderProperty(props.softSpecularGlossiness, "✨ Glossiness");
+
+                if (props.IsPropertyValid(props.softSpecularStrength))
+                    materialEditor.ShaderProperty(props.softSpecularStrength, "💪 Strength");
+
+                ToonShaderStyles.DrawInfoBox("Traditional, smooth gradient highlight for a softer look.");
+            }, true);
+        }
         
+        private void DrawAnisotropicSpecularControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Anisotropic (Brushed) Specular", () =>
+            {
+                if (props.IsPropertyValid(props.specularColor))
+                    materialEditor.ShaderProperty(props.specularColor, "💎 Highlight Color");
+
+                if (props.IsPropertyValid(props.anisotropicDirection))
+                    materialEditor.ShaderProperty(props.anisotropicDirection, "↔️ Direction");
+
+                if (props.IsPropertyValid(props.anisotropicSharpness))
+                    materialEditor.ShaderProperty(props.anisotropicSharpness, "🔪 Sharpness");
+                
+                if (props.IsPropertyValid(props.anisotropicIntensity))
+                    materialEditor.ShaderProperty(props.anisotropicIntensity, "💪 Intensity");
+                    
+                if (props.IsPropertyValid(props.anisotropicOffset))
+                    materialEditor.ShaderProperty(props.anisotropicOffset, "📏 Offset");
+
+                ToonShaderStyles.DrawInfoBox("Stretched highlight, ideal for hair and brushed metal.");
+            }, true);
+        }
+
+        private void DrawSparkleSpecularControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Sparkle Specular", () =>
+            {
+                if (props.IsPropertyValid(props.sparkleColor))
+                    materialEditor.ShaderProperty(props.sparkleColor, "✨ Sparkle Color");
+
+                if (props.IsPropertyValid(props.sparkleMap))
+                    materialEditor.TexturePropertySingleLine(new GUIContent("🗺️ Sparkle Pattern"), props.sparkleMap);
+
+                if (props.IsPropertyValid(props.sparkleDensity))
+                    materialEditor.ShaderProperty(props.sparkleDensity, "密度 Density");
+
+                ToonShaderStyles.DrawInfoBox("Uses a texture to create a sparkling/glitter effect.");
+            }, true);
+        }
+
+        private void DrawDoubleToneSpecularControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Double Tone Specular", () =>
+            {
+                if (props.IsPropertyValid(props.specularInnerColor))
+                    materialEditor.ShaderProperty(props.specularInnerColor, "⚪ Inner Color");
+
+                if (props.IsPropertyValid(props.specularOuterColor))
+                    materialEditor.ShaderProperty(props.specularOuterColor, "⚫ Outer Color");
+                
+                if (props.IsPropertyValid(props.specularInnerSize))
+                    materialEditor.ShaderProperty(props.specularInnerSize, "🔍 Inner Size");
+
+                if (props.IsPropertyValid(props.specularOuterSize))
+                    materialEditor.ShaderProperty(props.specularOuterSize, "🔍 Outer Size");
+                
+                if (props.IsPropertyValid(props.specularDoubleToneSoftness))
+                    materialEditor.ShaderProperty(props.specularDoubleToneSoftness, "🌊 Softness");
+
+                ToonShaderStyles.DrawInfoBox("A highly stylized two-layer highlight effect.");
+            }, true);
+        }
+
         private void DrawRimSectionProfessional(MaterialEditor materialEditor)
         {
             showRim = ToonShaderStyles.DrawProfessionalFoldout("Rim Lighting", showRim, "🌟");

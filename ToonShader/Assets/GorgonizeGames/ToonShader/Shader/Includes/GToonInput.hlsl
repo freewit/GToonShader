@@ -11,6 +11,8 @@ TEXTURE2D(_NormalMap);          SAMPLER(sampler_NormalMap);
 TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
 TEXTURE2D(_DetailMap);          SAMPLER(sampler_DetailMap);
 TEXTURE2D(_DetailNormalMap);    SAMPLER(sampler_DetailNormalMap);
+TEXTURE2D(_SparkleMap);         SAMPLER(sampler_SparkleMap);
+
 
 CBUFFER_START(UnityPerMaterial)
     // Doku Tiling/Offset
@@ -34,11 +36,25 @@ CBUFFER_START(UnityPerMaterial)
     half _BandSoftness;
     
     // Specular
+    half _SpecularMode;
     half4 _SpecularColor;
     half _SpecularSize;
     half _SpecularSmoothness;
     half _SpecularSteps;
-    
+    half _SoftSpecularGlossiness;
+    half _SoftSpecularStrength;
+    half _AnisotropicDirection;
+    half _AnisotropicSharpness;
+    half _AnisotropicIntensity;
+    half _AnisotropicOffset;
+    half _SparkleDensity;
+    half4 _SparkleColor;
+    half4 _SpecularInnerColor;
+    half4 _SpecularOuterColor;
+    half _SpecularInnerSize;
+    half _SpecularOuterSize;
+    half _SpecularDoubleToneSoftness;
+
     // Rim
     half4 _RimColor;
     half _RimPower;

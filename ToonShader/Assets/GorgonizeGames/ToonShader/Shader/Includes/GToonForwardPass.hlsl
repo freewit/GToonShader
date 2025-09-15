@@ -27,7 +27,7 @@ struct Varyings
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
     float3 positionWS               : TEXCOORD2;
     float3 normalWS                 : TEXCOORD3;
-    #if defined(_NORMALMAP) || defined(_DETAIL)
+    #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC)
         half4 tangentWS                 : TEXCOORD4;
     #endif
     float3 viewDirWS                : TEXCOORD5;
@@ -60,7 +60,7 @@ Varyings vert(Attributes input)
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
     output.normalWS = normalInput.normalWS;
     
-    #if defined(_NORMALMAP) || defined(_DETAIL)
+    #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC)
         real sign = input.tangentOS.w * GetOddNegativeScale();
         half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
         output.tangentWS = tangentWS;
@@ -96,6 +96,12 @@ half4 frag(Varyings input) : SV_Target
     
     // Normal map hesaplamaları
     half3 normalWS = normalize(input.normalWS);
+    #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC)
+        half4 tangentWS = input.tangentWS;
+    #else
+        half4 tangentWS = half4(0,0,0,0);
+    #endif
+
     #if defined(_NORMALMAP) || defined(_DETAIL)
         half3 normalTS = half3(0,0,1);
         #if defined(_NORMALMAP)
@@ -109,7 +115,7 @@ half4 frag(Varyings input) : SV_Target
                  normalTS = detailNormalTS;
             #endif
         #endif
-        half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, input.tangentWS.w * cross(input.normalWS, input.tangentWS.xyz), input.normalWS);
+        half3x3 tangentToWorld = half3x3(tangentWS.xyz, tangentWS.w * cross(input.normalWS, tangentWS.xyz), input.normalWS);
         normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
     #endif
 
@@ -155,7 +161,7 @@ half4 frag(Varyings input) : SV_Target
     #endif
 
     // Eklemeli efektler
-    half3 specularColor = CalculateSpecular(normalWS, mainLight.direction, viewDirWS, mainLight.color, shadowAttenuation);
+    half3 specularColor = CalculateSpecular(normalWS, mainLight.direction, viewDirWS, mainLight.color, shadowAttenuation, tangentWS, input.uv);
     half3 rimColor = CalculateRimLighting(normalWS, viewDirWS, mainLight.color);
     half3 subsurfaceColor = CalculateSubsurface(normalWS, viewDirWS, mainLight);
 

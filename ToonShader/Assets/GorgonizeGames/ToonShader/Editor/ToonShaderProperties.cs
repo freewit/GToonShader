@@ -28,10 +28,37 @@ namespace Gorgonize.ToonShader.Editor
 
         // Highlight Properties
         public MaterialProperty enableHighlights;
+        
+        // Specular Properties (New and Updated)
+        public MaterialProperty specularMode;
+        
+        // Mode 0: Stepped
         public MaterialProperty specularColor;
         public MaterialProperty specularSize;
         public MaterialProperty specularSmoothness;
         public MaterialProperty specularSteps;
+        
+        // Mode 1: Soft
+        public MaterialProperty softSpecularGlossiness;
+        public MaterialProperty softSpecularStrength;
+        
+        // Mode 2: Anisotropic
+        public MaterialProperty anisotropicDirection;
+        public MaterialProperty anisotropicSharpness;
+        public MaterialProperty anisotropicIntensity;
+        public MaterialProperty anisotropicOffset;
+        
+        // Mode 3: Sparkle
+        public MaterialProperty sparkleMap;
+        public MaterialProperty sparkleDensity;
+        public MaterialProperty sparkleColor;
+        
+        // Mode 4: Double Tone
+        public MaterialProperty specularInnerColor;
+        public MaterialProperty specularOuterColor;
+        public MaterialProperty specularInnerSize;
+        public MaterialProperty specularOuterSize;
+        public MaterialProperty specularDoubleToneSoftness;
         
         // Rim Lighting Properties
         public MaterialProperty enableRim;
@@ -102,7 +129,66 @@ namespace Gorgonize.ToonShader.Editor
                     case "_LightingMode":
                         lightingMode = prop;
                         break;
-                        
+                    
+                    // Specular Properties
+                    case "_SpecularMode":
+                        specularMode = prop;
+                        break;
+                    case "_SpecularColor":
+                        specularColor = prop;
+                        break;
+                    case "_SpecularSize":
+                        specularSize = prop;
+                        break;
+                    case "_SpecularSmoothness":
+                        specularSmoothness = prop;
+                        break;
+                    case "_SpecularSteps":
+                        specularSteps = prop;
+                        break;
+                    case "_SoftSpecularGlossiness":
+                        softSpecularGlossiness = prop;
+                        break;
+                    case "_SoftSpecularStrength":
+                        softSpecularStrength = prop;
+                        break;
+                    case "_AnisotropicDirection":
+                        anisotropicDirection = prop;
+                        break;
+                    case "_AnisotropicSharpness":
+                        anisotropicSharpness = prop;
+                        break;
+                    case "_AnisotropicIntensity":
+                        anisotropicIntensity = prop;
+                        break;
+                    case "_AnisotropicOffset":
+                        anisotropicOffset = prop;
+                        break;
+                    case "_SparkleMap":
+                        sparkleMap = prop;
+                        break;
+                    case "_SparkleDensity":
+                        sparkleDensity = prop;
+                        break;
+                    case "_SparkleColor":
+                        sparkleColor = prop;
+                        break;
+                    case "_SpecularInnerColor":
+                        specularInnerColor = prop;
+                        break;
+                    case "_SpecularOuterColor":
+                        specularOuterColor = prop;
+                        break;
+                    case "_SpecularInnerSize":
+                        specularInnerSize = prop;
+                        break;
+                    case "_SpecularOuterSize":
+                        specularOuterSize = prop;
+                        break;
+                    case "_SpecularDoubleToneSoftness":
+                        specularDoubleToneSoftness = prop;
+                        break;
+
                     case "_TintShadowOnBase":
                         tintShadowOnBase = prop;
                         break;
@@ -141,22 +227,6 @@ namespace Gorgonize.ToonShader.Editor
                     // Highlight Properties
                     case "_EnableHighlights":
                         enableHighlights = prop;
-                        break;
-                        
-                    case "_SpecularColor":
-                        specularColor = prop;
-                        break;
-                        
-                    case "_SpecularSize":
-                        specularSize = prop;
-                        break;
-                        
-                    case "_SpecularSmoothness":
-                        specularSmoothness = prop;
-                        break;
-                        
-                    case "_SpecularSteps":
-                        specularSteps = prop;
                         break;
                     
                     // Rim Lighting Properties
@@ -357,6 +427,25 @@ namespace Gorgonize.ToonShader.Editor
                 SetKeyword(material, "_LIGHTINGMODE_RAMP", mode == 2f);
             }
             
+            // Specular Mode
+            if (IsPropertyValid(specularMode) && IsFeatureEnabled(enableHighlights))
+            {
+                var specMode = GetFloatValue(specularMode);
+                SetKeyword(material, "_SPECULARMODE_STEPPED", specMode == 0f);
+                SetKeyword(material, "_SPECULARMODE_SOFT", specMode == 1f);
+                SetKeyword(material, "_SPECULARMODE_ANISOTROPIC", specMode == 2f);
+                SetKeyword(material, "_SPECULARMODE_SPARKLE", specMode == 3f);
+                SetKeyword(material, "_SPECULARMODE_DOUBLE_TONE", specMode == 4f);
+            }
+            else
+            {
+                SetKeyword(material, "_SPECULARMODE_STEPPED", false);
+                SetKeyword(material, "_SPECULARMODE_SOFT", false);
+                SetKeyword(material, "_SPECULARMODE_ANISOTROPIC", false);
+                SetKeyword(material, "_SPECULARMODE_SPARKLE", false);
+                SetKeyword(material, "_SPECULARMODE_DOUBLE_TONE", false);
+            }
+
             // Tinting
             SetKeyword(material, "_TINT_SHADOW_ON_BASE", IsFeatureEnabled(tintShadowOnBase));
 
