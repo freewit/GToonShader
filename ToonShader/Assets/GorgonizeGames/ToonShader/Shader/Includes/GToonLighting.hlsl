@@ -69,7 +69,9 @@ half3 CalculateSpecular(half3 normal, half3 lightDir, half3 viewDir, half3 light
     #if defined(_ENABLEHIGHLIGHTS_ON)
         half3 halfVector = normalize(lightDir + viewDir);
         half NdotH = saturate(dot(normal, halfVector));
-        half spec = pow(NdotH, (1.0 - _SpecularSize) * 128.0);
+        // DÜZELTME: 'pow' fonksiyonunun tabanının negatif olmasını engellemek için abs() kullanıldı.
+        // NdotH zaten 'saturate' ile 0-1 aralığına sıkıştırılmış olsa da, derleyici uyarısını gidermek için bu en güvenli yoldur.
+        half spec = pow(abs(NdotH), (1.0 - _SpecularSize) * 128.0);
         
         spec = floor(spec * _SpecularSteps) / _SpecularSteps;
         spec = smoothstep(0, _SpecularSmoothness, spec);
@@ -85,7 +87,8 @@ half3 CalculateRimLighting(half3 normal, half3 viewDir, half3 lightColor)
 {
     #if defined(_ENABLERIM_ON)
         half rim = 1.0 - saturate(dot(viewDir, normal));
-        rim = pow(rim + _RimOffset, _RimPower) * _RimIntensity;
+        // DÜZELTME: rim + _RimOffset ifadesi negatif olabileceğinden, 'pow' fonksiyonuna girmeden önce 'saturate' ile 0'dan küçük olması engellendi.
+        rim = pow(saturate(rim + _RimOffset), _RimPower) * _RimIntensity;
         return _RimColor.rgb * rim * lightColor;
     #else
         return half3(0,0,0);
@@ -106,4 +109,3 @@ half3 CalculateSubsurface(half3 normal, half3 viewDir, Light mainLight)
 
 
 #endif // GTOON_LIGHTING_INCLUDED
-
