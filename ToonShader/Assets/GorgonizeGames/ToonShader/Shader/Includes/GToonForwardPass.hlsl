@@ -97,12 +97,6 @@ half4 frag(Varyings input) : SV_Target
     // Normal map hesaplamaları
     half3 normalWS = normalize(input.normalWS);
     #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC)
-        half4 tangentWS = input.tangentWS;
-    #else
-        half4 tangentWS = half4(0,0,0,0);
-    #endif
-
-    #if defined(_NORMALMAP) || defined(_DETAIL)
         half3 normalTS = half3(0,0,1);
         #if defined(_NORMALMAP)
             normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.uv), _NormalStrength);
@@ -115,7 +109,7 @@ half4 frag(Varyings input) : SV_Target
                  normalTS = detailNormalTS;
             #endif
         #endif
-        half3x3 tangentToWorld = half3x3(tangentWS.xyz, tangentWS.w * cross(input.normalWS, tangentWS.xyz), input.normalWS);
+        half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, input.tangentWS.w * cross(input.normalWS, input.tangentWS.xyz), input.normalWS);
         normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
     #endif
 
@@ -161,8 +155,14 @@ half4 frag(Varyings input) : SV_Target
     #endif
 
     // Eklemeli efektler
+    #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC)
+        half4 tangentWS = input.tangentWS;
+    #else
+        half4 tangentWS = half4(1,0,0,1); // Anisotropic için dummy veri
+    #endif
+    
     half3 specularColor = CalculateSpecular(normalWS, mainLight.direction, viewDirWS, mainLight.color, shadowAttenuation, tangentWS, input.uv);
-    half3 rimColor = CalculateRimLighting(normalWS, viewDirWS, mainLight.color);
+    half3 rimColor = CalculateRimLighting(normalWS, viewDirWS, mainLight.direction, mainLight.color, input.uv);
     half3 subsurfaceColor = CalculateSubsurface(normalWS, viewDirWS, mainLight);
 
     // Lightmap / Baked GI

@@ -14,9 +14,13 @@ Material:
   m_ValidKeywords:
   - _ADDITIONAL_LIGHTS
   - _ENABLEADDITIONALLIGHTS_ON
+  - _ENABLEHIGHLIGHTS_ON
   - _ENABLEOUTLINE_ON
+  - _ENABLERIM_ON
   - _LIGHTINGMODE_RAMP
   - _RECEIVESHADOWS_ON
+  - _RIMMODE_STEPPED
+  - _SPECULARMODE_SOFT
   - _TINT_SHADOW_ON_BASE
   m_InvalidKeywords:
   - TCP2_RIM_LIGHTING_LIGHTMASK
@@ -63,13 +67,25 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _RimTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _ShadowRamp:
-        m_Texture: {fileID: 2800000, guid: a069bfa9c5e4fc040b0e5f580d4ada4d, type: 3}
+        m_Texture: {fileID: 2800000, guid: 31a98595637c49b44a1fad0a3adf6637, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SparkleMap:
+        m_Texture: {fileID: 10912, guid: 0000000000000000f000000000000000, type: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _AdditionalLightIntensity: 1.31
+    - _AnisotropicDirection: -0.31
+    - _AnisotropicIntensity: 0.71
+    - _AnisotropicOffset: 0.86
+    - _AnisotropicSharpness: 0.089
     - _BandCount: 3
     - _BandSmooth: 0.1
     - _BandSoftness: 0.443
@@ -83,10 +99,10 @@ Material:
     - _EmissionIntensity: 0
     - _EmissionToggle: 0
     - _EnableAdditionalLights: 1
-    - _EnableHighlights: 0
+    - _EnableHighlights: 1
     - _EnableOutline: 1
     - _EnableRealShadows: 1
-    - _EnableRim: 0
+    - _EnableRim: 1
     - _EnableSubsurface: 0
     - _EnableWind: 0
     - _HighlightThreshold: 0.825
@@ -127,11 +143,16 @@ Material:
     - _ReceiveShadows: 1
     - _ReceiveShadowsOff: 1
     - _RenderingMode: 0
-    - _RimIntensity: 1.21
+    - _RimIntensity: 1.09
+    - _RimLightInfluence: 5
     - _RimMax: 1
     - _RimMin: 0.59
-    - _RimOffset: 0.1
-    - _RimPower: 4.22
+    - _RimMode: 1
+    - _RimOffset: 0.15
+    - _RimPower: 4.57
+    - _RimScrollSpeed: 0.5
+    - _RimSoftness: 0.001
+    - _RimThreshold: 0.751
     - _ShadowBias: 0.005
     - _ShadowColorBlend: 0.528
     - _ShadowColorLightAtten: 1
@@ -149,9 +170,16 @@ Material:
     - _ShadowSteps: 3.83
     - _ShadowThreshold: 0.486
     - _SimpleSmooth: 0
-    - _SpecularSize: 0.181
-    - _SpecularSmoothness: 0
-    - _SpecularSteps: 1
+    - _SoftSpecularGlossiness: 0.393
+    - _SoftSpecularStrength: 1.2
+    - _SparkleDensity: 5.06
+    - _SpecularDoubleToneSoftness: 0.419
+    - _SpecularInnerSize: 0.913
+    - _SpecularMode: 1
+    - _SpecularOuterSize: 0.936
+    - _SpecularSize: 0.509
+    - _SpecularSmoothness: 0.364
+    - _SpecularSteps: 7.31
     - _SrcBlend: 1
     - _SubsurfaceDistortion: 0
     - _SubsurfaceIntensity: 0.71
@@ -183,10 +211,13 @@ Material:
     - _MidtoneColor: {r: 0, g: 1, b: 0.22553182, a: 1}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _OutlineColorSecondary: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _RimColor: {r: 0.35970533, g: 0.09077963, b: 0.3773585, a: 1}
+    - _RimColor: {r: 1, g: 1, b: 1, a: 1}
     - _SColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _ShadowColor: {r: 0.312526, g: 0.17702028, b: 0.3207547, a: 1}
-    - _SpecularColor: {r: 0.8640789, g: 0.8867924, b: 0.69855815, a: 1}
+    - _SparkleColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SpecularInnerColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SpecularOuterColor: {r: 1, g: 0.5424528, b: 0.5424528, a: 1}
     - _SubsurfaceColor: {r: 1, g: 0.39999998, b: 0.39999998, a: 1}
     - _WindDirection: {r: 1, g: 0, b: 1, a: 0}
   m_BuildTextureStacks: []

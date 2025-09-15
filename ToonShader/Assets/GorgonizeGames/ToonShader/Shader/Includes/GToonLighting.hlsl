@@ -110,16 +110,35 @@ half3 CalculateSpecular(half3 normal, half3 lightDir, half3 viewDir, half3 light
 
 
 // Rim light (kenar aydınlatması) hesaplaması
-half3 CalculateRimLighting(half3 normal, half3 viewDir, half3 lightColor)
+half3 CalculateRimLighting(half3 normal, half3 viewDir, half3 lightDir, half3 lightColor, float2 uv)
 {
-    #if defined(_ENABLERIM_ON)
-        half rim = 1.0 - saturate(dot(viewDir, normal));
-        rim = pow(saturate(rim + _RimOffset), _RimPower) * _RimIntensity;
-        return _RimColor.rgb * rim * lightColor;
-    #else
+    #if !defined(_ENABLERIM_ON)
         return half3(0,0,0);
     #endif
+
+    half rimDot = 1.0 - saturate(dot(viewDir, normal));
+    half3 finalRim = half3(0,0,0);
+    
+    #if defined(_RIMMODE_STANDARD)
+        half rim = pow(saturate(rimDot + _RimOffset), _RimPower);
+        finalRim = _RimColor.rgb * rim;
+    #elif defined(_RIMMODE_STEPPED)
+        half rim = smoothstep(_RimThreshold - _RimSoftness, _RimThreshold + _RimSoftness, rimDot);
+        finalRim = _RimColor.rgb * rim;
+    #elif defined(_RIMMODE_LIGHTBASED)
+        half lightDot = saturate(dot(normal, lightDir));
+        half rim = pow(saturate(rimDot + _RimOffset), _RimPower) * saturate(lightDot * _RimLightInfluence);
+        finalRim = _RimColor.rgb * rim;
+    #elif defined(_RIMMODE_TEXTURED)
+        float2 scrolledUV = uv + _Time.y * _RimScrollSpeed * float2(0.1, 0.1);
+        half4 rimTex = SAMPLE_TEXTURE2D(_RimTexture, sampler_RimTexture, scrolledUV);
+        half rim = pow(saturate(rimDot + _RimOffset), _RimPower);
+        finalRim = _RimColor.rgb * rimTex.rgb * rim;
+    #endif
+
+    return finalRim * _RimIntensity * lightColor;
 }
+
 
 // Subsurface scattering (yüzey altı saçılımı) hesaplaması
 half3 CalculateSubsurface(half3 normal, half3 viewDir, Light mainLight)
@@ -135,3 +154,4 @@ half3 CalculateSubsurface(half3 normal, half3 viewDir, Light mainLight)
 
 
 #endif // GTOON_LIGHTING_INCLUDED
+

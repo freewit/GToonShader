@@ -26,56 +26,67 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _ShadowColor ("Shadow Color", Color) = (0.5, 0.5, 0.8, 1)
         _OcclusionStrength ("Occlusion Strength", Range(0, 1)) = 1
         
-        [Header(Highlight System)]
+        [Header(Specular System)]
         [Toggle(_ENABLEHIGHLIGHTS_ON)] _EnableHighlights ("Enable Highlights", Float) = 1
         [KeywordEnum(Stepped, Soft, Anisotropic, Sparkle, Double Tone)] _SpecularMode ("Specular Mode", Float) = 0
 
-        [Header(Stepped Specular)]
+        [Header(Stepped Mode)]
         _SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
         _SpecularSize ("Specular Size", Range(0, 1)) = 0.1
         _SpecularSmoothness ("Specular Smoothness", Range(0, 1)) = 0.5
-        _SpecularSteps ("Specular Steps", Range(1, 8)) = 2
+        [IntRange] _SpecularSteps ("Specular Steps", Range(1, 8)) = 2
 
-        [Header(Soft Specular)]
+        [Header(Soft Mode)]
         _SoftSpecularGlossiness("Glossiness", Range(0, 1)) = 0.5
         _SoftSpecularStrength("Strength", Range(0, 2)) = 1.0
 
-        [Header(Anisotropic Specular)]
+        [Header(Anisotropic Mode)]
         _AnisotropicDirection("Direction", Range(-1, 1)) = 0.5
         _AnisotropicSharpness("Sharpness", Range(0, 1)) = 0.5
         _AnisotropicIntensity("Intensity", Range(0, 2)) = 1.0
         _AnisotropicOffset("Offset", Range(-1, 1)) = 0.0
 
-        [Header(Sparkle Specular)]
+        [Header(Sparkle Mode)]
         _SparkleMap("Sparkle Pattern", 2D) = "white" {}
         _SparkleDensity("Density", Range(1, 10)) = 1.0
         _SparkleColor("Sparkle Color", Color) = (1,1,1,1)
 
-        [Header(Double Tone Specular)]
+        [Header(Double Tone Mode)]
         _SpecularInnerColor("Inner Color", Color) = (1,1,1,1)
         _SpecularOuterColor("Outer Color", Color) = (0.8, 0.8, 0.8, 1)
         _SpecularInnerSize("Inner Size", Range(0, 1)) = 0.1
         _SpecularOuterSize("Outer Size", Range(0, 1)) = 0.3
         _SpecularDoubleToneSoftness("Softness", Range(0.001, 0.5)) = 0.05
 
-        [Header(Rim Lighting)]
+        [Header(Rim Lighting System)]
         [Toggle(_ENABLERIM_ON)] _EnableRim ("Enable Rim Lighting", Float) = 1
+        [KeywordEnum(Standard, Stepped, LightBased, Textured)] _RimMode("Rim Mode", Float) = 0
         _RimColor ("Rim Color", Color) = (1, 1, 1, 1)
-        _RimPower ("Rim Power", Range(0, 10)) = 2
         _RimIntensity ("Rim Intensity", Range(0, 3)) = 1
+
+        [Header(Standard Rim Mode)]
+        _RimPower ("Rim Power", Range(0, 10)) = 2
         _RimOffset ("Rim Offset", Range(-1, 1)) = 0
+
+        [Header(Stepped Rim Mode)]
+        _RimThreshold("Threshold", Range(0, 1)) = 0.5
+        _RimSoftness("Softness", Range(0.001, 1)) = 0.1
+
+        [Header(Light Based Rim Mode)]
+        _RimLightInfluence("Light Influence", Range(0, 5)) = 1.0
+
+        [Header(Textured Rim Mode)]
+        _RimTexture("Rim Texture", 2D) = "white" {}
+        _RimScrollSpeed("Scroll Speed", Range(-2, 2)) = 0.5
         
         [Header(Advanced Features)]
-        [Toggle(_NORMALMAP)] _NormalMapToggle("Enable Normal Map", Float) = 0
         _NormalMap ("Normal Map", 2D) = "bump" {}
         _NormalStrength ("Normal Strength", Range(0, 2)) = 1
-        [Toggle(_EMISSION)] _EmissionToggle("Enable Emission", Float) = 0
         _EmissionMap ("Emission", 2D) = "black" {}
-        _EmissionColor ("Emission Color", Color) = (0, 0, 0, 1)
+        [HDR] _EmissionColor ("Emission Color", Color) = (0, 0, 0, 1)
         _EmissionIntensity ("Emission Intensity", Range(0, 10)) = 0
         
         [Header(Detail Textures)]
-        [Toggle(_DETAIL)] _DetailToggle("Enable Detail Textures", Float) = 0
         _DetailMap ("Detail Albedo", 2D) = "gray" {}
         _DetailNormalMap ("Detail Normal", 2D) = "bump" {}
         _DetailStrength ("Detail Strength", Range(0, 2)) = 1
@@ -153,11 +164,12 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             
             // Feature keywords
             #pragma shader_feature_local _ENABLEHIGHLIGHTS_ON
-            #pragma shader_feature_local _SPECULARMODE_STEPPED _SPECULARMODE_SOFT _SPECULARMODE_ANISOTROPIC _SPECULARMODE_SPARKLE _SPECULARMODE_DOUBLE_TONE
+            #pragma shader_feature_local_fragment _SPECULARMODE_STEPPED _SPECULARMODE_SOFT _SPECULARMODE_ANISOTROPIC _SPECULARMODE_SPARKLE _SPECULARMODE_DOUBLE_TONE
             #pragma shader_feature_local _ENABLERIM_ON
+            #pragma shader_feature_local_fragment _RIMMODE_STANDARD _RIMMODE_STEPPED _RIMMODE_LIGHTBASED _RIMMODE_TEXTURED
             #pragma shader_feature_local _ENABLESUBSURFACE_ON
-            #pragma shader_feature_local _LIGHTINGMODE_SINGLE_CELL _LIGHTINGMODE_BANDED _LIGHTINGMODE_RAMP
-            #pragma shader_feature_local _TINT_SHADOW_ON_BASE
+            #pragma shader_feature_local_fragment _LIGHTINGMODE_SINGLE_CELL _LIGHTINGMODE_BANDED _LIGHTINGMODE_RAMP
+            #pragma shader_feature_local_fragment _TINT_SHADOW_ON_BASE
             #pragma shader_feature_local _ENABLEWIND_ON
             #pragma shader_feature_local _RECEIVESHADOWS_ON
             #pragma shader_feature_local _ENABLEADDITIONALLIGHTS_ON
@@ -253,3 +265,4 @@ Shader "Gorgonize/Gorgonize Toon Shader"
     CustomEditor "Gorgonize.ToonShader.Editor.GorgonizeToonShaderGUI"
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }
+

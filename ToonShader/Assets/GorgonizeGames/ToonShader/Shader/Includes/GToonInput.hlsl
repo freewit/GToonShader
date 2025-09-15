@@ -12,12 +12,14 @@ TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
 TEXTURE2D(_DetailMap);          SAMPLER(sampler_DetailMap);
 TEXTURE2D(_DetailNormalMap);    SAMPLER(sampler_DetailNormalMap);
 TEXTURE2D(_SparkleMap);         SAMPLER(sampler_SparkleMap);
+TEXTURE2D(_RimTexture);         SAMPLER(sampler_RimTexture);
 
 
 CBUFFER_START(UnityPerMaterial)
     // Doku Tiling/Offset
     float4 _BaseMap_ST;
     float4 _DetailMap_ST;
+    float4 _RimTexture_ST;
     
     // Temel Özellikler
     half4 _BaseColor;
@@ -56,10 +58,15 @@ CBUFFER_START(UnityPerMaterial)
     half _SpecularDoubleToneSoftness;
 
     // Rim
+    half _RimMode;
     half4 _RimColor;
     half _RimPower;
     half _RimIntensity;
     half _RimOffset;
+    half _RimThreshold;
+    half _RimSoftness;
+    half _RimLightInfluence;
+    half _RimScrollSpeed;
     
     // Gelişmiş Özellikler
     half _NormalStrength;

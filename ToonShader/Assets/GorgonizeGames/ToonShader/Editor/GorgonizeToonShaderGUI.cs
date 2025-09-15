@@ -17,7 +17,7 @@ namespace Gorgonize.ToonShader.Editor
         private static bool showBase = true;
         private static bool showShadows = true;
         private static bool showHighlights = true;
-        private static bool showRim = false;
+        private static bool showRim = true;
         private static bool showAdvanced = false;
         private static bool showSubsurface = false;
         private static bool showOutline = false;
@@ -274,7 +274,7 @@ namespace Gorgonize.ToonShader.Editor
                 }
             }, true);
         }
-        
+
         private void DrawHighlightsSectionProfessional(MaterialEditor materialEditor)
         {
             showHighlights = ToonShaderStyles.DrawProfessionalFoldout("Specular System", showHighlights, "✨");
@@ -317,7 +317,7 @@ namespace Gorgonize.ToonShader.Editor
                 }
             }
         }
-
+        
         private void DrawSteppedSpecularControls(MaterialEditor materialEditor)
         {
             ToonShaderStyles.DrawPropertyGroup("Stepped (Cel) Specular", () =>
@@ -357,70 +357,70 @@ namespace Gorgonize.ToonShader.Editor
         
         private void DrawAnisotropicSpecularControls(MaterialEditor materialEditor)
         {
-            ToonShaderStyles.DrawPropertyGroup("Anisotropic (Brushed) Specular", () =>
+            ToonShaderStyles.DrawPropertyGroup("Anisotropic Specular", () =>
             {
                 if (props.IsPropertyValid(props.specularColor))
                     materialEditor.ShaderProperty(props.specularColor, "💎 Highlight Color");
-
+                    
                 if (props.IsPropertyValid(props.anisotropicDirection))
                     materialEditor.ShaderProperty(props.anisotropicDirection, "↔️ Direction");
-
+                    
                 if (props.IsPropertyValid(props.anisotropicSharpness))
                     materialEditor.ShaderProperty(props.anisotropicSharpness, "🔪 Sharpness");
-                
+                    
                 if (props.IsPropertyValid(props.anisotropicIntensity))
                     materialEditor.ShaderProperty(props.anisotropicIntensity, "💪 Intensity");
-                    
+
                 if (props.IsPropertyValid(props.anisotropicOffset))
                     materialEditor.ShaderProperty(props.anisotropicOffset, "📏 Offset");
 
-                ToonShaderStyles.DrawInfoBox("Stretched highlight, ideal for hair and brushed metal.");
+                ToonShaderStyles.DrawInfoBox("Ideal for brushed metal or hair-like surfaces.");
             }, true);
         }
-
+        
         private void DrawSparkleSpecularControls(MaterialEditor materialEditor)
         {
             ToonShaderStyles.DrawPropertyGroup("Sparkle Specular", () =>
             {
                 if (props.IsPropertyValid(props.sparkleColor))
                     materialEditor.ShaderProperty(props.sparkleColor, "✨ Sparkle Color");
-
+                
                 if (props.IsPropertyValid(props.sparkleMap))
-                    materialEditor.TexturePropertySingleLine(new GUIContent("🗺️ Sparkle Pattern"), props.sparkleMap);
-
+                    materialEditor.TexturePropertySingleLine(new GUIContent("✨ Sparkle Pattern"), props.sparkleMap);
+                    
                 if (props.IsPropertyValid(props.sparkleDensity))
-                    materialEditor.ShaderProperty(props.sparkleDensity, "密度 Density");
+                    materialEditor.ShaderProperty(props.sparkleDensity, "🎛️ Density");
 
-                ToonShaderStyles.DrawInfoBox("Uses a texture to create a sparkling/glitter effect.");
+                ToonShaderStyles.DrawInfoBox("Uses a texture to create a sparkling or glittery effect.");
             }, true);
         }
-
+        
         private void DrawDoubleToneSpecularControls(MaterialEditor materialEditor)
         {
             ToonShaderStyles.DrawPropertyGroup("Double Tone Specular", () =>
             {
                 if (props.IsPropertyValid(props.specularInnerColor))
-                    materialEditor.ShaderProperty(props.specularInnerColor, "⚪ Inner Color");
-
+                    materialEditor.ShaderProperty(props.specularInnerColor, "🎨 Inner Color");
+                    
                 if (props.IsPropertyValid(props.specularOuterColor))
-                    materialEditor.ShaderProperty(props.specularOuterColor, "⚫ Outer Color");
-                
+                    materialEditor.ShaderProperty(props.specularOuterColor, "🎨 Outer Color");
+                    
                 if (props.IsPropertyValid(props.specularInnerSize))
                     materialEditor.ShaderProperty(props.specularInnerSize, "🔍 Inner Size");
-
+                    
                 if (props.IsPropertyValid(props.specularOuterSize))
                     materialEditor.ShaderProperty(props.specularOuterSize, "🔍 Outer Size");
-                
+                    
                 if (props.IsPropertyValid(props.specularDoubleToneSoftness))
                     materialEditor.ShaderProperty(props.specularDoubleToneSoftness, "🌊 Softness");
 
-                ToonShaderStyles.DrawInfoBox("A highly stylized two-layer highlight effect.");
+                ToonShaderStyles.DrawInfoBox("Creates a stylish two-color highlight effect.");
             }, true);
         }
-
+        
         private void DrawRimSectionProfessional(MaterialEditor materialEditor)
         {
-            showRim = ToonShaderStyles.DrawProfessionalFoldout("Rim Lighting", showRim, "🌟");
+            showRim = ToonShaderStyles.DrawProfessionalFoldout("Rim Lighting System", showRim, "🌟");
             
             if (showRim)
             {
@@ -431,24 +431,105 @@ namespace Gorgonize.ToonShader.Editor
                 
                 if (props.IsFeatureEnabled(props.enableRim))
                 {
-                    ToonShaderStyles.DrawPropertyGroup("Rim Properties", () =>
-                    {
-                        if (props.IsPropertyValid(props.rimColor))
-                            materialEditor.ShaderProperty(props.rimColor, "🌈 Rim Color");
-                            
-                        if (props.IsPropertyValid(props.rimPower))
-                            materialEditor.ShaderProperty(props.rimPower, "⚡ Rim Power");
-                            
-                        if (props.IsPropertyValid(props.rimIntensity))
-                            materialEditor.ShaderProperty(props.rimIntensity, "💪 Rim Intensity");
-                            
-                        if (props.IsPropertyValid(props.rimOffset))
-                            materialEditor.ShaderProperty(props.rimOffset, "📏 Rim Offset");
+                    ToonShaderStyles.DrawPropertyGroup("Rim Mode", () => {
+                        if(props.IsPropertyValid(props.rimMode))
+                            materialEditor.ShaderProperty(props.rimMode, "⚙️ Rim Method");
                     }, true);
-                    
-                    ToonShaderStyles.DrawInfoBox("Rim lighting helps separate characters from backgrounds and adds dramatic flair.");
+
+                    var rimMode = (int)props.GetFloatValue(props.rimMode);
+                    switch(rimMode)
+                    {
+                        case 0: // Standard
+                            DrawStandardRimControls(materialEditor);
+                            break;
+                        case 1: // Stepped
+                            DrawSteppedRimControls(materialEditor);
+                            break;
+                        case 2: // LightBased
+                            DrawLightBasedRimControls(materialEditor);
+                            break;
+                        case 3: // Textured
+                            DrawTexturedRimControls(materialEditor);
+                            break;
+                    }
                 }
             }
+        }
+
+        private void DrawStandardRimControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Standard (Fresnel) Rim", () => {
+                if (props.IsPropertyValid(props.rimColor))
+                    materialEditor.ShaderProperty(props.rimColor, "🌈 Rim Color");
+                            
+                if (props.IsPropertyValid(props.rimPower))
+                    materialEditor.ShaderProperty(props.rimPower, "⚡ Rim Power");
+                            
+                if (props.IsPropertyValid(props.rimIntensity))
+                    materialEditor.ShaderProperty(props.rimIntensity, "💪 Rim Intensity");
+                            
+                if (props.IsPropertyValid(props.rimOffset))
+                    materialEditor.ShaderProperty(props.rimOffset, "📏 Rim Offset");
+
+                ToonShaderStyles.DrawInfoBox("Classic rim effect based on camera view angle.");
+            }, true);
+        }
+
+        private void DrawSteppedRimControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Stepped Rim", () => {
+                if(props.IsPropertyValid(props.rimColor))
+                    materialEditor.ShaderProperty(props.rimColor, "🌈 Rim Color");
+
+                if(props.IsPropertyValid(props.rimThreshold))
+                    materialEditor.ShaderProperty(props.rimThreshold, "🔪 Threshold");
+                
+                if(props.IsPropertyValid(props.rimSoftness))
+                    materialEditor.ShaderProperty(props.rimSoftness, "🌊 Softness");
+
+                if(props.IsPropertyValid(props.rimIntensity))
+                    materialEditor.ShaderProperty(props.rimIntensity, "💪 Intensity");
+                
+                ToonShaderStyles.DrawInfoBox("Sharp, cel-shaded style rim light.");
+            }, true);
+        }
+
+        private void DrawLightBasedRimControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Light Based Rim", () => {
+                if(props.IsPropertyValid(props.rimColor))
+                    materialEditor.ShaderProperty(props.rimColor, "🌈 Rim Color");
+
+                if(props.IsPropertyValid(props.rimPower))
+                    materialEditor.ShaderProperty(props.rimPower, "⚡ Rim Power");
+                
+                if(props.IsPropertyValid(props.rimIntensity))
+                    materialEditor.ShaderProperty(props.rimIntensity, "💪 Rim Intensity");
+                
+                if(props.IsPropertyValid(props.rimLightInfluence))
+                    materialEditor.ShaderProperty(props.rimLightInfluence, "☀️ Light Influence");
+
+                ToonShaderStyles.DrawInfoBox("Rim appears only on the light-facing side of the object.");
+            }, true);
+        }
+
+        private void DrawTexturedRimControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Textured Rim", () => {
+                if(props.IsPropertyValid(props.rimColor))
+                    materialEditor.ShaderProperty(props.rimColor, "🎨 Rim Tint");
+                
+                if(props.IsPropertyValid(props.rimTexture))
+                    materialEditor.TexturePropertySingleLine(new GUIContent("🖼️ Rim Texture"), props.rimTexture);
+                
+                if(props.IsPropertyValid(props.rimScrollSpeed))
+                    materialEditor.ShaderProperty(props.rimScrollSpeed, "🌀 Scroll Speed");
+                
+                if(props.IsPropertyValid(props.rimIntensity))
+                    materialEditor.ShaderProperty(props.rimIntensity, "💪 Intensity");
+
+                ToonShaderStyles.DrawInfoBox("Creates dynamic auras or shield effects.");
+            }, true);
         }
         
         private void DrawOutlineSectionProfessional(MaterialEditor materialEditor)
