@@ -13,6 +13,7 @@ TEXTURE2D(_DetailMap);          SAMPLER(sampler_DetailMap);
 TEXTURE2D(_DetailNormalMap);    SAMPLER(sampler_DetailNormalMap);
 TEXTURE2D(_SparkleMap);         SAMPLER(sampler_SparkleMap);
 TEXTURE2D(_RimTexture);         SAMPLER(sampler_RimTexture);
+TEXTURE2D(_OutlineNoiseMap);    SAMPLER(sampler_OutlineNoiseMap);
 
 
 CBUFFER_START(UnityPerMaterial)
@@ -86,7 +87,6 @@ CBUFFER_START(UnityPerMaterial)
     half _OutlineNoiseEnabled;
     half _OutlineNoiseScale;
     half _OutlineNoiseStrength;
-    half _OutlineNoiseSpeed;
     
     // Rüzgar
     half _WindSpeed;

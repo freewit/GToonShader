@@ -7,28 +7,6 @@
 #include "Includes/GToonInput.hlsl"
 #include "Includes/GToonWind.hlsl"
 
-// Basit bir 2D noise fonksiyonu (Shadertoy'dan uyarlanmıştır)
-// https://www.shadertoy.com/view/4dS3Wd
-float2 random (float2 st) 
-{
-    return frac(sin(float2(dot(st, float2(12.9898,78.233)), dot(st, float2(12.9898,78.233)))) * 43758.5453123);
-}
-
-float noise (float2 st) 
-{
-    float2 i = floor(st);
-    float2 f = frac(st);
-
-    float a = random(i).x;
-    float b = random(i + float2(1.0, 0.0)).x;
-    float c = random(i + float2(0.0, 1.0)).x;
-    float d = random(i + float2(1.0, 1.0)).x;
-
-    float2 u = f * f * (3.0 - 2.0 * f);
-    return lerp(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.y * u.x;
-}
-
-
 struct OutlineAttributes
 {
     float4 positionOS   : POSITION;
@@ -55,24 +33,25 @@ OutlineVaryings OutlineVert(OutlineAttributes input)
     #if defined(_ENABLEOUTLINE_ON)
     
     float3 positionOS = input.positionOS.xyz;
+    float4 initialPositionOS = input.positionOS; // Orijinal pozisyonu gürültü ve rüzgar için sakla
     
     // Rüzgar animasyonunu uygula
-    ApplyWind(positionOS, input.positionOS);
+    ApplyWind(positionOS, initialPositionOS);
+
+    float3 normalOS = normalize(input.normalOS);
+    
+    // Outline Noise
+    #if defined(_OUTLINE_NOISE_ON)
+        // Gürültü dokusundan örnekleme yap. Vertex shader'da doku okumak için _LOD versiyonunu kullanıyoruz.
+        float4 noiseTex = SAMPLE_TEXTURE2D_LOD(_OutlineNoiseMap, sampler_OutlineNoiseMap, initialPositionOS.xy * _OutlineNoiseScale * 0.1, 0);
+        float noise = (noiseTex.r - 0.5) * 2.0;
+        float noiseFactor = noise * _OutlineNoiseStrength;
+        // Gürültüyü normal yönünde değil, ekran alanında daha tutarlı olması için xy düzleminde uygula
+        positionOS.xy += normalOS.xy * noiseFactor * (_OutlineWidth * 0.01);
+    #endif
     
     // Outline için vertex'leri normal yönünde genişlet
-    float3 normalOS = normalize(input.normalOS);
-    float outlineOffset = _OutlineWidth * 0.005;
-
-    #if defined(_OUTLINE_NOISE_ON)
-        float2 noiseUV = positionOS.xz * _OutlineNoiseScale * 0.1;
-        float time = _Time.y * _OutlineNoiseSpeed;
-        // Gürültü değerini -1 ile 1 arasına getiriyoruz
-        float noiseVal = noise(noiseUV + time) * 2.0 - 1.0; 
-        float noiseStrength = _OutlineNoiseStrength * 0.1;
-        outlineOffset += noiseVal * noiseStrength;
-    #endif
-
-    positionOS += normalOS * outlineOffset;
+    positionOS += normalOS * _OutlineWidth * 0.005; 
     
     output.positionCS = TransformObjectToHClip(positionOS);
     
@@ -99,3 +78,4 @@ half4 OutlineFrag(OutlineVaryings input) : SV_Target
 }
 
 #endif // GTOON_OUTLINE_INCLUDED
+

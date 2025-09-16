@@ -535,14 +535,14 @@ namespace Gorgonize.ToonShader.Editor
         private void DrawOutlineSectionProfessional(MaterialEditor materialEditor)
         {
             showOutline = ToonShaderStyles.DrawProfessionalFoldout("Cartoon Outline", showOutline, "📝");
-            
+
             if (showOutline)
             {
                 if (props.IsPropertyValid(props.enableOutline))
                 {
                     ToonShaderStyles.DrawFeatureToggle(props.enableOutline, "Enable Outline Effect", "Classic toon shader outline", "📝");
                 }
-                
+
                 if (props.IsFeatureEnabled(props.enableOutline))
                 {
                     ToonShaderStyles.DrawPropertyGroup("Outline Settings", () =>
@@ -552,25 +552,31 @@ namespace Gorgonize.ToonShader.Editor
                             
                         if (props.IsPropertyValid(props.outlineWidth))
                             materialEditor.ShaderProperty(props.outlineWidth, "📏 Outline Thickness");
-                            
-                        EditorGUILayout.Space(10);
+
+                        // Outline Editor Butonu
                         if (GUILayout.Button("OUTLINE EDITOR", ToonShaderStyles.ButtonPrimaryStyle))
                         {
                             OutlineEditor.ShowWindow(materialEditor.target as Material);
                         }
                     }, true);
 
-                    // Conditionally draw enabled advanced outline features
-                    if (props.IsPropertyValid(props.outlineNoiseEnabled) && props.IsFeatureEnabled(props.outlineNoiseEnabled))
+                    // Outline Noise ayarları sadece Outline Editor'den aktif edildiğinde gösterilir
+                    if (props.IsFeatureEnabled(props.outlineNoiseEnabled))
                     {
-                        ToonShaderStyles.DrawPropertyGroup("Enabled Outline Features", () =>
+                        ToonShaderStyles.DrawPropertyGroup("Outline Noise", () =>
                         {
+                            if (props.IsPropertyValid(props.outlineNoiseMap))
+                            {
+                                materialEditor.TexturePropertySingleLine(new GUIContent("🎨 Noise Texture"), props.outlineNoiseMap);
+                                if(GUILayout.Button("Noise Texture Editor", ToonShaderStyles.ButtonSecondaryStyle))
+                                {
+                                    NoiseTextureEditor.ShowWindow();
+                                }
+                            }
                             if (props.IsPropertyValid(props.outlineNoiseScale))
-                                materialEditor.ShaderProperty(props.outlineNoiseScale, "Noise Scale");
+                                materialEditor.ShaderProperty(props.outlineNoiseScale, "🔍 Noise Scale");
                             if (props.IsPropertyValid(props.outlineNoiseStrength))
-                                materialEditor.ShaderProperty(props.outlineNoiseStrength, "Noise Strength");
-                            if (props.IsPropertyValid(props.outlineNoiseSpeed))
-                                materialEditor.ShaderProperty(props.outlineNoiseSpeed, "Noise Speed");
+                                materialEditor.ShaderProperty(props.outlineNoiseStrength, "💪 Noise Strength");
                         }, true);
                     }
                     
@@ -583,7 +589,7 @@ namespace Gorgonize.ToonShader.Editor
                 }
             }
         }
-        
+
         private void DrawSubsurfaceSectionProfessional(MaterialEditor materialEditor)
         {
             showSubsurface = ToonShaderStyles.DrawProfessionalFoldout("Subsurface Scattering", showSubsurface, "🌸");

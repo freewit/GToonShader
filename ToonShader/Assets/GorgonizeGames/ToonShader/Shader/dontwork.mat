@@ -64,6 +64,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _OutlineNoiseMap:
+        m_Texture: {fileID: 2800000, guid: f199c2e6c1edbbc42bf23b791682489f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _RampTexture:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -133,9 +137,9 @@ Material:
     - _OutlineMaxDistance: 100
     - _OutlineMode: 0
     - _OutlineNoiseEnabled: 1
-    - _OutlineNoiseScale: 21.3
+    - _OutlineNoiseScale: 0.7
     - _OutlineNoiseSpeed: 0
-    - _OutlineNoiseStrength: 0.3
+    - _OutlineNoiseStrength: 1
     - _OutlineQuality: 1
     - _OutlineScreenSpaceScale: 1
     - _OutlineSmoothness: 0.5

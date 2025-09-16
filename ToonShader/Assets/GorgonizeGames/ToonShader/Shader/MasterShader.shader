@@ -103,12 +103,12 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _OutlineColor ("Outline Color", Color) = (0, 0, 0, 1)
         _OutlineWidth ("Outline Width", Range(0, 10)) = 1
         
-        // These properties are now drawn conditionally by GorgonizeToonShaderGUI.cs
-        _OutlineNoiseEnabled ("Enable Outline Noise", Float) = 0
-        _OutlineNoiseScale ("Noise Scale", Range(0.1, 50)) = 10
+        // Outline Editor Features (gizli)
+        _OutlineNoiseEnabled ("Outline Noise Enabled", Float) = 0
+        _OutlineNoiseScale ("Noise Scale", Range(0, 50)) = 10
         _OutlineNoiseStrength ("Noise Strength", Range(0, 2)) = 0.5
-        _OutlineNoiseSpeed ("Noise Speed", Range(0, 10)) = 1
-
+        _OutlineNoiseMap ("Noise Texture", 2D) = "white" {}
+        
         [Header(Wind Animation)]
         [Toggle(_ENABLEWIND_ON)] _EnableWind ("Enable Wind", Float) = 0
         _WindSpeed ("Wind Speed", Range(0, 5)) = 1
