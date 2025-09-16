@@ -88,6 +88,10 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty enableOutline;
         public MaterialProperty outlineColor;
         public MaterialProperty outlineWidth;
+        public MaterialProperty outlineNoiseEnabled;
+        public MaterialProperty outlineNoiseScale;
+        public MaterialProperty outlineNoiseStrength;
+        public MaterialProperty outlineNoiseSpeed;
         
         // Wind Animation Properties
         public MaterialProperty enableWind;
@@ -169,6 +173,10 @@ namespace Gorgonize.ToonShader.Editor
             enableOutline = FindProperty("_EnableOutline", properties);
             outlineColor = FindProperty("_OutlineColor", properties);
             outlineWidth = FindProperty("_OutlineWidth", properties);
+            outlineNoiseEnabled = FindProperty("_OutlineNoiseEnabled", properties);
+            outlineNoiseScale = FindProperty("_OutlineNoiseScale", properties);
+            outlineNoiseStrength = FindProperty("_OutlineNoiseStrength", properties);
+            outlineNoiseSpeed = FindProperty("_OutlineNoiseSpeed", properties);
             enableWind = FindProperty("_EnableWind", properties);
             windSpeed = FindProperty("_WindSpeed", properties);
             windStrength = FindProperty("_WindStrength", properties);
@@ -259,6 +267,7 @@ namespace Gorgonize.ToonShader.Editor
             
             // Outline
             SetKeyword(material, "_ENABLEOUTLINE_ON", IsFeatureEnabled(enableOutline));
+            SetKeyword(material, "_OUTLINE_NOISE_ON", IsFeatureEnabled(outlineNoiseEnabled));
             
             // Wind Animation
             SetKeyword(material, "_ENABLEWIND_ON", IsFeatureEnabled(enableWind));

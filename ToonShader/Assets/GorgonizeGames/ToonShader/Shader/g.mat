@@ -8,37 +8,19 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: g
-  m_Shader: {fileID: 4800000, guid: 319fc29ff5c9e184b82730420fd60fc7, type: 3}
+  m_Shader: {fileID: 4800000, guid: 650dd9526735d5b46b79224bc6e94025, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - _ENABLEADDITIONALLIGHTS_ON
-  - _ENABLEHIGHLIGHTS_ON
-  - _ENABLEOUTLINE_ON
-  - _ENABLERIM_ON
-  - _LIGHTINGMODE_SINGLE_CELL
-  - _RECEIVESHADOWS_ON
-  - _RIMMODE_STANDARD
-  - _SPECULARMODE_STEPPED
-  m_InvalidKeywords:
-  - TCP2_RIM_LIGHTING_LIGHTMASK
-  - TCP2_SHADOW_LIGHT_COLOR
-  - _ENABLEREALSHADOWS_ON
-  - _LIGHTINGMODE_SIMPLE
-  - _LIGHTINGMODE_STEPPED
-  - _MAINLIGHTAFFECTSSHADOWCOLOR_ON
-  - _OUTLINEANTIALIASING_ON
-  - _OUTLINELOD_ON
-  - _OUTLINEMODE_TRADITIONAL
-  - _SHADOWMODE_SIMPLE
-  - _USEADAPTIVEBIAS_ON
-  - _USEPANCAKING_ON
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
+  stringTagMap:
+    RenderType: Opaque
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -56,6 +38,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -81,7 +67,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AddPrecomputedVelocity: 0
     - _AdditionalLightIntensity: 1
+    - _AlphaClip: 0
+    - _AlphaToMask: 0
     - _AnisotropicDirection: 0.5
     - _AnisotropicIntensity: 1
     - _AnisotropicOffset: 0
@@ -91,11 +80,14 @@ Material:
     - _BandSoftness: 0.05
     - _BandedShadowIntensity: 1
     - _BandedShadowThreshold: 0.5
+    - _Blend: 0
+    - _BlendOp: 0
     - _Cull: 2
     - _Cutoff: 0.5
     - _DetailStrength: 1
     - _DetailToggle: 0
     - _DstBlend: 0
+    - _DstBlendAlpha: 0
     - _EmissionIntensity: 0
     - _EmissionToggle: 0
     - _EnableAdditionalLights: 1
@@ -137,6 +129,7 @@ Material:
     - _OutlineViewAngleFactor: 1
     - _OutlineWidth: 0.6
     - _OutlineWidthSecondary: 0.6
+    - _QueueOffset: 0
     - _RampSmoothing: 0.1
     - _RampThreshold: 0.75
     - _ReceiveShadows: 1
@@ -152,6 +145,7 @@ Material:
     - _RimScrollSpeed: 0.5
     - _RimSoftness: 0.1
     - _RimThreshold: 0.5
+    - _SampleGI: 0
     - _ShadowBias: 0.005
     - _ShadowColorBlend: 0.378
     - _ShadowColorLightAtten: 1
@@ -180,9 +174,11 @@ Material:
     - _SpecularSmoothness: 0.5
     - _SpecularSteps: 2
     - _SrcBlend: 1
+    - _SrcBlendAlpha: 1
     - _SubsurfaceDistortion: 0.2
     - _SubsurfaceIntensity: 0.5
     - _SubsurfacePower: 1
+    - _Surface: 0
     - _TintShadowOnBase: 0
     - _ToonNormalBias: 0.58
     - _ToonShadowBias: 0.0006
@@ -200,7 +196,8 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BandedShadowColor: {r: 0.6, g: 0.6, b: 0.8, a: 1}
-    - _BaseColor: {r: 1, g: 0.42267364, b: 0, a: 1}
+    - _BaseColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Color: {r: 0, g: 0, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _HColor: {r: 1, g: 1, b: 1, a: 1}
     - _HighlightColor: {r: 1, g: 1, b: 1, a: 1}
@@ -219,3 +216,16 @@ Material:
     - _WindDirection: {r: 1, g: 0, b: 1, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
+--- !u!114 &8668720696500877960
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 10

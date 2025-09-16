@@ -103,6 +103,12 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _OutlineColor ("Outline Color", Color) = (0, 0, 0, 1)
         _OutlineWidth ("Outline Width", Range(0, 10)) = 1
         
+        // These properties are now drawn conditionally by GorgonizeToonShaderGUI.cs
+        _OutlineNoiseEnabled ("Enable Outline Noise", Float) = 0
+        _OutlineNoiseScale ("Noise Scale", Range(0.1, 50)) = 10
+        _OutlineNoiseStrength ("Noise Strength", Range(0, 2)) = 0.5
+        _OutlineNoiseSpeed ("Noise Speed", Range(0, 10)) = 1
+
         [Header(Wind Animation)]
         [Toggle(_ENABLEWIND_ON)] _EnableWind ("Enable Wind", Float) = 0
         _WindSpeed ("Wind Speed", Range(0, 5)) = 1
@@ -140,6 +146,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             #pragma fragment OutlineFrag
             
             #pragma shader_feature_local _ENABLEOUTLINE_ON
+            #pragma shader_feature_local _OUTLINE_NOISE_ON
             #pragma shader_feature_local _ENABLEWIND_ON
             
             #include "Includes/GToonOutline.hlsl"

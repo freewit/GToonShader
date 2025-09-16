@@ -17,10 +17,11 @@ Material:
   - _ENABLEHIGHLIGHTS_ON
   - _ENABLEOUTLINE_ON
   - _ENABLERIM_ON
-  - _LIGHTINGMODE_RAMP
+  - _LIGHTINGMODE_SINGLE_CELL
+  - _OUTLINE_NOISE_ON
   - _RECEIVESHADOWS_ON
   - _RIMMODE_STEPPED
-  - _SPECULARMODE_SOFT
+  - _SPECULARMODE_STEPPED
   - _TINT_SHADOW_ON_BASE
   m_InvalidKeywords:
   - TCP2_RIM_LIGHTING_LIGHTMASK
@@ -82,10 +83,10 @@ Material:
     m_Ints: []
     m_Floats:
     - _AdditionalLightIntensity: 1.31
-    - _AnisotropicDirection: -0.31
-    - _AnisotropicIntensity: 0.71
-    - _AnisotropicOffset: 0.86
-    - _AnisotropicSharpness: 0.089
+    - _AnisotropicDirection: -1
+    - _AnisotropicIntensity: 1.3
+    - _AnisotropicOffset: 0.3
+    - _AnisotropicSharpness: 0.255
     - _BandCount: 3
     - _BandSmooth: 0.1
     - _BandSoftness: 0.443
@@ -108,7 +109,7 @@ Material:
     - _HighlightThreshold: 0.825
     - _LightFalloff: 1.65
     - _LightWrap: 0
-    - _LightingMode: 2
+    - _LightingMode: 0
     - _LightmapInfluence: 1
     - _MainLightAffectsShadowColor: 1
     - _MidtoneThreshold: 0.691
@@ -116,7 +117,7 @@ Material:
     - _MyShadowBias: 0.65
     - _NormalMapToggle: 0
     - _NormalStrength: 1
-    - _OcclusionStrength: 0
+    - _OcclusionStrength: 1
     - _OutlineAdaptiveMax: 2.5
     - _OutlineAdaptiveMin: 0.3
     - _OutlineAntiAliasing: 1
@@ -131,6 +132,10 @@ Material:
     - _OutlineLayerBlend: 0.5
     - _OutlineMaxDistance: 100
     - _OutlineMode: 0
+    - _OutlineNoiseEnabled: 1
+    - _OutlineNoiseScale: 21.3
+    - _OutlineNoiseSpeed: 0
+    - _OutlineNoiseStrength: 0.3
     - _OutlineQuality: 1
     - _OutlineScreenSpaceScale: 1
     - _OutlineSmoothness: 0.5
@@ -168,18 +173,18 @@ Material:
     - _ShadowSmoothness: 0.413
     - _ShadowSoftness: 0.05
     - _ShadowSteps: 3.83
-    - _ShadowThreshold: 0.486
+    - _ShadowThreshold: 0.436
     - _SimpleSmooth: 0
     - _SoftSpecularGlossiness: 0.393
     - _SoftSpecularStrength: 1.2
     - _SparkleDensity: 5.06
-    - _SpecularDoubleToneSoftness: 0.419
-    - _SpecularInnerSize: 0.913
-    - _SpecularMode: 1
+    - _SpecularDoubleToneSoftness: 0.001
+    - _SpecularInnerSize: 0.958
+    - _SpecularMode: 0
     - _SpecularOuterSize: 0.936
-    - _SpecularSize: 0.509
-    - _SpecularSmoothness: 0.364
-    - _SpecularSteps: 7.31
+    - _SpecularSize: 0
+    - _SpecularSmoothness: 0.293
+    - _SpecularSteps: 3
     - _SrcBlend: 1
     - _SubsurfaceDistortion: 0
     - _SubsurfaceIntensity: 0.71
@@ -202,7 +207,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BandedShadowColor: {r: 0.6, g: 0.6, b: 0.8, a: 1}
-    - _BaseColor: {r: 0.6792453, g: 0.6792453, b: 0.6792453, a: 1}
+    - _BaseColor: {r: 0.6509434, g: 0.3285422, b: 0.3318699, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _HColor: {r: 1, g: 1, b: 1, a: 1}
     - _HighlightColor: {r: 1, g: 1, b: 1, a: 1}
@@ -213,7 +218,7 @@ Material:
     - _OutlineColorSecondary: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _RimColor: {r: 1, g: 1, b: 1, a: 1}
     - _SColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _ShadowColor: {r: 0.312526, g: 0.17702028, b: 0.3207547, a: 1}
+    - _ShadowColor: {r: 0.399351, g: 0.28893736, b: 0.4056604, a: 1}
     - _SparkleColor: {r: 1, g: 1, b: 1, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _SpecularInnerColor: {r: 1, g: 1, b: 1, a: 1}

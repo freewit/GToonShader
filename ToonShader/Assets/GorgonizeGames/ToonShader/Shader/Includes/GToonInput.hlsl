@@ -83,6 +83,10 @@ CBUFFER_START(UnityPerMaterial)
     // Outline
     half4 _OutlineColor;
     half _OutlineWidth;
+    half _OutlineNoiseEnabled;
+    half _OutlineNoiseScale;
+    half _OutlineNoiseStrength;
+    half _OutlineNoiseSpeed;
     
     // Rüzgar
     half _WindSpeed;

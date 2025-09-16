@@ -7,6 +7,28 @@
 #include "Includes/GToonInput.hlsl"
 #include "Includes/GToonWind.hlsl"
 
+// Basit bir 2D noise fonksiyonu (Shadertoy'dan uyarlanmıştır)
+// https://www.shadertoy.com/view/4dS3Wd
+float2 random (float2 st) 
+{
+    return frac(sin(float2(dot(st, float2(12.9898,78.233)), dot(st, float2(12.9898,78.233)))) * 43758.5453123);
+}
+
+float noise (float2 st) 
+{
+    float2 i = floor(st);
+    float2 f = frac(st);
+
+    float a = random(i).x;
+    float b = random(i + float2(1.0, 0.0)).x;
+    float c = random(i + float2(0.0, 1.0)).x;
+    float d = random(i + float2(1.0, 1.0)).x;
+
+    float2 u = f * f * (3.0 - 2.0 * f);
+    return lerp(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.y * u.x;
+}
+
+
 struct OutlineAttributes
 {
     float4 positionOS   : POSITION;
@@ -39,7 +61,18 @@ OutlineVaryings OutlineVert(OutlineAttributes input)
     
     // Outline için vertex'leri normal yönünde genişlet
     float3 normalOS = normalize(input.normalOS);
-    positionOS += normalOS * _OutlineWidth * 0.005; // Değeri makul seviyelere ölçekle
+    float outlineOffset = _OutlineWidth * 0.005;
+
+    #if defined(_OUTLINE_NOISE_ON)
+        float2 noiseUV = positionOS.xz * _OutlineNoiseScale * 0.1;
+        float time = _Time.y * _OutlineNoiseSpeed;
+        // Gürültü değerini -1 ile 1 arasına getiriyoruz
+        float noiseVal = noise(noiseUV + time) * 2.0 - 1.0; 
+        float noiseStrength = _OutlineNoiseStrength * 0.1;
+        outlineOffset += noiseVal * noiseStrength;
+    #endif
+
+    positionOS += normalOS * outlineOffset;
     
     output.positionCS = TransformObjectToHClip(positionOS);
     

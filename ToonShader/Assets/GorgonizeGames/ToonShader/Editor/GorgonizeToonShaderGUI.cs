@@ -552,7 +552,27 @@ namespace Gorgonize.ToonShader.Editor
                             
                         if (props.IsPropertyValid(props.outlineWidth))
                             materialEditor.ShaderProperty(props.outlineWidth, "📏 Outline Thickness");
+                            
+                        EditorGUILayout.Space(10);
+                        if (GUILayout.Button("OUTLINE EDITOR", ToonShaderStyles.ButtonPrimaryStyle))
+                        {
+                            OutlineEditor.ShowWindow(materialEditor.target as Material);
+                        }
                     }, true);
+
+                    // Conditionally draw enabled advanced outline features
+                    if (props.IsPropertyValid(props.outlineNoiseEnabled) && props.IsFeatureEnabled(props.outlineNoiseEnabled))
+                    {
+                        ToonShaderStyles.DrawPropertyGroup("Enabled Outline Features", () =>
+                        {
+                            if (props.IsPropertyValid(props.outlineNoiseScale))
+                                materialEditor.ShaderProperty(props.outlineNoiseScale, "Noise Scale");
+                            if (props.IsPropertyValid(props.outlineNoiseStrength))
+                                materialEditor.ShaderProperty(props.outlineNoiseStrength, "Noise Strength");
+                            if (props.IsPropertyValid(props.outlineNoiseSpeed))
+                                materialEditor.ShaderProperty(props.outlineNoiseSpeed, "Noise Speed");
+                        }, true);
+                    }
                     
                     ToonShaderStyles.DrawInfoBox("For best results, ensure your mesh has smooth normals. Outline uses vertex expansion technique.");
                     
