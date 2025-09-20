@@ -504,7 +504,7 @@ namespace Gorgonize.ToonShader.Editor
                     materialEditor.ShaderProperty(props.rimPower, "⚡ Rim Power");
                 
                 if(props.IsPropertyValid(props.rimIntensity))
-                    materialEditor.ShaderProperty(props.rimIntensity, "💪 Rim Intensity");
+                    materialEditor.ShaderProperty(props.rimIntensity, "💪 Intensity");
                 
                 if(props.IsPropertyValid(props.rimLightInfluence))
                     materialEditor.ShaderProperty(props.rimLightInfluence, "☀️ Light Influence");
@@ -534,61 +534,88 @@ namespace Gorgonize.ToonShader.Editor
         
         private void DrawOutlineSectionProfessional(MaterialEditor materialEditor)
         {
-            showOutline = ToonShaderStyles.DrawProfessionalFoldout("Cartoon Outline", showOutline, "📝");
+            showOutline = ToonShaderStyles.DrawProfessionalFoldout("Smart Outline System", showOutline, "📝");
 
             if (showOutline)
             {
                 if (props.IsPropertyValid(props.enableOutline))
-                {
                     ToonShaderStyles.DrawFeatureToggle(props.enableOutline, "Enable Outline Effect", "Classic toon shader outline", "📝");
-                }
 
                 if (props.IsFeatureEnabled(props.enableOutline))
                 {
-                    ToonShaderStyles.DrawPropertyGroup("Outline Settings", () =>
+                    // --- General Outline Settings ---
+                    ToonShaderStyles.DrawPropertyGroup("General", () =>
                     {
                         if (props.IsPropertyValid(props.outlineColor))
                             materialEditor.ShaderProperty(props.outlineColor, "🖍️ Outline Color");
-                            
-                        if (props.IsPropertyValid(props.outlineWidth))
-                            materialEditor.ShaderProperty(props.outlineWidth, "📏 Outline Thickness");
 
-                        // Outline Editor Butonu
-                        if (GUILayout.Button("OUTLINE EDITOR", ToonShaderStyles.ButtonPrimaryStyle))
-                        {
-                            OutlineEditor.ShowWindow(materialEditor.target as Material);
-                        }
+                        if (props.IsPropertyValid(props.outlineExpansionMode))
+                            materialEditor.ShaderProperty(props.outlineExpansionMode, "⚙️ Expansion Mode");
+
+                        ToonShaderStyles.DrawInfoBox("For best results, ensure your mesh has smooth normals. Outline uses vertex expansion technique.");
                     }, true);
 
-                    // Outline Noise ayarları sadece Outline Editor'den aktif edildiğinde gösterilir
-                    if (props.IsFeatureEnabled(props.outlineNoiseEnabled))
+                    // --- Width Control ---
+                    ToonShaderStyles.DrawPropertyGroup("Width & Scaling", () =>
                     {
-                        ToonShaderStyles.DrawPropertyGroup("Outline Noise", () =>
+                        bool isAdaptive = props.IsFeatureEnabled(props.outlineAdaptive);
+                        string widthLabel = isAdaptive ? "📏 Max Width" : "📏 Width";
+                        if (props.IsPropertyValid(props.outlineWidth))
+                            materialEditor.ShaderProperty(props.outlineWidth, widthLabel);
+
+                        if (props.IsPropertyValid(props.outlineDistanceScaling))
+                            ToonShaderStyles.DrawFeatureToggle(props.outlineDistanceScaling, "Distance Scaling", "Scale width based on camera distance", "📐");
+
+                        bool isDistanceScaling = props.IsFeatureEnabled(props.outlineDistanceScaling);
+                        if (isDistanceScaling && props.IsPropertyValid(props.outlineMinMaxDistance))
+                            materialEditor.ShaderProperty(props.outlineMinMaxDistance, "Min/Max Distance");
+                        
+                        EditorGUI.BeginDisabledGroup(!isDistanceScaling);
+                        if (props.IsPropertyValid(props.outlineAdaptive))
+                            ToonShaderStyles.DrawFeatureToggle(props.outlineAdaptive, "Adaptive Width", "Use Min/Max values for scaling", "🌊");
+                        EditorGUI.EndDisabledGroup();
+
+                        if (isDistanceScaling && props.IsFeatureEnabled(props.outlineAdaptive) && props.IsPropertyValid(props.outlineMinWidth))
+                            materialEditor.ShaderProperty(props.outlineMinWidth, "📏 Min Width");
+                    }, true);
+
+                    // --- Effects ---
+                    ToonShaderStyles.DrawPropertyGroup("Effects", () =>
+                    {
+                        // Animated Color
+                        if (props.IsPropertyValid(props.outlineAnimatedColor))
+                            ToonShaderStyles.DrawFeatureToggle(props.outlineAnimatedColor, "Animated Color", "Animate between two colors", "🎨");
+                        
+                        if (props.IsFeatureEnabled(props.outlineAnimatedColor))
+                        {
+                            if (props.IsPropertyValid(props.outlineColorB))
+                                materialEditor.ShaderProperty(props.outlineColorB, "Second Color");
+                            if (props.IsPropertyValid(props.outlineAnimationSpeed))
+                                materialEditor.ShaderProperty(props.outlineAnimationSpeed, "Animation Speed");
+                        }
+
+                        EditorGUILayout.Space();
+
+                        // Noise
+                        if (props.IsPropertyValid(props.outlineNoiseMode))
+                            ToonShaderStyles.DrawFeatureToggle(props.outlineNoiseMode, "Noisy Outline", "Add a wobbly, hand-drawn look", "〰️");
+                        
+                        if (props.IsFeatureEnabled(props.outlineNoiseMode))
                         {
                             if (props.IsPropertyValid(props.outlineNoiseMap))
-                            {
-                                materialEditor.TexturePropertySingleLine(new GUIContent("🎨 Noise Texture"), props.outlineNoiseMap);
-                                if(GUILayout.Button("Noise Texture Editor", ToonShaderStyles.ButtonSecondaryStyle))
-                                {
-                                    NoiseTextureEditor.ShowWindow();
-                                }
-                            }
+                                materialEditor.TexturePropertySingleLine(new GUIContent("Noise Texture"), props.outlineNoiseMap);
                             if (props.IsPropertyValid(props.outlineNoiseScale))
-                                materialEditor.ShaderProperty(props.outlineNoiseScale, "🔍 Noise Scale");
+                                materialEditor.ShaderProperty(props.outlineNoiseScale, "Noise Scale");
                             if (props.IsPropertyValid(props.outlineNoiseStrength))
-                                materialEditor.ShaderProperty(props.outlineNoiseStrength, "💪 Noise Strength");
-                        }, true);
-                    }
-                    
-                    ToonShaderStyles.DrawInfoBox("For best results, ensure your mesh has smooth normals. Outline uses vertex expansion technique.");
-                    
-                    if (props.IsPropertyValid(props.outlineWidth) && props.outlineWidth.floatValue > 5f)
-                    {
-                        ToonShaderStyles.DrawInfoBox("Very thick outlines may cause visual artifacts on complex geometry.", MessageType.Warning);
-                    }
+                                materialEditor.ShaderProperty(props.outlineNoiseStrength, "Noise Strength");
+                            if (GUILayout.Button("Noise Texture Editor", ToonShaderStyles.ButtonSecondaryStyle))
+                                NoiseTextureEditor.ShowWindow();
+                        }
+                    }, true);
                 }
             }
         }
+
 
         private void DrawSubsurfaceSectionProfessional(MaterialEditor materialEditor)
         {

@@ -84,7 +84,11 @@ CBUFFER_START(UnityPerMaterial)
     // Outline
     half4 _OutlineColor;
     half _OutlineWidth;
-    half _OutlineNoiseEnabled;
+    half _OutlineExpansionMode;
+    half _OutlineMinWidth;
+    float4 _OutlineMinMaxDistance;
+    half4 _OutlineColorB;
+    half _OutlineAnimationSpeed;
     half _OutlineNoiseScale;
     half _OutlineNoiseStrength;
     

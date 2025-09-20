@@ -18,11 +18,11 @@ Material:
   - _ENABLEOUTLINE_ON
   - _ENABLERIM_ON
   - _LIGHTINGMODE_SINGLE_CELL
-  - _OUTLINE_NOISE_ON
+  - _OUTLINEEXPANSIONMODE_POSITION
+  - _OUTLINE_NOISE_MODE_ON
   - _RECEIVESHADOWS_ON
   - _RIMMODE_STEPPED
   - _SPECULARMODE_STEPPED
-  - _TINT_SHADOW_ON_BASE
   m_InvalidKeywords:
   - TCP2_RIM_LIGHTING_LIGHTMASK
   - TCP2_SHADOW_LIGHT_COLOR
@@ -32,7 +32,9 @@ Material:
   - _MAINLIGHTAFFECTSSHADOWCOLOR_ON
   - _OUTLINEANTIALIASING_ON
   - _OUTLINELOD_ON
+  - _OUTLINEMODE_STANDARD
   - _OUTLINEMODE_TRADITIONAL
+  - _OUTLINE_NOISE_ON
   - _SHADOWMODE_SIMPLE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -65,7 +67,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OutlineNoiseMap:
-        m_Texture: {fileID: 2800000, guid: f199c2e6c1edbbc42bf23b791682489f, type: 3}
+        m_Texture: {fileID: 2800000, guid: f50242108a3f5c248938c8c9b7c654c5, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _RampTexture:
@@ -87,8 +89,8 @@ Material:
     m_Ints: []
     m_Floats:
     - _AdditionalLightIntensity: 1.31
-    - _AnisotropicDirection: -1
-    - _AnisotropicIntensity: 1.3
+    - _AnisotropicDirection: 0
+    - _AnisotropicIntensity: 0.55
     - _AnisotropicOffset: 0.3
     - _AnisotropicSharpness: 0.255
     - _BandCount: 3
@@ -122,11 +124,16 @@ Material:
     - _NormalMapToggle: 0
     - _NormalStrength: 1
     - _OcclusionStrength: 1
+    - _OutlineAdaptive: 0
     - _OutlineAdaptiveMax: 2.5
     - _OutlineAdaptiveMin: 0.3
+    - _OutlineAnimatedColor: 0
+    - _OutlineAnimationSpeed: 4.31
     - _OutlineAntiAliasing: 1
     - _OutlineArtisticCurve: 1
     - _OutlineComplexityThreshold: 1
+    - _OutlineDistanceScaling: 0
+    - _OutlineExpansionMode: 1
     - _OutlineFadeEnd: 30
     - _OutlineFadeStart: 20
     - _OutlineInnerIntensity: 0.8
@@ -135,9 +142,11 @@ Material:
     - _OutlineLODDistance2: 150
     - _OutlineLayerBlend: 0.5
     - _OutlineMaxDistance: 100
+    - _OutlineMinWidth: 10
     - _OutlineMode: 0
     - _OutlineNoiseEnabled: 1
-    - _OutlineNoiseScale: 0.7
+    - _OutlineNoiseMode: 1
+    - _OutlineNoiseScale: 4.2
     - _OutlineNoiseSpeed: 0
     - _OutlineNoiseStrength: 1
     - _OutlineQuality: 1
@@ -193,7 +202,7 @@ Material:
     - _SubsurfaceDistortion: 0
     - _SubsurfaceIntensity: 0.71
     - _SubsurfacePower: 4.17
-    - _TintShadowOnBase: 1
+    - _TintShadowOnBase: 0
     - _ToonNormalBias: 0.58
     - _ToonShadowBias: 0.0006
     - _ToonSteps: 2.58
@@ -211,7 +220,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BandedShadowColor: {r: 0.6, g: 0.6, b: 0.8, a: 1}
-    - _BaseColor: {r: 0.6509434, g: 0.3285422, b: 0.3318699, a: 1}
+    - _BaseColor: {r: 0.6132076, g: 0.4078409, b: 0.41034538, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _HColor: {r: 1, g: 1, b: 1, a: 1}
     - _HighlightColor: {r: 1, g: 1, b: 1, a: 1}
@@ -219,12 +228,14 @@ Material:
     - _LightDirection: {r: 0.3, g: -0.8, b: 0.5, a: 0}
     - _MidtoneColor: {r: 0, g: 1, b: 0.22553182, a: 1}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
+    - _OutlineColorB: {r: 198.44785, g: 405.3161, b: 627.92456, a: 1}
     - _OutlineColorSecondary: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _RimColor: {r: 1, g: 1, b: 1, a: 1}
+    - _OutlineMinMaxDistance: {r: 5, g: 50, b: 0, a: 0}
+    - _RimColor: {r: 0, g: 0.8565588, b: 1, a: 1}
     - _SColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _ShadowColor: {r: 0.399351, g: 0.28893736, b: 0.4056604, a: 1}
     - _SparkleColor: {r: 1, g: 1, b: 1, a: 1}
-    - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SpecularColor: {r: 0.7971698, g: 0.9908274, b: 1, a: 1}
     - _SpecularInnerColor: {r: 1, g: 1, b: 1, a: 1}
     - _SpecularOuterColor: {r: 1, g: 0.5424528, b: 0.5424528, a: 1}
     - _SubsurfaceColor: {r: 1, g: 0.39999998, b: 0.39999998, a: 1}

@@ -99,16 +99,27 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _SubsurfacePower ("Subsurface Power", Range(0.1, 10)) = 1
         
         [Header(Outline)]
-        [Toggle(_ENABLEOUTLINE_ON)] _EnableOutline ("Enable Outline", Float) = 0
-        _OutlineColor ("Outline Color", Color) = (0, 0, 0, 1)
-        _OutlineWidth ("Outline Width", Range(0, 10)) = 1
+        [Toggle(_ENABLEOUTLINE_ON)] _EnableOutline("Enable Outline", Float) = 0
+        _OutlineColor("Outline Color", Color) = (0,0,0,1)
+        _OutlineWidth("Outline Max Width", Range(0, 10)) = 1
+
+        [KeywordEnum(Normal, Position, UV)] _OutlineExpansionMode("Expansion Mode", Float) = 0
         
-        // Outline Editor Features (gizli)
-        _OutlineNoiseEnabled ("Outline Noise Enabled", Float) = 0
+        [Toggle(_OUTLINE_ADAPTIVE_ON)] _OutlineAdaptive("Adaptive Width", Float) = 0
+        _OutlineMinWidth("Min Width", Range(0, 10)) = 0.5
+
+        [Toggle(_OUTLINE_DISTANCE_SCALING_ON)] _OutlineDistanceScaling("Distance Scaling", Float) = 0
+        _OutlineMinMaxDistance("Min/Max Distance", Vector) = (5, 50, 0, 0)
+
+        [Toggle(_OUTLINE_ANIMATED_COLOR_ON)] _OutlineAnimatedColor("Animated Color", Float) = 0
+        [HDR] _OutlineColorB ("Second Color", Color) = (1, 1, 1, 1)
+        _OutlineAnimationSpeed("Animation Speed", Range(0, 10)) = 1
+
+        [Toggle(_OUTLINE_NOISE_MODE_ON)] _OutlineNoiseMode ("Noisy Outline", Float) = 0
         _OutlineNoiseScale ("Noise Scale", Range(0, 50)) = 10
         _OutlineNoiseStrength ("Noise Strength", Range(0, 2)) = 0.5
         _OutlineNoiseMap ("Noise Texture", 2D) = "white" {}
-        
+
         [Header(Wind Animation)]
         [Toggle(_ENABLEWIND_ON)] _EnableWind ("Enable Wind", Float) = 0
         _WindSpeed ("Wind Speed", Range(0, 5)) = 1
@@ -146,7 +157,11 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             #pragma fragment OutlineFrag
             
             #pragma shader_feature_local _ENABLEOUTLINE_ON
-            #pragma shader_feature_local _OUTLINE_NOISE_ON
+            #pragma shader_feature_local _OUTLINEEXPANSIONMODE_NORMAL _OUTLINEEXPANSIONMODE_POSITION _OUTLINEEXPANSIONMODE_UV
+            #pragma shader_feature_local _OUTLINE_NOISE_MODE_ON
+            #pragma shader_feature_local _OUTLINE_DISTANCE_SCALING_ON
+            #pragma shader_feature_local _OUTLINE_ADAPTIVE_ON
+            #pragma shader_feature_local_fragment _OUTLINE_ANIMATED_COLOR_ON
             #pragma shader_feature_local _ENABLEWIND_ON
             
             #include "Includes/GToonOutline.hlsl"

@@ -88,10 +88,18 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty enableOutline;
         public MaterialProperty outlineColor;
         public MaterialProperty outlineWidth;
-        public MaterialProperty outlineNoiseEnabled;
+        public MaterialProperty outlineExpansionMode;
+        public MaterialProperty outlineNoiseMode;
         public MaterialProperty outlineNoiseMap;
         public MaterialProperty outlineNoiseScale;
         public MaterialProperty outlineNoiseStrength;
+        public MaterialProperty outlineAdaptive;
+        public MaterialProperty outlineMinWidth;
+        public MaterialProperty outlineDistanceScaling;
+        public MaterialProperty outlineMinMaxDistance;
+        public MaterialProperty outlineAnimatedColor;
+        public MaterialProperty outlineColorB;
+        public MaterialProperty outlineAnimationSpeed;
         
         // Wind Animation Properties
         public MaterialProperty enableWind;
@@ -170,13 +178,23 @@ namespace Gorgonize.ToonShader.Editor
             subsurfaceIntensity = FindProperty("_SubsurfaceIntensity", properties);
             subsurfaceDistortion = FindProperty("_SubsurfaceDistortion", properties);
             subsurfacePower = FindProperty("_SubsurfacePower", properties);
+            
             enableOutline = FindProperty("_EnableOutline", properties);
             outlineColor = FindProperty("_OutlineColor", properties);
             outlineWidth = FindProperty("_OutlineWidth", properties);
-            outlineNoiseEnabled = FindProperty("_OutlineNoiseEnabled", properties);
+            outlineExpansionMode = FindProperty("_OutlineExpansionMode", properties);
+            outlineNoiseMode = FindProperty("_OutlineNoiseMode", properties);
             outlineNoiseMap = FindProperty("_OutlineNoiseMap", properties);
             outlineNoiseScale = FindProperty("_OutlineNoiseScale", properties);
             outlineNoiseStrength = FindProperty("_OutlineNoiseStrength", properties);
+            outlineAdaptive = FindProperty("_OutlineAdaptive", properties);
+            outlineMinWidth = FindProperty("_OutlineMinWidth", properties);
+            outlineDistanceScaling = FindProperty("_OutlineDistanceScaling", properties);
+            outlineMinMaxDistance = FindProperty("_OutlineMinMaxDistance", properties);
+            outlineAnimatedColor = FindProperty("_OutlineAnimatedColor", properties);
+            outlineColorB = FindProperty("_OutlineColorB", properties);
+            outlineAnimationSpeed = FindProperty("_OutlineAnimationSpeed", properties);
+            
             enableWind = FindProperty("_EnableWind", properties);
             windSpeed = FindProperty("_WindSpeed", properties);
             windStrength = FindProperty("_WindStrength", properties);
@@ -267,8 +285,18 @@ namespace Gorgonize.ToonShader.Editor
             
             // Outline
             SetKeyword(material, "_ENABLEOUTLINE_ON", IsFeatureEnabled(enableOutline));
-            SetKeyword(material, "_OUTLINE_NOISE_ON", IsFeatureEnabled(outlineNoiseEnabled));
-            
+            if (IsPropertyValid(outlineExpansionMode))
+            {
+                var mode = GetFloatValue(outlineExpansionMode);
+                SetKeyword(material, "_OUTLINEEXPANSIONMODE_NORMAL", mode == 0f);
+                SetKeyword(material, "_OUTLINEEXPANSIONMODE_POSITION", mode == 1f);
+                SetKeyword(material, "_OUTLINEEXPANSIONMODE_UV", mode == 2f);
+            }
+            SetKeyword(material, "_OUTLINE_NOISE_MODE_ON", IsFeatureEnabled(outlineNoiseMode));
+            SetKeyword(material, "_OUTLINE_ADAPTIVE_ON", IsFeatureEnabled(outlineAdaptive));
+            SetKeyword(material, "_OUTLINE_DISTANCE_SCALING_ON", IsFeatureEnabled(outlineDistanceScaling));
+            SetKeyword(material, "_OUTLINE_ANIMATED_COLOR_ON", IsFeatureEnabled(outlineAnimatedColor));
+
             // Wind Animation
             SetKeyword(material, "_ENABLEWIND_ON", IsFeatureEnabled(enableWind));
             

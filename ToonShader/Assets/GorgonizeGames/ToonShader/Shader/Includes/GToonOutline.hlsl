@@ -11,6 +11,7 @@ struct OutlineAttributes
 {
     float4 positionOS   : POSITION;
     float3 normalOS     : NORMAL;
+    float2 texcoord     : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -38,20 +39,45 @@ OutlineVaryings OutlineVert(OutlineAttributes input)
     // Rüzgar animasyonunu uygula
     ApplyWind(positionOS, initialPositionOS);
 
-    float3 normalOS = normalize(input.normalOS);
+    // --- Final Width Calculation ---
+    half finalWidth = _OutlineWidth;
+
+    #if defined(_OUTLINE_DISTANCE_SCALING_ON)
+        VertexPositionInputs vertexInputForDist = GetVertexPositionInputs(positionOS);
+        float dist = distance(vertexInputForDist.positionWS, _WorldSpaceCameraPos);
+        // Uzaklaştıkça 0'a, yaklaştıkça 1'e giden bir faktör hesapla
+        float distFactor = 1.0 - saturate((dist - _OutlineMinMaxDistance.x) / (_OutlineMinMaxDistance.y - _OutlineMinMaxDistance.x));
+        
+        #if defined(_OUTLINE_ADAPTIVE_ON)
+            // Min ve Max değerleri arasında geçiş yap
+            finalWidth = lerp(_OutlineMinWidth, _OutlineWidth, distFactor);
+        #else
+            // Sadece ana kalınlığı mesafeye göre ölçekle
+            finalWidth = _OutlineWidth * distFactor;
+        #endif
+    #endif
+
+    // --- Expansion Logic ---
+    float3 expansionDir = normalize(input.normalOS);
     
-    // Outline Noise
-    #if defined(_OUTLINE_NOISE_ON)
-        // Gürültü dokusundan örnekleme yap. Vertex shader'da doku okumak için _LOD versiyonunu kullanıyoruz.
+    #if defined(_OUTLINEEXPANSIONMODE_POSITION)
+        expansionDir = normalize(positionOS);
+    #elif defined(_OUTLINEEXPANSIONMODE_UV)
+        // UV koordinatlarının merkezden dışarı doğru olan yönünü kullanarak 2D bir genişleme yönü oluştur
+        float2 uvDir = normalize(input.texcoord - 0.5);
+        expansionDir = float3(uvDir.x, uvDir.y, 0);
+    #endif
+
+    // --- Noise Logic ---
+    #if defined(_OUTLINE_NOISE_MODE_ON)
         float4 noiseTex = SAMPLE_TEXTURE2D_LOD(_OutlineNoiseMap, sampler_OutlineNoiseMap, initialPositionOS.xy * _OutlineNoiseScale * 0.1, 0);
         float noise = (noiseTex.r - 0.5) * 2.0;
         float noiseFactor = noise * _OutlineNoiseStrength;
-        // Gürültüyü normal yönünde değil, ekran alanında daha tutarlı olması için xy düzleminde uygula
-        positionOS.xy += normalOS.xy * noiseFactor * (_OutlineWidth * 0.01);
+        positionOS.xy += expansionDir.xy * noiseFactor * (finalWidth * 0.01);
     #endif
     
-    // Outline için vertex'leri normal yönünde genişlet
-    positionOS += normalOS * _OutlineWidth * 0.005; 
+    // --- Final Position Calculation ---
+    positionOS += expansionDir * finalWidth * 0.005; 
     
     output.positionCS = TransformObjectToHClip(positionOS);
     
@@ -70,7 +96,12 @@ half4 OutlineFrag(OutlineVaryings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     
     #if defined(_ENABLEOUTLINE_ON)
-    return _OutlineColor;
+        half4 finalColor = _OutlineColor;
+        #if defined(_OUTLINE_ANIMATED_COLOR_ON)
+            float sine = (sin(_Time.y * _OutlineAnimationSpeed) + 1.0) * 0.5;
+            finalColor = lerp(_OutlineColor, _OutlineColorB, sine);
+        #endif
+        return finalColor;
     #else
     discard;
     return half4(0, 0, 0, 0);
