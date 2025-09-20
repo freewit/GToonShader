@@ -142,46 +142,44 @@ half4 frag(Varyings input) : SV_Target
     Light mainLight = GetMainLight(shadowCoord);
     half shadowAttenuation = mainLight.shadowAttenuation;
 
-    // === AYDINLATMA HESAPLAMALARI BAŞLANGICI (YENİ MANTIK) ===
+    // === AYDINLATMA HESAPLAMALARI BAŞLANGICI ===
 
-    // 1. Toon Diffuse ve GI hesaplaması (Temel Işık)
-    half3 diffuseComponent = CalculateToonDiffuse(mainLight, albedo, normalWS, shadowAttenuation);
-    diffuseComponent += SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS) * albedo * _LightmapInfluence * _OcclusionStrength;
+    // 1. Toon Diffuse (Gölge/Işık) ve Baked GI hesaplaması
+    half3 diffuseLighting = CalculateToonDiffuse(mainLight, albedo, normalWS, shadowAttenuation);
+    diffuseLighting += SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS) * albedo * _LightmapInfluence * _OcclusionStrength;
+    
+    // 2. Yansıma ve Parlama Hesaplamaları
+    half3 specularLighting = half3(0,0,0);
 
-    // 2. Çevre Yansımaları (Environment Reflections)
-    half3 specularComponent = half3(0,0,0);
+    // 2a. Çevre Yansımaları (Environment Reflections)
     #if defined(_ENVIRONMENTREFLECTIONS_ON)
         half perceptualRoughness = 1.0h - _Smoothness;
         half3 reflectVec = reflect(-viewDirWS, normalWS);
         half occlusion = 1.0h;
         half3 reflection = GlossyEnvironmentReflection(reflectVec, perceptualRoughness, occlusion);
-        specularComponent = reflection * _EnvironmentReflections * specColor;
+        
+        half fresnel = pow(1.0 - saturate(dot(normalWS, viewDirWS)), 5.0);
+        half fresnelTerm = lerp(fresnel, 1.0h, _Metallic); 
+
+        specularLighting += reflection * specColor * fresnelTerm * _EnvironmentReflections;
     #endif
 
-    // 3. Fresnel ile Diffuse ve Specular birleştirme
-    half fresnel = pow(1.0 - saturate(dot(normalWS, viewDirWS)), 5.0);
-    half fresnelTerm = lerp(fresnel, 1.0h, _Metallic); // Metalik ise her yerden, değilse kenarlardan yansıt
-    
-    // Metalik olmayan yüzeyler için yansımayı albedo rengiyle karıştır, metalik yüzeyler için olduğu gibi bırak.
-    // Bu, "beyaz plastik" gibi malzemelerin doğru görünmesini sağlar.
-    half3 surfaceColor = lerp(diffuseComponent, specularComponent, fresnelTerm);
-
-    // 4. Final Rengi oluşturmaya başla
-    half3 finalColor = surfaceColor;
-
-    // 5. Eklemeli Efektler (Additive Effects)
-    // Toon specular artık yansımaların üzerine ekleniyor, böylece kaybolmuyor.
-    #if defined(_SPECULARHIGHLIGHTS_ON)
+    // 2b. Toon Specular (Stilize Parlama)
+    #if defined(_ENABLESPECULARHIGHLIGHTS_ON)
         #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC) || defined(_ENVIRONMENTREFLECTIONS_ON)
             half4 tangentWS = input.tangentWS;
         #else
-            half4 tangentWS = half4(1,0,0,1); // Dummy data
+            half4 tangentWS = half4(1,0,0,1);
         #endif
-        finalColor += CalculateSpecular(normalWS, mainLight.direction, viewDirWS, mainLight.color, shadowAttenuation, tangentWS, input.uv);
+        specularLighting += CalculateSpecular(normalWS, mainLight.direction, viewDirWS, mainLight.color, shadowAttenuation, tangentWS, input.uv);
     #endif
 
-    finalColor += CalculateRimLighting(normalWS, viewDirWS, mainLight.direction, mainLight.color, input.uv);
-    finalColor += CalculateSubsurface(normalWS, viewDirWS, mainLight);
+    // 3. Diğer Efektler
+    half3 rimColor = CalculateRimLighting(normalWS, viewDirWS, mainLight.direction, mainLight.color, input.uv);
+    half3 subsurfaceColor = CalculateSubsurface(normalWS, viewDirWS, mainLight);
+    
+    // 4. Final Renk Birleştirme
+    half3 finalColor = diffuseLighting + specularLighting + rimColor + subsurfaceColor;
 
     // Emission
     #if defined(_EMISSION)

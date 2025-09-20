@@ -114,6 +114,11 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty rimLightInfluence;
         public MaterialProperty rimTexture;
         public MaterialProperty rimScrollSpeed;
+        public MaterialProperty fresnelPower;
+        public MaterialProperty fresnelBias;
+        public MaterialProperty rimColorTop;
+        public MaterialProperty rimColorBottom;
+        public MaterialProperty rimGradientPower;
         
         // Advanced Feature Properties
         public MaterialProperty normalMap;
@@ -241,7 +246,12 @@ namespace Gorgonize.ToonShader.Editor
             rimLightInfluence = FindProperty("_RimLightInfluence", properties);
             rimTexture = FindProperty("_RimTexture", properties);
             rimScrollSpeed = FindProperty("_RimScrollSpeed", properties);
-            
+            fresnelPower = FindProperty("_FresnelPower", properties);
+            fresnelBias = FindProperty("_FresnelBias", properties);
+            rimColorTop = FindProperty("_RimColorTop", properties);
+            rimColorBottom = FindProperty("_RimColorBottom", properties);
+            rimGradientPower = FindProperty("_RimGradientPower", properties);
+
             // Advanced
             normalMap = FindProperty("_NormalMap", properties);
             normalStrength = FindProperty("_NormalStrength", properties);
@@ -356,6 +366,8 @@ namespace Gorgonize.ToonShader.Editor
                 SetKeyword(material, "_RIMMODE_STEPPED", mode == 1f);
                 SetKeyword(material, "_RIMMODE_LIGHTBASED", mode == 2f);
                 SetKeyword(material, "_RIMMODE_TEXTURED", mode == 3f);
+                SetKeyword(material, "_RIMMODE_FRESNEL_ENHANCED", mode == 4f);
+                SetKeyword(material, "_RIMMODE_COLOR_GRADIENT", mode == 5f);
             }
             
             // Toggles

@@ -93,7 +93,12 @@ CBUFFER_START(UnityPerMaterial)
     half _RimSoftness;
     half _RimLightInfluence;
     half _RimScrollSpeed;
-    
+    half _FresnelPower;
+    half _FresnelBias;
+    half4 _RimColorTop;
+    half4 _RimColorBottom;
+    half _RimGradientPower;
+
     // Gelişmiş Özellikler
     half _NormalStrength;
     half4 _EmissionColor;

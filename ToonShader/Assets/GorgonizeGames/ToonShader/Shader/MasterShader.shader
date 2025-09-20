@@ -90,27 +90,30 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _HairPrimaryExponent("Primary Exponent", Range(1, 200)) = 80
         _HairSecondaryExponent("Secondary Exponent", Range(1, 200)) = 120
 
-        [Header(Rim Lighting System)]
+        [Header(Advanced Rim Lighting)]
         [Toggle(_ENABLERIM_ON)] _EnableRim ("Enable Rim Lighting", Float) = 0
-        [KeywordEnum(Standard, Stepped, LightBased, Textured)] _RimMode("Rim Mode", Float) = 0
+        [KeywordEnum(Standard, Stepped, LightBased, Textured, Fresnel Enhanced, Color Gradient)] _RimMode("Rim Mode", Float) = 0
+        
+        [Header(Standard Stepped LightBased Textured)]
         _RimColor ("Rim Color", Color) = (1, 1, 1, 1)
         _RimIntensity ("Rim Intensity", Range(0, 3)) = 1
-
-        [Header(Standard Rim Mode)]
         _RimPower ("Rim Power", Range(0, 10)) = 2
         _RimOffset ("Rim Offset", Range(-1, 1)) = 0
-
-        [Header(Stepped Rim Mode)]
         _RimThreshold("Threshold", Range(0, 1)) = 0.5
         _RimSoftness("Softness", Range(0.001, 1)) = 0.1
-
-        [Header(Light Based Rim Mode)]
         _RimLightInfluence("Light Influence", Range(0, 5)) = 1.0
-
-        [Header(Textured Rim Mode)]
-        _RimTexture("Rim Texture", 2D) = "white" {}
+        [NoScaleOffset] _RimTexture("Rim Texture", 2D) = "white" {}
         _RimScrollSpeed("Scroll Speed", Range(-2, 2)) = 0.5
         
+        [Header(Fresnel Enhanced Mode)]
+        _FresnelPower("Fresnel Power", Range(0.1, 20)) = 5.0
+        _FresnelBias("Fresnel Bias", Range(0, 1)) = 0.0
+
+        [Header(Color Gradient Mode)]
+        _RimColorTop("Top Color", Color) = (1,0,0,1)
+        _RimColorBottom("Bottom Color", Color) = (0,0,1,1)
+        _RimGradientPower("Gradient Power", Range(0.1, 5)) = 1.0
+
         [Header(Advanced Features)]
         _NormalMap ("Normal Map", 2D) = "bump" {}
         _NormalStrength ("Normal Strength", Range(0, 2)) = 1
@@ -211,7 +214,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             #pragma shader_feature_local _ENVIRONMENTREFLECTIONS_ON
             #pragma shader_feature_local_fragment _SPECULARMODE_STEPPED _SPECULARMODE_SOFT _SPECULARMODE_ANISOTROPIC _SPECULARMODE_SPARKLE _SPECULARMODE_DOUBLE_TONE _SPECULARMODE_MATCAP _SPECULARMODE_HAIR
             #pragma shader_feature_local _ENABLERIM_ON
-            #pragma shader_feature_local_fragment _RIMMODE_STANDARD _RIMMODE_STEPPED _RIMMODE_LIGHTBASED _RIMMODE_TEXTURED
+            #pragma shader_feature_local_fragment _RIMMODE_STANDARD _RIMMODE_STEPPED _RIMMODE_LIGHTBASED _RIMMODE_TEXTURED _RIMMODE_FRESNEL_ENHANCED _RIMMODE_COLOR_GRADIENT
             #pragma shader_feature_local _ENABLESUBSURFACE_ON
             #pragma shader_feature_local_fragment _LIGHTINGMODE_SINGLE_CELL _LIGHTINGMODE_DUAL_CELL _LIGHTINGMODE_BANDED _LIGHTINGMODE_GRADIENT_RAMP _LIGHTINGMODE_CUSTOM_RAMP
             #pragma shader_feature_local_fragment _TINT_SHADOW_ON_BASE

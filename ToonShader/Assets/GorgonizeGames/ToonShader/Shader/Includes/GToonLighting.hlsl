@@ -165,6 +165,14 @@ half3 CalculateRimLighting(half3 normal, half3 viewDir, half3 lightDir, half3 li
         half4 rimTex = SAMPLE_TEXTURE2D(_RimTexture, sampler_RimTexture, scrolledUV);
         half rim = pow(saturate(rimDot + _RimOffset), _RimPower);
         finalRim = _RimColor.rgb * rimTex.rgb * rim;
+    #elif defined(_RIMMODE_FRESNEL_ENHANCED)
+        half fresnel = _FresnelBias + (1.0 - _FresnelBias) * pow(1.0 - rimDot, _FresnelPower);
+        finalRim = _RimColor.rgb * fresnel;
+    #elif defined(_RIMMODE_COLOR_GRADIENT)
+        half gradientFactor = saturate(normal.y * 0.5 + 0.5);
+        half3 gradientColor = lerp(_RimColorBottom.rgb, _RimColorTop.rgb, pow(gradientFactor, _RimGradientPower));
+        half rim = pow(saturate(rimDot), _RimPower);
+        finalRim = gradientColor * rim;
     #endif
 
     return finalRim * _RimIntensity * lightColor;

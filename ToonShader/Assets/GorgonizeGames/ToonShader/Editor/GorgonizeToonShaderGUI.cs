@@ -167,9 +167,6 @@ namespace Gorgonize.ToonShader.Editor
                 
                 ToonShaderStyles.DrawPropertyGroup("Reflections", () =>
                 {
-                    if(props.IsPropertyValid(props.enableSpecularHighlights))
-                        ToonShaderStyles.DrawFeatureToggle(props.enableSpecularHighlights, "Toon Specular Highlights", "Enable stylized, artistic highlights.", "✨");
-                    
                     if(props.IsPropertyValid(props.enableEnvironmentReflections))
                         ToonShaderStyles.DrawFeatureToggle(props.enableEnvironmentReflections, "Environment Reflections", "Enable realistic reflections from the skybox or probes.", "🌍");
 
@@ -318,40 +315,48 @@ namespace Gorgonize.ToonShader.Editor
         private void DrawHighlightsSectionProfessional(MaterialEditor materialEditor)
         {
             showHighlights = ToonShaderStyles.DrawProfessionalFoldout("Specular System", showHighlights, "✨");
-            
-            if (showHighlights)
+
+            if(showHighlights)
             {
-                ToonShaderStyles.DrawPropertyGroup("Specular Mode", () =>
-                {
-                    if (props.IsPropertyValid(props.specularMode))
-                        materialEditor.ShaderProperty(props.specularMode, "⚙️ Specular Method");
-                }, true);
+                // DÜZELTME: Ana "Enable" butonu buraya geri eklendi.
+                if(props.IsPropertyValid(props.enableSpecularHighlights))
+                    ToonShaderStyles.DrawFeatureToggle(props.enableSpecularHighlights, "Enable Toon Specular", "Enable stylized, artistic highlights.", "✨");
 
-                var specularMode = (int)props.GetFloatValue(props.specularMode);
-
-                switch (specularMode)
+                // Sadece Specular aktif ise diğer ayarları göster.
+                if (props.IsFeatureEnabled(props.enableSpecularHighlights))
                 {
-                    case 0: // Stepped
-                        DrawSteppedSpecularControls(materialEditor);
-                        break;
-                    case 1: // Soft
-                        DrawSoftSpecularControls(materialEditor);
-                        break;
-                    case 2: // Anisotropic
-                        DrawAnisotropicSpecularControls(materialEditor);
-                        break;
-                    case 3: // Sparkle
-                        DrawSparkleSpecularControls(materialEditor);
-                        break;
-                    case 4: // Double Tone
-                        DrawDoubleToneSpecularControls(materialEditor);
-                        break;
-                    case 5: // Matcap
-                        DrawMatcapSpecularControls(materialEditor);
-                        break;
-                    case 6: // Hair/Fur
-                        DrawHairSpecularControls(materialEditor);
-                        break;
+                    ToonShaderStyles.DrawPropertyGroup("Specular Mode", () =>
+                    {
+                        if (props.IsPropertyValid(props.specularMode))
+                            materialEditor.ShaderProperty(props.specularMode, "⚙️ Specular Method");
+                    }, true);
+
+                    var specularMode = (int)props.GetFloatValue(props.specularMode);
+
+                    switch (specularMode)
+                    {
+                        case 0: // Stepped
+                            DrawSteppedSpecularControls(materialEditor);
+                            break;
+                        case 1: // Soft
+                            DrawSoftSpecularControls(materialEditor);
+                            break;
+                        case 2: // Anisotropic
+                            DrawAnisotropicSpecularControls(materialEditor);
+                            break;
+                        case 3: // Sparkle
+                            DrawSparkleSpecularControls(materialEditor);
+                            break;
+                        case 4: // Double Tone
+                            DrawDoubleToneSpecularControls(materialEditor);
+                            break;
+                        case 5: // Matcap
+                            DrawMatcapSpecularControls(materialEditor);
+                            break;
+                        case 6: // Hair/Fur
+                            DrawHairSpecularControls(materialEditor);
+                            break;
+                    }
                 }
             }
         }
@@ -514,7 +519,7 @@ namespace Gorgonize.ToonShader.Editor
         
         private void DrawRimSectionProfessional(MaterialEditor materialEditor)
         {
-            showRim = ToonShaderStyles.DrawProfessionalFoldout("Rim Lighting System", showRim, "🌟");
+            showRim = ToonShaderStyles.DrawProfessionalFoldout("Advanced Rim Lighting", showRim, "🌟");
             
             if (showRim)
             {
@@ -545,27 +550,28 @@ namespace Gorgonize.ToonShader.Editor
                         case 3: // Textured
                             DrawTexturedRimControls(materialEditor);
                             break;
+                        case 4: // Fresnel Enhanced
+                            DrawFresnelEnhancedRimControls(materialEditor);
+                            break;
+                        case 5: // Color Gradient
+                            DrawColorGradientRimControls(materialEditor);
+                            break;
                     }
                 }
             }
         }
-
+        
         private void DrawStandardRimControls(MaterialEditor materialEditor)
         {
-            ToonShaderStyles.DrawPropertyGroup("Standard (Fresnel) Rim", () => {
+            ToonShaderStyles.DrawPropertyGroup("Standard Rim", () => {
                 if (props.IsPropertyValid(props.rimColor))
-                    materialEditor.ShaderProperty(props.rimColor, "🌈 Rim Color");
-                            
+                    materialEditor.ShaderProperty(props.rimColor, "Rim Color");
                 if (props.IsPropertyValid(props.rimPower))
-                    materialEditor.ShaderProperty(props.rimPower, "⚡ Rim Power");
-                            
+                    materialEditor.ShaderProperty(props.rimPower, "Rim Power");
                 if (props.IsPropertyValid(props.rimIntensity))
-                    materialEditor.ShaderProperty(props.rimIntensity, "💪 Rim Intensity");
-                            
+                    materialEditor.ShaderProperty(props.rimIntensity, "Rim Intensity");
                 if (props.IsPropertyValid(props.rimOffset))
-                    materialEditor.ShaderProperty(props.rimOffset, "📏 Rim Offset");
-
-                ToonShaderStyles.DrawInfoBox("Classic rim effect based on camera view angle.");
+                    materialEditor.ShaderProperty(props.rimOffset, "Rim Offset");
             }, true);
         }
 
@@ -573,37 +579,27 @@ namespace Gorgonize.ToonShader.Editor
         {
             ToonShaderStyles.DrawPropertyGroup("Stepped Rim", () => {
                 if(props.IsPropertyValid(props.rimColor))
-                    materialEditor.ShaderProperty(props.rimColor, "🌈 Rim Color");
-
+                    materialEditor.ShaderProperty(props.rimColor, "Rim Color");
                 if(props.IsPropertyValid(props.rimThreshold))
-                    materialEditor.ShaderProperty(props.rimThreshold, "🔪 Threshold");
-                
+                    materialEditor.ShaderProperty(props.rimThreshold, "Threshold");
                 if(props.IsPropertyValid(props.rimSoftness))
-                    materialEditor.ShaderProperty(props.rimSoftness, "🌊 Softness");
-
+                    materialEditor.ShaderProperty(props.rimSoftness, "Softness");
                 if(props.IsPropertyValid(props.rimIntensity))
-                    materialEditor.ShaderProperty(props.rimIntensity, "💪 Intensity");
-                
-                ToonShaderStyles.DrawInfoBox("Sharp, cel-shaded style rim light.");
+                    materialEditor.ShaderProperty(props.rimIntensity, "Intensity");
             }, true);
         }
 
         private void DrawLightBasedRimControls(MaterialEditor materialEditor)
         {
-            ToonShaderStyles.DrawPropertyGroup("Light Based Rim", () => {
+            ToonShaderStyles.DrawPropertyGroup("Light-Based Rim", () => {
                 if(props.IsPropertyValid(props.rimColor))
-                    materialEditor.ShaderProperty(props.rimColor, "🌈 Rim Color");
-
+                    materialEditor.ShaderProperty(props.rimColor, "Rim Color");
                 if(props.IsPropertyValid(props.rimPower))
-                    materialEditor.ShaderProperty(props.rimPower, "⚡ Rim Power");
-                
+                    materialEditor.ShaderProperty(props.rimPower, "Rim Power");
                 if(props.IsPropertyValid(props.rimIntensity))
-                    materialEditor.ShaderProperty(props.rimIntensity, "💪 Rim Intensity");
-                
+                    materialEditor.ShaderProperty(props.rimIntensity, "Intensity");
                 if(props.IsPropertyValid(props.rimLightInfluence))
-                    materialEditor.ShaderProperty(props.rimLightInfluence, "☀️ Light Influence");
-
-                ToonShaderStyles.DrawInfoBox("Rim appears only on the light-facing side of the object.");
+                    materialEditor.ShaderProperty(props.rimLightInfluence, "Light Influence");
             }, true);
         }
 
@@ -611,21 +607,46 @@ namespace Gorgonize.ToonShader.Editor
         {
             ToonShaderStyles.DrawPropertyGroup("Textured Rim", () => {
                 if(props.IsPropertyValid(props.rimColor))
-                    materialEditor.ShaderProperty(props.rimColor, "🎨 Rim Tint");
-                
+                    materialEditor.ShaderProperty(props.rimColor, "Rim Tint");
                 if(props.IsPropertyValid(props.rimTexture))
-                    materialEditor.TexturePropertySingleLine(new GUIContent("🖼️ Rim Texture"), props.rimTexture);
-                
+                    materialEditor.TexturePropertySingleLine(new GUIContent("Rim Texture"), props.rimTexture);
                 if(props.IsPropertyValid(props.rimScrollSpeed))
-                    materialEditor.ShaderProperty(props.rimScrollSpeed, "🌀 Scroll Speed");
-                
+                    materialEditor.ShaderProperty(props.rimScrollSpeed, "Scroll Speed");
                 if(props.IsPropertyValid(props.rimIntensity))
-                    materialEditor.ShaderProperty(props.rimIntensity, "💪 Intensity");
+                    materialEditor.ShaderProperty(props.rimIntensity, "Intensity");
+            }, true);
+        }
 
-                ToonShaderStyles.DrawInfoBox("Creates dynamic auras or shield effects.");
+        private void DrawFresnelEnhancedRimControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Fresnel Enhanced Rim", () => {
+                if (props.IsPropertyValid(props.rimColor))
+                    materialEditor.ShaderProperty(props.rimColor, "Rim Color");
+                if (props.IsPropertyValid(props.rimIntensity))
+                    materialEditor.ShaderProperty(props.rimIntensity, "Intensity");
+                if (props.IsPropertyValid(props.fresnelPower))
+                    materialEditor.ShaderProperty(props.fresnelPower, "Fresnel Power");
+                if (props.IsPropertyValid(props.fresnelBias))
+                    materialEditor.ShaderProperty(props.fresnelBias, "Fresnel Bias");
+                ToonShaderStyles.DrawInfoBox("Uses a more physically-based calculation for realistic edge highlights.");
             }, true);
         }
         
+        private void DrawColorGradientRimControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Color Gradient Rim", () => {
+                if (props.IsPropertyValid(props.rimColorTop))
+                    materialEditor.ShaderProperty(props.rimColorTop, "Top Color");
+                if (props.IsPropertyValid(props.rimColorBottom))
+                    materialEditor.ShaderProperty(props.rimColorBottom, "Bottom Color");
+                if (props.IsPropertyValid(props.rimIntensity))
+                    materialEditor.ShaderProperty(props.rimIntensity, "Intensity");
+                if (props.IsPropertyValid(props.rimGradientPower))
+                    materialEditor.ShaderProperty(props.rimGradientPower, "Gradient Power");
+                ToonShaderStyles.DrawInfoBox("Creates a vertical color gradient along the object's rim.");
+            }, true);
+        }
+
         private void DrawOutlineSectionProfessional(MaterialEditor materialEditor)
         {
             showOutline = ToonShaderStyles.DrawProfessionalFoldout("Smart Outline System", showOutline, "📝");
