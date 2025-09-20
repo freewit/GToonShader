@@ -184,8 +184,8 @@ namespace Gorgonize.ToonShader.Editor
         
         private void DrawShadowSectionProfessional(MaterialEditor materialEditor)
         {
-            showShadows = ToonShaderStyles.DrawProfessionalFoldout("Toon Lighting System", showShadows, "🌑");
-            
+            showShadows = ToonShaderStyles.DrawProfessionalFoldout("Advanced Lighting System", showShadows, "🌑");
+
             if (showShadows)
             {
                 ToonShaderStyles.DrawPropertyGroup("Lighting Mode", () =>
@@ -202,95 +202,119 @@ namespace Gorgonize.ToonShader.Editor
                     case 0: // Single Cell Mode
                         DrawSingleCellModeControls(materialEditor);
                         break;
-                    case 1: // Banded Mode
-                        DrawBandedModeControls(materialEditor);
+                    case 1: // Dual Cell Mode
+                        DrawDualCellModeControls(materialEditor);
                         break;
-                    case 2: // Ramp Mode
-                        DrawRampModeControls(materialEditor);
+                    case 2: // Enhanced Banded Mode
+                        DrawEnhancedBandedModeControls(materialEditor);
+                        break;
+                    case 3: // Gradient Ramp Mode
+                        DrawGradientRampModeControls(materialEditor);
+                        break;
+                    case 4: // Custom Ramp Mode
+                        DrawCustomRampModeControls(materialEditor);
                         break;
                 }
 
                 // General lighting controls that apply to all modes
-                ToonShaderStyles.DrawPropertyGroup("General Lighting Settings", () =>
+                ToonShaderStyles.DrawPropertyGroup("General Lighting", () =>
                 {
                     if (props.IsPropertyValid(props.occlusionStrength))
                         materialEditor.ShaderProperty(props.occlusionStrength, "🕳️ Baked AO Strength");
+                    if (props.IsPropertyValid(props.lightmapInfluence))
+                        materialEditor.ShaderProperty(props.lightmapInfluence, "🗺️ Lightmap Influence");
+                    if (props.IsPropertyValid(props.receiveShadows))
+                        ToonShaderStyles.DrawFeatureToggle(props.receiveShadows, "Receive Shadows", "Object can receive shadows from other objects.", "🌑");
                 }, true);
-                
-                ToonShaderStyles.DrawInfoBox("The lighting system creates the characteristic stylized lighting. 'Single Cell' is for classic cel-shading, 'Banded' adds more depth.");
             }
         }
-
+        
         private void DrawSingleCellModeControls(MaterialEditor materialEditor)
         {
-            ToonShaderStyles.DrawPropertyGroup("Single Cell (Tek Ton) Ayarları", () =>
+            ToonShaderStyles.DrawPropertyGroup("Single Cell (Classic Toon)", () =>
             {
                 if (props.IsPropertyValid(props.shadowThreshold))
-                    materialEditor.ShaderProperty(props.shadowThreshold, "Gölge Eşiği");
-                            
+                    materialEditor.ShaderProperty(props.shadowThreshold, "Shadow Threshold");
                 if (props.IsPropertyValid(props.transitionSoftness))
-                    materialEditor.ShaderProperty(props.transitionSoftness, "Geçiş Yumuşaklığı");
-
+                    materialEditor.ShaderProperty(props.transitionSoftness, "Transition Softness");
+                if (props.IsPropertyValid(props.shadowContrast))
+                    materialEditor.ShaderProperty(props.shadowContrast, "Shadow Contrast");
                 if (props.IsPropertyValid(props.shadowColor))
-                    materialEditor.ShaderProperty(props.shadowColor, "🎨 Gölge Rengi");
-                        
+                    materialEditor.ShaderProperty(props.shadowColor, "🎨 Shadow Color");
                 if (props.IsPropertyValid(props.tintShadowOnBase))
-                    ToonShaderStyles.DrawFeatureToggle(props.tintShadowOnBase, "Shadow Tinting", "Apply shadow color to entire object", "🎭");
+                    ToonShaderStyles.DrawFeatureToggle(props.tintShadowOnBase, "Tint Shadow on Base", "Apply shadow color to entire object", "🎭");
             }, true);
         }
 
-        private void DrawBandedModeControls(MaterialEditor materialEditor)
+        private void DrawDualCellModeControls(MaterialEditor materialEditor)
         {
-            ToonShaderStyles.DrawPropertyGroup("Banded (Çok Tonlu) Ayarları", () =>
+            ToonShaderStyles.DrawPropertyGroup("Dual Cell (Anime Style)", () =>
+            {
+                if (props.IsPropertyValid(props.primaryThreshold))
+                    materialEditor.ShaderProperty(props.primaryThreshold, "Primary Threshold");
+                if (props.IsPropertyValid(props.primaryShadowColor))
+                    materialEditor.ShaderProperty(props.primaryShadowColor, "🎨 Primary Shadow Color");
+
+                EditorGUILayout.Space();
+
+                if (props.IsPropertyValid(props.secondaryThreshold))
+                    materialEditor.ShaderProperty(props.secondaryThreshold, "Secondary Threshold");
+                if (props.IsPropertyValid(props.secondaryShadowColor))
+                    materialEditor.ShaderProperty(props.secondaryShadowColor, "🎨 Secondary Shadow Color");
+                
+                if (props.IsPropertyValid(props.transitionSoftness))
+                    materialEditor.ShaderProperty(props.transitionSoftness, "Transition Softness");
+                
+                ToonShaderStyles.DrawInfoBox("Creates a two-step shadow effect, perfect for detailed anime characters.");
+            }, true);
+        }
+
+        private void DrawEnhancedBandedModeControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Enhanced Banded", () =>
             {
                 if (props.IsPropertyValid(props.bandCount))
-                {
-                    EditorGUI.BeginChangeCheck();
-                    float bandCountFloat = props.bandCount.floatValue;
-                    int bandCountInt = EditorGUILayout.IntSlider("Bant Miktarı", (int)bandCountFloat, 1, 4);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        props.bandCount.floatValue = bandCountInt;
-                    }
-                }
-
-                if (props.IsPropertyValid(props.shadowThreshold))
-                    materialEditor.ShaderProperty(props.shadowThreshold, "Ana Gölge Eşiği");
-
-                if (props.IsPropertyValid(props.midtoneThreshold) && props.IsPropertyValid(props.shadowThreshold))
-                {
-                    float shadowThresholdValue = props.shadowThreshold.floatValue;
-                    if (props.midtoneThreshold.floatValue < shadowThresholdValue)
-                    {
-                        props.midtoneThreshold.floatValue = shadowThresholdValue;
-                    }
-                    props.midtoneThreshold.floatValue = EditorGUILayout.Slider("Ara Ton Bitişi", props.midtoneThreshold.floatValue, shadowThresholdValue, 1.0f);
-                }
-                            
+                    materialEditor.ShaderProperty(props.bandCount, "Band Count");
+                if (props.IsPropertyValid(props.midtoneThreshold))
+                    materialEditor.ShaderProperty(props.midtoneThreshold, "Midtone Threshold");
                 if (props.IsPropertyValid(props.bandSoftness))
-                    materialEditor.ShaderProperty(props.bandSoftness, "Bant Yumuşaklığı");
-                
+                    materialEditor.ShaderProperty(props.bandSoftness, "Band Softness");
+                if (props.IsPropertyValid(props.bandDistribution))
+                    materialEditor.ShaderProperty(props.bandDistribution, "Band Distribution");
                 if (props.IsPropertyValid(props.shadowColor))
-                    materialEditor.ShaderProperty(props.shadowColor, "🎨 Gölge Rengi");
+                    materialEditor.ShaderProperty(props.shadowColor, "🎨 Shadow Tint");
+            }, true);
+        }
+
+        private void DrawGradientRampModeControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Gradient Ramp", () =>
+            {
+                if (props.IsPropertyValid(props.shadowRamp))
+                    materialEditor.TexturePropertySingleLine(new GUIContent("📈 Gradient Ramp Texture"), props.shadowRamp);
+                if (props.IsPropertyValid(props.rampIntensity))
+                    materialEditor.ShaderProperty(props.rampIntensity, "Ramp Intensity");
+                ToonShaderStyles.DrawInfoBox("Uses a smooth gradient texture for soft, stylized lighting transitions.");
             }, true);
         }
         
-        private void DrawRampModeControls(MaterialEditor materialEditor)
+        private void DrawCustomRampModeControls(MaterialEditor materialEditor)
         {
-            ToonShaderStyles.DrawPropertyGroup("Ramp Texture (Doku) Ayarları", () =>
+            ToonShaderStyles.DrawPropertyGroup("Custom Ramp", () =>
             {
-                if (props.IsPropertyValid(props.shadowRamp))
-                    materialEditor.TexturePropertySingleLine(new GUIContent("📈 Rampa Dokusu"), props.shadowRamp);
-        
-                ToonShaderStyles.DrawInfoBox("Aydınlatma ve gölge renkleri doğrudan bu dokudan alınır. Soldan sağa doğru karanlıktan aydınlığa bir gradyan kullanın.");
+                if (props.IsPropertyValid(props.customRamp))
+                    materialEditor.TexturePropertySingleLine(new GUIContent("🎨 Custom Ramp Texture"), props.customRamp);
+                if (props.IsPropertyValid(props.rampIntensity))
+                    materialEditor.ShaderProperty(props.rampIntensity, "Ramp Intensity");
 
-                if (GUILayout.Button("Ramp Editor", ToonShaderStyles.ButtonSecondaryStyle))
+                if (GUILayout.Button("Open Ramp Creator", ToonShaderStyles.ButtonSecondaryStyle))
                 {
                     EditorWindow.GetWindow<RampCreatorEditor>("Ramp Creator");
                 }
+                ToonShaderStyles.DrawInfoBox("Use any texture as a lighting ramp for unique artistic effects.");
             }, true);
         }
-
+        
         private void DrawHighlightsSectionProfessional(MaterialEditor materialEditor)
         {
             showHighlights = ToonShaderStyles.DrawProfessionalFoldout("Specular System", showHighlights, "✨");
@@ -770,16 +794,10 @@ namespace Gorgonize.ToonShader.Editor
             
             if (showPerformance)
             {
-                ToonShaderStyles.DrawPropertyGroup("Lighting Options", () =>
+                ToonShaderStyles.DrawPropertyGroup("Performance Options", () =>
                 {
-                    if (props.IsPropertyValid(props.receiveShadows))
-                        materialEditor.ShaderProperty(props.receiveShadows, "🌑 Receive Shadows");
-                        
                     if (props.IsPropertyValid(props.enableAdditionalLights))
-                        materialEditor.ShaderProperty(props.enableAdditionalLights, "💡 Additional Lights");
-                        
-                    if (props.IsPropertyValid(props.lightmapInfluence))
-                        materialEditor.ShaderProperty(props.lightmapInfluence, "🗺️ Lightmap Influence");
+                        ToonShaderStyles.DrawFeatureToggle(props.enableAdditionalLights, "Additional Lights", "Allow more than one light to affect the object.", "💡");
                 }, true);
                 
                 // Performance recommendations

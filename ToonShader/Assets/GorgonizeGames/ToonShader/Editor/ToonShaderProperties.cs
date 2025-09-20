@@ -9,11 +9,9 @@ namespace Gorgonize.ToonShader.Editor
     public class ToonShaderProperties
     {
         // Helper method to find properties
-        private MaterialProperty FindProperty(string name, MaterialProperty[] props, bool isMandatory = false)
+        private MaterialProperty FindProperty(string name, MaterialProperty[] props)
         {
-            var prop = System.Array.Find(props, p => p.name == name);
-            if(prop == null && isMandatory) Debug.LogWarning($"Mandatory property '{name}' not found in shader.");
-            return prop;
+            return System.Array.Find(props, p => p.name == name);
         }
 
         // Base Properties
@@ -27,28 +25,44 @@ namespace Gorgonize.ToonShader.Editor
         
         // Lighting/Shadow Properties
         public MaterialProperty lightingMode;
+        
+        // Single Cell
         public MaterialProperty tintShadowOnBase;
         public MaterialProperty shadowThreshold;
         public MaterialProperty transitionSoftness;
-        public MaterialProperty shadowRamp;
         public MaterialProperty shadowColor;
-        public MaterialProperty occlusionStrength;
+        public MaterialProperty shadowContrast;
         
-        // Banded Mode Properties
+        // Dual Cell
+        public MaterialProperty primaryThreshold;
+        public MaterialProperty secondaryThreshold;
+        public MaterialProperty primaryShadowColor;
+        public MaterialProperty secondaryShadowColor;
+
+        // Banded
         public MaterialProperty bandCount;
         public MaterialProperty midtoneThreshold;
         public MaterialProperty bandSoftness;
+        public MaterialProperty bandDistribution;
 
-        // Highlight Properties
+        // Ramp
+        public MaterialProperty shadowRamp;
+        public MaterialProperty customRamp;
+        public MaterialProperty rampIntensity;
+        
+        // General
+        public MaterialProperty occlusionStrength;
+        
+        // Specular Properties
         public MaterialProperty specularMode;
-
+        
         // Stepped
         public MaterialProperty specularColor;
         public MaterialProperty specularSize;
         public MaterialProperty specularSmoothness;
         public MaterialProperty specularSteps;
         public MaterialProperty steppedFalloff;
-
+        
         // Soft
         public MaterialProperty softSpecularGlossiness;
         public MaterialProperty softSpecularStrength;
@@ -65,8 +79,8 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty sparkleMap;
         public MaterialProperty sparkleDensity;
         public MaterialProperty sparkleColor;
-        public MaterialProperty sparkleAnimSpeed;
         public MaterialProperty sparkleSize;
+        public MaterialProperty sparkleAnimSpeed;
 
         // Double Tone
         public MaterialProperty specularInnerColor;
@@ -80,7 +94,7 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty matcapIntensity;
         public MaterialProperty matcapBlendWithLighting;
 
-        // Hair/Fur
+        // Hair
         public MaterialProperty hairPrimaryColor;
         public MaterialProperty hairSecondaryColor;
         public MaterialProperty hairPrimaryShift;
@@ -129,7 +143,7 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty outlineAnimatedColor;
         public MaterialProperty outlineColorB;
         public MaterialProperty outlineAnimationSpeed;
-
+        
         // Wind Animation Properties
         public MaterialProperty enableWind;
         public MaterialProperty windSpeed;
@@ -151,6 +165,7 @@ namespace Gorgonize.ToonShader.Editor
         /// </summary>
         private void FindAllProperties(MaterialProperty[] properties)
         {
+            // Base
             baseColor = FindProperty("_BaseColor", properties);
             baseMap = FindProperty("_BaseMap", properties);
             metallic = FindProperty("_Metallic", properties);
@@ -158,58 +173,63 @@ namespace Gorgonize.ToonShader.Editor
             enableSpecularHighlights = FindProperty("_EnableSpecularHighlights", properties);
             enableEnvironmentReflections = FindProperty("_EnableEnvironmentReflections", properties);
             environmentReflections = FindProperty("_EnvironmentReflections", properties);
-
+            
+            // Lighting
             lightingMode = FindProperty("_LightingMode", properties);
             tintShadowOnBase = FindProperty("_TintShadowOnBase", properties);
             shadowThreshold = FindProperty("_ShadowThreshold", properties);
             transitionSoftness = FindProperty("_TransitionSoftness", properties);
-            shadowRamp = FindProperty("_ShadowRamp", properties);
             shadowColor = FindProperty("_ShadowColor", properties);
-            occlusionStrength = FindProperty("_OcclusionStrength", properties);
+            shadowContrast = FindProperty("_ShadowContrast", properties);
+            primaryThreshold = FindProperty("_PrimaryThreshold", properties);
+            secondaryThreshold = FindProperty("_SecondaryThreshold", properties);
+            primaryShadowColor = FindProperty("_PrimaryShadowColor", properties);
+            secondaryShadowColor = FindProperty("_SecondaryShadowColor", properties);
             bandCount = FindProperty("_BandCount", properties);
             midtoneThreshold = FindProperty("_MidtoneThreshold", properties);
             bandSoftness = FindProperty("_BandSoftness", properties);
-            
+            bandDistribution = FindProperty("_BandDistribution", properties);
+            shadowRamp = FindProperty("_ShadowRamp", properties);
+            customRamp = FindProperty("_CustomRamp", properties);
+            rampIntensity = FindProperty("_RampIntensity", properties);
+            occlusionStrength = FindProperty("_OcclusionStrength", properties);
+
+            // Specular
             specularMode = FindProperty("_SpecularMode", properties);
             specularColor = FindProperty("_SpecularColor", properties);
             specularSize = FindProperty("_SpecularSize", properties);
             specularSmoothness = FindProperty("_SpecularSmoothness", properties);
             specularSteps = FindProperty("_SpecularSteps", properties);
             steppedFalloff = FindProperty("_SteppedFalloff", properties);
-
             softSpecularGlossiness = FindProperty("_SoftSpecularGlossiness", properties);
             softSpecularStrength = FindProperty("_SoftSpecularStrength", properties);
             softSpecularMask = FindProperty("_SoftSpecularMask", properties);
-
             anisotropicDirection = FindProperty("_AnisotropicDirection", properties);
             anisotropicSharpness = FindProperty("_AnisotropicSharpness", properties);
             anisotropicIntensity = FindProperty("_AnisotropicIntensity", properties);
             anisotropicOffset = FindProperty("_AnisotropicOffset", properties);
             anisotropicFlowMap = FindProperty("_AnisotropicFlowMap", properties);
-
             sparkleMap = FindProperty("_SparkleMap", properties);
             sparkleDensity = FindProperty("_SparkleDensity", properties);
             sparkleColor = FindProperty("_SparkleColor", properties);
-            sparkleAnimSpeed = FindProperty("_SparkleAnimSpeed", properties);
             sparkleSize = FindProperty("_SparkleSize", properties);
-
+            sparkleAnimSpeed = FindProperty("_SparkleAnimSpeed", properties);
             specularInnerColor = FindProperty("_SpecularInnerColor", properties);
             specularOuterColor = FindProperty("_SpecularOuterColor", properties);
             specularInnerSize = FindProperty("_SpecularInnerSize", properties);
             specularOuterSize = FindProperty("_SpecularOuterSize", properties);
             specularDoubleToneSoftness = FindProperty("_SpecularDoubleToneSoftness", properties);
-            
             matcapTex = FindProperty("_MatcapTex", properties);
             matcapIntensity = FindProperty("_MatcapIntensity", properties);
             matcapBlendWithLighting = FindProperty("_MatcapBlendWithLighting", properties);
-            
             hairPrimaryColor = FindProperty("_HairPrimaryColor", properties);
             hairSecondaryColor = FindProperty("_HairSecondaryColor", properties);
             hairPrimaryShift = FindProperty("_HairPrimaryShift", properties);
             hairSecondaryShift = FindProperty("_HairSecondaryShift", properties);
             hairPrimaryExponent = FindProperty("_HairPrimaryExponent", properties);
             hairSecondaryExponent = FindProperty("_HairSecondaryExponent", properties);
-            
+
+            // Rim
             enableRim = FindProperty("_EnableRim", properties);
             rimMode = FindProperty("_RimMode", properties);
             rimColor = FindProperty("_RimColor", properties);
@@ -221,7 +241,8 @@ namespace Gorgonize.ToonShader.Editor
             rimLightInfluence = FindProperty("_RimLightInfluence", properties);
             rimTexture = FindProperty("_RimTexture", properties);
             rimScrollSpeed = FindProperty("_RimScrollSpeed", properties);
-
+            
+            // Advanced
             normalMap = FindProperty("_NormalMap", properties);
             normalStrength = FindProperty("_NormalStrength", properties);
             emissionMap = FindProperty("_EmissionMap", properties);
@@ -231,12 +252,14 @@ namespace Gorgonize.ToonShader.Editor
             detailNormalMap = FindProperty("_DetailNormalMap", properties);
             detailStrength = FindProperty("_DetailStrength", properties);
             
+            // Subsurface
             enableSubsurface = FindProperty("_EnableSubsurface", properties);
             subsurfaceColor = FindProperty("_SubsurfaceColor", properties);
             subsurfaceIntensity = FindProperty("_SubsurfaceIntensity", properties);
             subsurfaceDistortion = FindProperty("_SubsurfaceDistortion", properties);
             subsurfacePower = FindProperty("_SubsurfacePower", properties);
             
+            // Outline
             enableOutline = FindProperty("_EnableOutline", properties);
             outlineColor = FindProperty("_OutlineColor", properties);
             outlineWidth = FindProperty("_OutlineWidth", properties);
@@ -248,11 +271,13 @@ namespace Gorgonize.ToonShader.Editor
             outlineColorB = FindProperty("_OutlineColorB", properties);
             outlineAnimationSpeed = FindProperty("_OutlineAnimationSpeed", properties);
 
+            // Wind
             enableWind = FindProperty("_EnableWind", properties);
             windSpeed = FindProperty("_WindSpeed", properties);
             windStrength = FindProperty("_WindStrength", properties);
             windDirection = FindProperty("_WindDirection", properties);
             
+            // Performance
             receiveShadows = FindProperty("_ReceiveShadows", properties);
             enableAdditionalLights = FindProperty("_EnableAdditionalLights", properties);
             lightmapInfluence = FindProperty("_LightmapInfluence", properties);
@@ -300,9 +325,15 @@ namespace Gorgonize.ToonShader.Editor
             {
                 var mode = GetFloatValue(lightingMode);
                 SetKeyword(material, "_LIGHTINGMODE_SINGLE_CELL", mode == 0f);
-                SetKeyword(material, "_LIGHTINGMODE_BANDED", mode == 1f);
-                SetKeyword(material, "_LIGHTINGMODE_RAMP", mode == 2f);
+                SetKeyword(material, "_LIGHTINGMODE_DUAL_CELL", mode == 1f);
+                SetKeyword(material, "_LIGHTINGMODE_BANDED", mode == 2f);
+                SetKeyword(material, "_LIGHTINGMODE_GRADIENT_RAMP", mode == 3f);
+                SetKeyword(material, "_LIGHTINGMODE_CUSTOM_RAMP", mode == 4f);
             }
+            
+            // Base properties
+            SetKeyword(material, "_ENABLESPECULARHIGHLIGHTS_ON", IsFeatureEnabled(enableSpecularHighlights));
+            SetKeyword(material, "_ENVIRONMENTREFLECTIONS_ON", IsFeatureEnabled(enableEnvironmentReflections));
 
             // Specular Mode
             if (IsPropertyValid(specularMode))
@@ -326,54 +357,25 @@ namespace Gorgonize.ToonShader.Editor
                 SetKeyword(material, "_RIMMODE_LIGHTBASED", mode == 2f);
                 SetKeyword(material, "_RIMMODE_TEXTURED", mode == 3f);
             }
-
-            // Tinting
+            
+            // Toggles
             SetKeyword(material, "_TINT_SHADOW_ON_BASE", IsFeatureEnabled(tintShadowOnBase));
-
-            // Highlights & Reflections
-            SetKeyword(material, "_SPECULARHIGHLIGHTS_ON", IsFeatureEnabled(enableSpecularHighlights));
-            SetKeyword(material, "_ENVIRONMENTREFLECTIONS_ON", IsFeatureEnabled(enableEnvironmentReflections));
-            
-            // Rim Lighting
+            SetKeyword(material, "_MATCAP_BLEND_WITH_LIGHTING", IsFeatureEnabled(matcapBlendWithLighting));
             SetKeyword(material, "_ENABLERIM_ON", IsFeatureEnabled(enableRim));
-            
-            // Subsurface Scattering
             SetKeyword(material, "_ENABLESUBSURFACE_ON", IsFeatureEnabled(enableSubsurface));
-            
-            // Outline
             SetKeyword(material, "_ENABLEOUTLINE_ON", IsFeatureEnabled(enableOutline));
-            if (IsPropertyValid(outlineMode))
-            {
-                var mode = GetFloatValue(outlineMode);
-                SetKeyword(material, "_OUTLINEMODE_NORMAL", mode == 0f);
-                SetKeyword(material, "_OUTLINEMODE_POSITION", mode == 1f);
-                SetKeyword(material, "_OUTLINEMODE_UV", mode == 2f);
-            }
             SetKeyword(material, "_OUTLINE_DISTANCE_SCALING_ON", IsFeatureEnabled(outlineDistanceScaling));
             SetKeyword(material, "_OUTLINE_ANIMATED_COLOR_ON", IsFeatureEnabled(outlineAnimatedColor));
-
-            // Wind Animation
             SetKeyword(material, "_ENABLEWIND_ON", IsFeatureEnabled(enableWind));
-            
+            SetKeyword(material, "_RECEIVESHADOWS_ON", IsFeatureEnabled(receiveShadows));
+            SetKeyword(material, "_ENABLEADDITIONALLIGHTS_ON", IsFeatureEnabled(enableAdditionalLights));
+
             // Texture-based keywords
             SetKeyword(material, "_NORMALMAP", normalMap?.textureValue != null);
-            SetKeyword(material, "_SPECULARMASK_ON", softSpecularMask?.textureValue != null);
-            SetKeyword(material, "_ANISOTROPIC_FLOWMAP_ON", anisotropicFlowMap?.textureValue != null);
-            SetKeyword(material, "_MATCAP_BLEND_OFF", IsPropertyValid(matcapBlendWithLighting) && !IsFeatureEnabled(matcapBlendWithLighting));
-            
-            // Emission
-            bool hasEmission = emissionMap?.textureValue != null || 
-                              (emissionColor != null && emissionColor.colorValue.maxColorComponent > 0);
-            SetKeyword(material, "_EMISSION", hasEmission);
-            
-            // Detail Maps
+            SetKeyword(material, "_SOFT_SPECULAR_MASK", softSpecularMask?.textureValue != null);
+            SetKeyword(material, "_ANISOTROPIC_FLOW_MAP", anisotropicFlowMap?.textureValue != null);
+            SetKeyword(material, "_EMISSION", emissionMap?.textureValue != null || (emissionColor != null && emissionColor.colorValue.maxColorComponent > 0));
             SetKeyword(material, "_DETAIL", detailMap?.textureValue != null);
-            
-            // Additional Lights
-            SetKeyword(material, "_ENABLEADDITIONALLIGHTS_ON", IsFeatureEnabled(enableAdditionalLights));
-            
-            // Receive Shadows
-            SetKeyword(material, "_RECEIVESHADOWS_ON", IsFeatureEnabled(receiveShadows));
         }
 
         private void SetKeyword(Material material, string keyword, bool state)

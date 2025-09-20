@@ -12,54 +12,58 @@ half3 BlendNormal(half3 n1, half3 n2)
     return normalize(half3(n1.xy + n2.xy, n1.z * n2.z));
 }
 
-// Sadece yoğunluk hesaplayan basit aydınlatma fonksiyonu (Ek ışıklar için)
-half CalculateToonLightIntensity(half3 lightDir, half3 normal, half shadowAtten)
+// Ana ışık için tam renkli difüz hesaplaması yapan ana fonksiyon
+half3 CalculateToonDiffuse(Light light, half3 albedo, half3 normal, half shadowAtten)
 {
-    half NdotL = dot(normal, lightDir);
-    half lightIntensity = NdotL * shadowAtten;
+    half NdotL = saturate(dot(normal, light.direction));
+    half lightVal = NdotL * shadowAtten;
     
     #if defined(_LIGHTINGMODE_SINGLE_CELL)
         half halfSoftness = _TransitionSoftness / 2.0;
-        lightIntensity = smoothstep(_ShadowThreshold - halfSoftness, _ShadowThreshold + halfSoftness, lightIntensity);
-    #elif defined(_LIGHTINGMODE_BANDED)
-        half clampedMidtoneThreshold = max(_ShadowThreshold, _MidtoneThreshold);
-        half totalIntensity = 0;
-        float totalSteps = floor(_BandCount) + 1.0; 
-        half halfSoftness = _BandSoftness / 2.0;
+        half lightIntensity = smoothstep(_ShadowThreshold - halfSoftness, _ShadowThreshold + halfSoftness, lightVal);
+        lightIntensity = pow(lightIntensity, _ShadowContrast);
 
-        for (float i = 0.0; i < totalSteps; i += 1.0)
+        half3 litColor = albedo * light.color;
+        #if defined(_TINT_SHADOW_ON_BASE)
+            return lerp(_ShadowColor.rgb, litColor, lightIntensity);
+        #else
+            return litColor * lerp(_ShadowColor.rgb, half3(1,1,1), lightIntensity);
+        #endif
+
+    #elif defined(_LIGHTINGMODE_DUAL_CELL)
+        half halfSoftness = _TransitionSoftness / 2.0;
+        half lightIntensity = 1.0;
+        lightIntensity = lerp(lightIntensity, _PrimaryShadowColor.rgb, 1.0 - smoothstep(_PrimaryThreshold - halfSoftness, _PrimaryThreshold + halfSoftness, lightVal));
+        lightIntensity = lerp(lightIntensity, _SecondaryShadowColor.rgb, 1.0 - smoothstep(_SecondaryThreshold - halfSoftness, _SecondaryThreshold + halfSoftness, lightVal));
+        return albedo * light.color * lightIntensity;
+
+    #elif defined(_LIGHTINGMODE_BANDED)
+        half halfSoftness = _BandSoftness / 2.0;
+        half totalIntensity = 0;
+        float bandCount = floor(_BandCount);
+        
+        for (float i = 0.0; i < bandCount; i += 1.0)
         {
-            half threshold = lerp(_ShadowThreshold, clampedMidtoneThreshold, i / (totalSteps - 1.0));
-            totalIntensity += smoothstep(threshold - halfSoftness, threshold + halfSoftness, lightIntensity);
+            float bandStep = (i + 1.0) / bandCount;
+            float distributedStep = pow(bandStep, _BandDistribution);
+            half threshold = lerp(_ShadowThreshold, _MidtoneThreshold, distributedStep);
+            totalIntensity += smoothstep(threshold - halfSoftness, threshold + halfSoftness, lightVal);
         }
         
-        lightIntensity = totalIntensity / totalSteps;
-    #else // Ramp modu ek ışıklar için bu basit fallback'i kullanır
-        lightIntensity = smoothstep(0.5, 0.5 + 0.001, lightIntensity);
-    #endif
+        half lightIntensity = totalIntensity / bandCount;
+        half3 litColor = albedo * light.color;
+        return litColor * lerp(_ShadowColor.rgb, half3(1,1,1), lightIntensity);
 
-    return saturate(lightIntensity);
-}
-
-// Ana ışık için tam renkli difüz hesaplaması yapan ana fonksiyon
-half3 CalculateToonDiffuse(Light light, half3 baseColor, half3 normal, half shadowAtten)
-{
-    half NdotL = dot(normal, light.direction);
-    half lightVal = saturate(NdotL * shadowAtten);
-
-    #if defined(_LIGHTINGMODE_RAMP)
+    #elif defined(_LIGHTINGMODE_GRADIENT_RAMP)
         half3 rampColor = SAMPLE_TEXTURE2D(_ShadowRamp, sampler_ShadowRamp, float2(lightVal, 0.5)).rgb;
-        return baseColor * light.color * rampColor;
-    #else
-        half lightIntensity = CalculateToonLightIntensity(light.direction, normal, shadowAtten);
-        half3 litColor = baseColor * light.color;
-        half3 shadowColorResult = _ShadowColor.rgb; 
-        
-        #if defined(_TINT_SHADOW_ON_BASE)
-            return lerp(shadowColorResult, litColor, lightIntensity);
-        #else
-            return litColor * lerp(shadowColorResult, half3(1,1,1), lightIntensity);
-        #endif
+        return albedo * light.color * lerp(half3(1,1,1), rampColor, _RampIntensity);
+
+    #elif defined(_LIGHTINGMODE_CUSTOM_RAMP)
+        half3 rampColor = SAMPLE_TEXTURE2D(_CustomRamp, sampler_CustomRamp, float2(lightVal, 0.5)).rgb;
+        return albedo * light.color * lerp(half3(1,1,1), rampColor, _RampIntensity);
+
+    #else // Fallback
+        return albedo * light.color * lightVal;
     #endif
 }
 
@@ -72,32 +76,35 @@ half3 CalculateSpecular(half3 normal, half3 lightDir, half3 viewDir, half3 light
     half3 finalSpecular = half3(0,0,0);
 
     #if defined(_SPECULARMODE_STEPPED)
-        half spec = pow(NdotH, (1.0 - _SpecularSize) * _SteppedFalloff * 64.0);
+        half spec = pow(NdotH, (1.0 - _SpecularSize) * 128.0) * _SteppedFalloff;
         spec = floor(spec * _SpecularSteps) / _SpecularSteps;
-        spec = smoothstep(0, _SpecularSmoothness, spec);
+        spec = smoothstep(0.5 - _SpecularSmoothness * 0.5, 0.5 + _SpecularSmoothness * 0.5, spec);
         finalSpecular = _SpecularColor.rgb * spec;
     #elif defined(_SPECULARMODE_SOFT)
         half spec = pow(NdotH, _SoftSpecularGlossiness * 128.0);
-        #if defined(_SPECULARMASK_ON)
+        #if defined(_SOFT_SPECULAR_MASK)
             spec *= SAMPLE_TEXTURE2D(_SoftSpecularMask, sampler_SoftSpecularMask, uv).r;
         #endif
         finalSpecular = _SpecularColor.rgb * spec * _SoftSpecularStrength;
-    #elif defined(_SPECULARMODE_ENHANCED_ANISOTROPIC)
+    #elif defined(_SPECULARMODE_ANISOTROPIC)
         half3 tangent = tangentWS.xyz;
-        half3 bitangent = cross(normal, tangent) * tangentWS.w;
-        #if defined(_ANISOTROPIC_FLOWMAP_ON)
-            half2 flow = SAMPLE_TEXTURE2D(_AnisotropicFlowMap, sampler_AnisotropicFlowMap, uv).rg * 2 - 1;
-            tangent = normalize(tangent + flow.x * bitangent + flow.y * normal);
+        #if defined(_ANISOTROPIC_FLOW_MAP)
+            half2 flow = (SAMPLE_TEXTURE2D(_AnisotropicFlowMap, sampler_AnisotropicFlowMap, uv).xy * 2.0 - 1.0);
+            tangent = normalize(tangent + flow.x * normalize(cross(normal, tangent)));
         #endif
+        half3 bitangent = cross(normal, tangent) * tangentWS.w;
         half3 anisotropicDir = lerp(tangent, bitangent, _AnisotropicDirection * 0.5 + 0.5);
         half aniso = 1.0 - pow(saturate(dot(anisotropicDir, halfVector) + _AnisotropicOffset), _AnisotropicSharpness * 64.0);
         aniso = pow(saturate(aniso), _AnisotropicSharpness * 128.0);
         finalSpecular = _SpecularColor.rgb * aniso * _AnisotropicIntensity * NdotH;
-    #elif defined(_SPECULARMODE_ANIMATED_SPARKLE)
-        float2 sparkleUV = uv * _SparkleDensity + (_Time.y * _SparkleAnimSpeed);
+    #elif defined(_SPECULARMODE_SPARKLE)
+        float time = _Time.y * _SparkleAnimSpeed;
+        float2 sparkleUV = uv * _SparkleDensity;
+        sparkleUV.x += sin(time + sparkleUV.y);
+        sparkleUV.y += cos(time - sparkleUV.x);
         half sparkleNoise = SAMPLE_TEXTURE2D(_SparkleMap, sampler_SparkleMap, sparkleUV).r;
         half spec = pow(NdotH, 64.0);
-        half sparkleThreshold = smoothstep(1.0 - _SparkleSize, 1.0, sparkleNoise);
+        half sparkleThreshold = smoothstep(1.0 - _SparkleSize * 0.1, 1.0, sparkleNoise);
         finalSpecular = _SparkleColor.rgb * spec * sparkleThreshold;
     #elif defined(_SPECULARMODE_DOUBLE_TONE)
         half innerSpec = pow(abs(NdotH), (1.0 - _SpecularInnerSize) * 256.0);
@@ -108,24 +115,25 @@ half3 CalculateSpecular(half3 normal, half3 lightDir, half3 viewDir, half3 light
         
         finalSpecular = lerp(_SpecularOuterColor.rgb, _SpecularInnerColor.rgb, innerSpec) * outerSpec;
     #elif defined(_SPECULARMODE_MATCAP)
-        half2 matcapUV = mul((float3x3)UNITY_MATRIX_V, normal).xy * 0.5 + 0.5;
+        float2 matcapUV = mul((float3x3)UNITY_MATRIX_V, normal).xy * 0.5 + 0.5;
         finalSpecular = SAMPLE_TEXTURE2D(_MatcapTex, sampler_MatcapTex, matcapUV).rgb * _MatcapIntensity;
-    #elif defined(_SPECULARMODE_HAIR_FUR)
-        half3 tangent = tangentWS.xyz;
-        half3 H = normalize(lightDir + viewDir);
+        #if defined(_MATCAP_BLEND_WITH_LIGHTING)
+            finalSpecular *= lightColor;
+        #endif
+        return finalSpecular; // Matcap often replaces other lighting, so we return early
+    #elif defined(_SPECULARMODE_HAIR)
+        half TdotH = dot(tangentWS.xyz, halfVector);
+        half sin_TdotH = sqrt(1.0 - TdotH * TdotH);
         
-        // Primary Highlight
-        half3 shiftedLight1 = normalize(lightDir + tangent * _HairPrimaryShift);
-        half3 H1 = normalize(shiftedLight1 + viewDir);
-        half spec1 = pow(saturate(dot(normal, H1)), _HairPrimaryExponent);
+        half dirAtten = smoothstep(-1.0, 0.0, dot(tangentWS.xyz, lightDir));
         
-        // Secondary Highlight
-        half3 shiftedLight2 = normalize(lightDir + tangent * _HairSecondaryShift);
-        half3 H2 = normalize(shiftedLight2 + viewDir);
-        half spec2 = pow(saturate(dot(normal, H2)), _HairSecondaryExponent);
+        half sin_TdotH_shifted1 = sin_TdotH + _HairPrimaryShift;
+        half primarySpec = dirAtten * pow(saturate(sin_TdotH_shifted1), _HairPrimaryExponent);
         
-        finalSpecular = _HairPrimaryColor.rgb * spec1;
-        finalSpecular += _HairSecondaryColor.rgb * spec2 * lightColor;
+        half sin_TdotH_shifted2 = sin_TdotH + _HairSecondaryShift;
+        half secondarySpec = dirAtten * pow(saturate(sin_TdotH_shifted2), _HairSecondaryExponent);
+
+        finalSpecular = (_HairPrimaryColor.rgb * primarySpec + _HairSecondaryColor.rgb * secondarySpec) * lightColor;
     #endif
 
     return finalSpecular * lightColor * shadowAttenuation;
@@ -177,3 +185,4 @@ half3 CalculateSubsurface(half3 normal, half3 viewDir, Light mainLight)
 
 
 #endif // GTOON_LIGHTING_INCLUDED
+
