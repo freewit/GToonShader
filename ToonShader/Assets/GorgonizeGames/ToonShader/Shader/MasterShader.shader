@@ -5,6 +5,11 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         [Header(Base Properties)]
         _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
         _BaseMap ("Base Texture", 2D) = "white" {}
+        _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
+        _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
+        [Toggle(_ENABLESPECULARHIGHLIGHTS_ON)] _EnableSpecularHighlights("Enable Toon Specular", Float) = 1.0
+        [Toggle(_ENVIRONMENTREFLECTIONS_ON)] _EnableEnvironmentReflections("Enable Environment Reflections", Float) = 1.0
+        _EnvironmentReflections("Reflection Strength", Range(0, 1)) = 1.0
         
         [Header(Shadow System)]
         [KeywordEnum(Single Cell, Banded, Ramp)] _LightingMode ("Lighting Mode", Float) = 0
@@ -27,29 +32,33 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _OcclusionStrength ("Occlusion Strength", Range(0, 1)) = 1
         
         [Header(Specular System)]
-        [Toggle(_ENABLEHIGHLIGHTS_ON)] _EnableHighlights ("Enable Highlights", Float) = 1
-        [KeywordEnum(Stepped, Soft, Anisotropic, Sparkle, Double Tone)] _SpecularMode ("Specular Mode", Float) = 0
+        [KeywordEnum(Stepped, Soft, Enhanced Anisotropic, Animated Sparkle, Double Tone, Matcap, Hair Fur)] _SpecularMode ("Specular Mode", Float) = 0
 
         [Header(Stepped Mode)]
         _SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
         _SpecularSize ("Specular Size", Range(0, 1)) = 0.1
+        _SteppedFalloff("Falloff", Range(1, 10)) = 2.0
         _SpecularSmoothness ("Specular Smoothness", Range(0, 1)) = 0.5
         [IntRange] _SpecularSteps ("Specular Steps", Range(1, 8)) = 2
 
         [Header(Soft Mode)]
         _SoftSpecularGlossiness("Glossiness", Range(0, 1)) = 0.5
         _SoftSpecularStrength("Strength", Range(0, 2)) = 1.0
+        _SoftSpecularMask("Specular Mask (R)", 2D) = "white" {}
 
-        [Header(Anisotropic Mode)]
+        [Header(Enhanced Anisotropic Mode)]
         _AnisotropicDirection("Direction", Range(-1, 1)) = 0.5
         _AnisotropicSharpness("Sharpness", Range(0, 1)) = 0.5
         _AnisotropicIntensity("Intensity", Range(0, 2)) = 1.0
         _AnisotropicOffset("Offset", Range(-1, 1)) = 0.0
+        _AnisotropicFlowMap("Flow Map (RG)", 2D) = "gray" {}
 
-        [Header(Sparkle Mode)]
+        [Header(Animated Sparkle Mode)]
         _SparkleMap("Sparkle Pattern", 2D) = "white" {}
-        _SparkleDensity("Density", Range(1, 10)) = 1.0
         _SparkleColor("Sparkle Color", Color) = (1,1,1,1)
+        _SparkleDensity("Density", Range(1, 20)) = 5.0
+        _SparkleSize("Size", Range(0.001, 1)) = 0.1
+        _SparkleAnimSpeed("Animation Speed", Range(0, 5)) = 1.0
 
         [Header(Double Tone Mode)]
         _SpecularInnerColor("Inner Color", Color) = (1,1,1,1)
@@ -57,6 +66,19 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _SpecularInnerSize("Inner Size", Range(0, 1)) = 0.1
         _SpecularOuterSize("Outer Size", Range(0, 1)) = 0.3
         _SpecularDoubleToneSoftness("Softness", Range(0.001, 0.5)) = 0.05
+
+        [Header(Matcap Mode)]
+        _MatcapTex("Matcap Texture", 2D) = "gray" {}
+        _MatcapIntensity("Intensity", Range(0, 5)) = 1.0
+        [Toggle] _MatcapBlendWithLighting("Blend with Lighting", Float) = 1.0
+
+        [Header(Hair Fur Mode)]
+        _HairPrimaryColor("Primary Hair Color", Color) = (1,1,1,1)
+        _HairPrimaryExponent("Primary Exponent", Float) = 200
+        _HairPrimaryShift("Primary Shift", Range(-1, 1)) = 0.1
+        _HairSecondaryColor("Secondary Hair Color", Color) = (1,0.8,0.5,1)
+        _HairSecondaryExponent("Secondary Exponent", Float) = 20
+        _HairSecondaryShift("Secondary Shift", Range(-1, 1)) = -0.2
 
         [Header(Rim Lighting System)]
         [Toggle(_ENABLERIM_ON)] _EnableRim ("Enable Rim Lighting", Float) = 1
@@ -98,28 +120,20 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         _SubsurfaceDistortion ("Subsurface Distortion", Range(0, 2)) = 1
         _SubsurfacePower ("Subsurface Power", Range(0.1, 10)) = 1
         
-        [Header(Outline)]
+        [Header(Smart Outline System)]
         [Toggle(_ENABLEOUTLINE_ON)] _EnableOutline("Enable Outline", Float) = 0
-        _OutlineColor("Outline Color", Color) = (0,0,0,1)
-        _OutlineWidth("Outline Max Width", Range(0, 10)) = 1
+        _OutlineColor("Outline Color", Color) = (0, 0, 0, 1)
+        _OutlineWidth("Base Thickness", Range(0, 10)) = 1
+        [KeywordEnum(Normal, Position, UV)] _OutlineMode("Extrusion Mode", Float) = 0
 
-        [KeywordEnum(Normal, Position, UV)] _OutlineExpansionMode("Expansion Mode", Float) = 0
-        
-        [Toggle(_OUTLINE_ADAPTIVE_ON)] _OutlineAdaptive("Adaptive Width", Float) = 0
-        _OutlineMinWidth("Min Width", Range(0, 10)) = 0.5
-
+        [Header(Adaptive  Animated Outline)]
         [Toggle(_OUTLINE_DISTANCE_SCALING_ON)] _OutlineDistanceScaling("Distance Scaling", Float) = 0
-        _OutlineMinMaxDistance("Min/Max Distance", Vector) = (5, 50, 0, 0)
-
-        [Toggle(_OUTLINE_ANIMATED_COLOR_ON)] _OutlineAnimatedColor("Animated Color", Float) = 0
-        [HDR] _OutlineColorB ("Second Color", Color) = (1, 1, 1, 1)
-        _OutlineAnimationSpeed("Animation Speed", Range(0, 10)) = 1
-
-        [Toggle(_OUTLINE_NOISE_MODE_ON)] _OutlineNoiseMode ("Noisy Outline", Float) = 0
-        _OutlineNoiseScale ("Noise Scale", Range(0, 50)) = 10
-        _OutlineNoiseStrength ("Noise Strength", Range(0, 2)) = 0.5
-        _OutlineNoiseMap ("Noise Texture", 2D) = "white" {}
-
+        _OutlineAdaptiveMinWidth("Min Thickness", Range(0, 10)) = 0.5
+        _OutlineAdaptiveMaxWidth("Max Thickness", Range(0, 10)) = 2.0
+        [Toggle(_OUTLINE_ANIMATED_COLOR_ON)] _OutlineAnimatedColor("Animate Color", Float) = 0
+        _OutlineColorB("Color B", Color) = (1, 0, 1, 1)
+        _OutlineAnimationSpeed("Animation Speed", Range(0, 5)) = 1
+        
         [Header(Wind Animation)]
         [Toggle(_ENABLEWIND_ON)] _EnableWind ("Enable Wind", Float) = 0
         _WindSpeed ("Wind Speed", Range(0, 5)) = 1
@@ -157,10 +171,8 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             #pragma fragment OutlineFrag
             
             #pragma shader_feature_local _ENABLEOUTLINE_ON
-            #pragma shader_feature_local _OUTLINEEXPANSIONMODE_NORMAL _OUTLINEEXPANSIONMODE_POSITION _OUTLINEEXPANSIONMODE_UV
-            #pragma shader_feature_local _OUTLINE_NOISE_MODE_ON
+            #pragma shader_feature_local _OUTLINEMODE_NORMAL _OUTLINEMODE_POSITION _OUTLINEMODE_UV
             #pragma shader_feature_local _OUTLINE_DISTANCE_SCALING_ON
-            #pragma shader_feature_local _OUTLINE_ADAPTIVE_ON
             #pragma shader_feature_local_fragment _OUTLINE_ANIMATED_COLOR_ON
             #pragma shader_feature_local _ENABLEWIND_ON
             
@@ -185,8 +197,12 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             #pragma fragment frag
             
             // Feature keywords
-            #pragma shader_feature_local _ENABLEHIGHLIGHTS_ON
-            #pragma shader_feature_local_fragment _SPECULARMODE_STEPPED _SPECULARMODE_SOFT _SPECULARMODE_ANISOTROPIC _SPECULARMODE_SPARKLE _SPECULARMODE_DOUBLE_TONE
+            #pragma shader_feature_local _SPECULARHIGHLIGHTS_ON
+            #pragma shader_feature_local _ENVIRONMENTREFLECTIONS_ON
+            #pragma shader_feature_local_fragment _SPECULARMODE_STEPPED _SPECULARMODE_SOFT _SPECULARMODE_ENHANCED_ANISOTROPIC _SPECULARMODE_ANIMATED_SPARKLE _SPECULARMODE_DOUBLE_TONE _SPECULARMODE_MATCAP _SPECULARMODE_HAIR_FUR
+            #pragma shader_feature_local_fragment _SPECULARMASK_ON
+            #pragma shader_feature_local_fragment _ANISOTROPIC_FLOWMAP_ON
+            #pragma shader_feature_local_fragment _MATCAP_BLEND_OFF
             #pragma shader_feature_local _ENABLERIM_ON
             #pragma shader_feature_local_fragment _RIMMODE_STANDARD _RIMMODE_STEPPED _RIMMODE_LIGHTBASED _RIMMODE_TEXTURED
             #pragma shader_feature_local _ENABLESUBSURFACE_ON
@@ -228,7 +244,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             ZWrite On
             ZTest LEqual
             ColorMask 0
-            Cull[_Cull]
+            Cull Back
 
             HLSLPROGRAM
             #pragma target 4.5
@@ -249,7 +265,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
 
             ZWrite On
             ColorMask 0
-            Cull[_Cull]
+            Cull Back
 
             HLSLPROGRAM
             #pragma target 4.5
@@ -269,7 +285,7 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             Tags{"LightMode" = "DepthNormals"}
 
             ZWrite On
-            Cull[_Cull]
+            Cull Back
 
             HLSLPROGRAM
             #pragma target 4.5
@@ -287,4 +303,5 @@ Shader "Gorgonize/Gorgonize Toon Shader"
     CustomEditor "Gorgonize.ToonShader.Editor.GorgonizeToonShaderGUI"
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }
+
 

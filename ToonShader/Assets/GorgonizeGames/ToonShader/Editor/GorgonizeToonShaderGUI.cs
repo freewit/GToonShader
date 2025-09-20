@@ -14,19 +14,16 @@ namespace Gorgonize.ToonShader.Editor
         private ToonShaderProperties props;
         
         // Foldout states - Professional defaults
-        private static bool showBase = true;
-        private static bool showShadows = true;
-        private static bool showHighlights = true;
-        private static bool showRim = true;
+        private static bool showBase = false;
+        private static bool showShadows = false;
+        private static bool showHighlights = false;
+        private static bool showRim = false;
         private static bool showAdvanced = false;
         private static bool showSubsurface = false;
         private static bool showOutline = false;
         private static bool showWind = false;
         private static bool showPerformance = false;
         private static bool showHelp = false;
-        
-        // Animation
-        private static double lastUpdateTime;
         
         #endregion
         
@@ -59,7 +56,7 @@ namespace Gorgonize.ToonShader.Editor
             }
             
             // Force repaint for animations
-            HandleAnimationRepaint();
+            HandleAnimationRepaint(materialEditor);
         }
         
         #endregion
@@ -159,10 +156,29 @@ namespace Gorgonize.ToonShader.Editor
                         
                     if (props.IsPropertyValid(props.baseMap))
                         materialEditor.TexturePropertySingleLine(new GUIContent("🖼️ Albedo Texture"), props.baseMap);
+
+                    if (props.IsPropertyValid(props.metallic))
+                        materialEditor.ShaderProperty(props.metallic, "⚙️ Metallic");
+                        
+                    if (props.IsPropertyValid(props.smoothness))
+                        materialEditor.ShaderProperty(props.smoothness, "✨ Smoothness");
+
                 }, true);
                 
-                // Live preview tip
-                ToonShaderStyles.DrawInfoBox("Changes are applied in real-time to the scene view for instant feedback.");
+                ToonShaderStyles.DrawPropertyGroup("Reflections", () =>
+                {
+                    if(props.IsPropertyValid(props.enableSpecularHighlights))
+                        ToonShaderStyles.DrawFeatureToggle(props.enableSpecularHighlights, "Toon Specular Highlights", "Enable stylized, artistic highlights.", "✨");
+                    
+                    if(props.IsPropertyValid(props.enableEnvironmentReflections))
+                        ToonShaderStyles.DrawFeatureToggle(props.enableEnvironmentReflections, "Environment Reflections", "Enable realistic reflections from the skybox or probes.", "🌍");
+
+                    if (props.IsFeatureEnabled(props.enableEnvironmentReflections) && props.IsPropertyValid(props.environmentReflections))
+                        materialEditor.ShaderProperty(props.environmentReflections, "Reflection Strength");
+
+                }, true);
+
+                ToonShaderStyles.DrawInfoBox("Use Metallic and Smoothness for PBR-like surfaces. Reflections can be stylized, realistic, or both.");
             }
         }
         
@@ -281,39 +297,37 @@ namespace Gorgonize.ToonShader.Editor
             
             if (showHighlights)
             {
-                if (props.IsPropertyValid(props.enableHighlights))
+                ToonShaderStyles.DrawPropertyGroup("Specular Mode", () =>
                 {
-                    ToonShaderStyles.DrawFeatureToggle(props.enableHighlights, "Enable Specular Highlights", "Add cartoon-style reflections", "✨");
-                }
-                
-                if (props.IsFeatureEnabled(props.enableHighlights))
+                    if (props.IsPropertyValid(props.specularMode))
+                        materialEditor.ShaderProperty(props.specularMode, "⚙️ Specular Method");
+                }, true);
+
+                var specularMode = (int)props.GetFloatValue(props.specularMode);
+
+                switch (specularMode)
                 {
-                    ToonShaderStyles.DrawPropertyGroup("Specular Mode", () =>
-                    {
-                        if (props.IsPropertyValid(props.specularMode))
-                            materialEditor.ShaderProperty(props.specularMode, "⚙️ Specular Method");
-                    }, true);
-
-                    var specularMode = (int)props.GetFloatValue(props.specularMode);
-
-                    switch (specularMode)
-                    {
-                        case 0: // Stepped
-                            DrawSteppedSpecularControls(materialEditor);
-                            break;
-                        case 1: // Soft
-                            DrawSoftSpecularControls(materialEditor);
-                            break;
-                        case 2: // Anisotropic
-                            DrawAnisotropicSpecularControls(materialEditor);
-                            break;
-                        case 3: // Sparkle
-                            DrawSparkleSpecularControls(materialEditor);
-                            break;
-                        case 4: // Double Tone
-                            DrawDoubleToneSpecularControls(materialEditor);
-                            break;
-                    }
+                    case 0: // Stepped
+                        DrawSteppedSpecularControls(materialEditor);
+                        break;
+                    case 1: // Soft
+                        DrawSoftSpecularControls(materialEditor);
+                        break;
+                    case 2: // Anisotropic
+                        DrawAnisotropicSpecularControls(materialEditor);
+                        break;
+                    case 3: // Sparkle
+                        DrawSparkleSpecularControls(materialEditor);
+                        break;
+                    case 4: // Double Tone
+                        DrawDoubleToneSpecularControls(materialEditor);
+                        break;
+                    case 5: // Matcap
+                        DrawMatcapSpecularControls(materialEditor);
+                        break;
+                    case 6: // Hair/Fur
+                        DrawHairSpecularControls(materialEditor);
+                        break;
                 }
             }
         }
@@ -327,6 +341,9 @@ namespace Gorgonize.ToonShader.Editor
                             
                 if (props.IsPropertyValid(props.specularSize))
                     materialEditor.ShaderProperty(props.specularSize, "🔍 Highlight Size");
+
+                if (props.IsPropertyValid(props.steppedFalloff))
+                    materialEditor.ShaderProperty(props.steppedFalloff, "🍂 Falloff");
                             
                 if (props.IsPropertyValid(props.specularSmoothness))
                     materialEditor.ShaderProperty(props.specularSmoothness, "🌊 Edge Smoothness");
@@ -351,13 +368,16 @@ namespace Gorgonize.ToonShader.Editor
                 if (props.IsPropertyValid(props.softSpecularStrength))
                     materialEditor.ShaderProperty(props.softSpecularStrength, "💪 Strength");
 
+                if (props.IsPropertyValid(props.softSpecularMask))
+                    materialEditor.TexturePropertySingleLine(new GUIContent("🎭 Specular Mask"), props.softSpecularMask);
+
                 ToonShaderStyles.DrawInfoBox("Traditional, smooth gradient highlight for a softer look.");
             }, true);
         }
         
         private void DrawAnisotropicSpecularControls(MaterialEditor materialEditor)
         {
-            ToonShaderStyles.DrawPropertyGroup("Anisotropic Specular", () =>
+            ToonShaderStyles.DrawPropertyGroup("Enhanced Anisotropic Specular", () =>
             {
                 if (props.IsPropertyValid(props.specularColor))
                     materialEditor.ShaderProperty(props.specularColor, "💎 Highlight Color");
@@ -373,6 +393,9 @@ namespace Gorgonize.ToonShader.Editor
 
                 if (props.IsPropertyValid(props.anisotropicOffset))
                     materialEditor.ShaderProperty(props.anisotropicOffset, "📏 Offset");
+                
+                if (props.IsPropertyValid(props.anisotropicFlowMap))
+                    materialEditor.TexturePropertySingleLine(new GUIContent("🌊 Flow Map"), props.anisotropicFlowMap);
 
                 ToonShaderStyles.DrawInfoBox("Ideal for brushed metal or hair-like surfaces.");
             }, true);
@@ -380,7 +403,7 @@ namespace Gorgonize.ToonShader.Editor
         
         private void DrawSparkleSpecularControls(MaterialEditor materialEditor)
         {
-            ToonShaderStyles.DrawPropertyGroup("Sparkle Specular", () =>
+            ToonShaderStyles.DrawPropertyGroup("Animated Sparkle Specular", () =>
             {
                 if (props.IsPropertyValid(props.sparkleColor))
                     materialEditor.ShaderProperty(props.sparkleColor, "✨ Sparkle Color");
@@ -390,8 +413,14 @@ namespace Gorgonize.ToonShader.Editor
                     
                 if (props.IsPropertyValid(props.sparkleDensity))
                     materialEditor.ShaderProperty(props.sparkleDensity, "🎛️ Density");
+                    
+                if (props.IsPropertyValid(props.sparkleSize))
+                    materialEditor.ShaderProperty(props.sparkleSize, "🔍 Size");
 
-                ToonShaderStyles.DrawInfoBox("Uses a texture to create a sparkling or glittery effect.");
+                if (props.IsPropertyValid(props.sparkleAnimSpeed))
+                    materialEditor.ShaderProperty(props.sparkleAnimSpeed, "🌀 Animation Speed");
+
+                ToonShaderStyles.DrawInfoBox("Uses a texture to create a real-time sparkling effect.");
             }, true);
         }
         
@@ -415,6 +444,47 @@ namespace Gorgonize.ToonShader.Editor
                     materialEditor.ShaderProperty(props.specularDoubleToneSoftness, "🌊 Softness");
 
                 ToonShaderStyles.DrawInfoBox("Creates a stylish two-color highlight effect.");
+            }, true);
+        }
+
+        private void DrawMatcapSpecularControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Matcap Mode", () =>
+            {
+                if(props.IsPropertyValid(props.matcapTex))
+                    materialEditor.TexturePropertySingleLine(new GUIContent("🖼️ Matcap Texture"), props.matcapTex);
+                
+                if(props.IsPropertyValid(props.matcapIntensity))
+                    materialEditor.ShaderProperty(props.matcapIntensity, "💪 Intensity");
+
+                if(props.IsPropertyValid(props.matcapBlendWithLighting))
+                    ToonShaderStyles.DrawFeatureToggle(props.matcapBlendWithLighting, "Blend with Lighting", "If disabled, Matcap will override all other lighting.", "🔄");
+
+                ToonShaderStyles.DrawInfoBox("Simulates reflections using a texture based on camera angle. Great for faking complex lighting.");
+            }, true);
+        }
+        
+        private void DrawHairSpecularControls(MaterialEditor materialEditor)
+        {
+            ToonShaderStyles.DrawPropertyGroup("Hair/Fur Mode (Kajiya-Kay)", () =>
+            {
+                if(props.IsPropertyValid(props.hairPrimaryColor))
+                    materialEditor.ShaderProperty(props.hairPrimaryColor, "🎨 Primary Color");
+                if(props.IsPropertyValid(props.hairPrimaryExponent))
+                    materialEditor.ShaderProperty(props.hairPrimaryExponent, "Primary Exponent");
+                if(props.IsPropertyValid(props.hairPrimaryShift))
+                    materialEditor.ShaderProperty(props.hairPrimaryShift, "Primary Shift");
+                
+                EditorGUILayout.Space();
+
+                if(props.IsPropertyValid(props.hairSecondaryColor))
+                    materialEditor.ShaderProperty(props.hairSecondaryColor, "🎨 Secondary Color");
+                if(props.IsPropertyValid(props.hairSecondaryExponent))
+                    materialEditor.ShaderProperty(props.hairSecondaryExponent, "Secondary Exponent");
+                if(props.IsPropertyValid(props.hairSecondaryShift))
+                    materialEditor.ShaderProperty(props.hairSecondaryShift, "Secondary Shift");
+
+                ToonShaderStyles.DrawInfoBox("A specialized model for rendering anisotropic highlights on hair and fur.");
             }, true);
         }
         
@@ -504,7 +574,7 @@ namespace Gorgonize.ToonShader.Editor
                     materialEditor.ShaderProperty(props.rimPower, "⚡ Rim Power");
                 
                 if(props.IsPropertyValid(props.rimIntensity))
-                    materialEditor.ShaderProperty(props.rimIntensity, "💪 Intensity");
+                    materialEditor.ShaderProperty(props.rimIntensity, "💪 Rim Intensity");
                 
                 if(props.IsPropertyValid(props.rimLightInfluence))
                     materialEditor.ShaderProperty(props.rimLightInfluence, "☀️ Light Influence");
@@ -539,84 +609,57 @@ namespace Gorgonize.ToonShader.Editor
             if (showOutline)
             {
                 if (props.IsPropertyValid(props.enableOutline))
+                {
                     ToonShaderStyles.DrawFeatureToggle(props.enableOutline, "Enable Outline Effect", "Classic toon shader outline", "📝");
+                }
 
                 if (props.IsFeatureEnabled(props.enableOutline))
                 {
-                    // --- General Outline Settings ---
-                    ToonShaderStyles.DrawPropertyGroup("General", () =>
+                    ToonShaderStyles.DrawPropertyGroup("Main Settings", () =>
                     {
                         if (props.IsPropertyValid(props.outlineColor))
                             materialEditor.ShaderProperty(props.outlineColor, "🖍️ Outline Color");
-
-                        if (props.IsPropertyValid(props.outlineExpansionMode))
-                            materialEditor.ShaderProperty(props.outlineExpansionMode, "⚙️ Expansion Mode");
-
-                        ToonShaderStyles.DrawInfoBox("For best results, ensure your mesh has smooth normals. Outline uses vertex expansion technique.");
-                    }, true);
-
-                    // --- Width Control ---
-                    ToonShaderStyles.DrawPropertyGroup("Width & Scaling", () =>
-                    {
-                        bool isAdaptive = props.IsFeatureEnabled(props.outlineAdaptive);
-                        string widthLabel = isAdaptive ? "📏 Max Width" : "📏 Width";
+                            
                         if (props.IsPropertyValid(props.outlineWidth))
-                            materialEditor.ShaderProperty(props.outlineWidth, widthLabel);
-
-                        if (props.IsPropertyValid(props.outlineDistanceScaling))
-                            ToonShaderStyles.DrawFeatureToggle(props.outlineDistanceScaling, "Distance Scaling", "Scale width based on camera distance", "📐");
-
-                        bool isDistanceScaling = props.IsFeatureEnabled(props.outlineDistanceScaling);
-                        if (isDistanceScaling && props.IsPropertyValid(props.outlineMinMaxDistance))
-                            materialEditor.ShaderProperty(props.outlineMinMaxDistance, "Min/Max Distance");
+                            materialEditor.ShaderProperty(props.outlineWidth, "📏 Base Thickness");
                         
-                        EditorGUI.BeginDisabledGroup(!isDistanceScaling);
-                        if (props.IsPropertyValid(props.outlineAdaptive))
-                            ToonShaderStyles.DrawFeatureToggle(props.outlineAdaptive, "Adaptive Width", "Use Min/Max values for scaling", "🌊");
-                        EditorGUI.EndDisabledGroup();
-
-                        if (isDistanceScaling && props.IsFeatureEnabled(props.outlineAdaptive) && props.IsPropertyValid(props.outlineMinWidth))
-                            materialEditor.ShaderProperty(props.outlineMinWidth, "📏 Min Width");
+                        if (props.IsPropertyValid(props.outlineMode))
+                            materialEditor.ShaderProperty(props.outlineMode, "Extrusion Mode");
                     }, true);
 
-                    // --- Effects ---
-                    ToonShaderStyles.DrawPropertyGroup("Effects", () =>
+                    ToonShaderStyles.DrawPropertyGroup("Adaptive & Animated Features", () =>
                     {
-                        // Animated Color
-                        if (props.IsPropertyValid(props.outlineAnimatedColor))
-                            ToonShaderStyles.DrawFeatureToggle(props.outlineAnimatedColor, "Animated Color", "Animate between two colors", "🎨");
-                        
-                        if (props.IsFeatureEnabled(props.outlineAnimatedColor))
+                        if(props.IsPropertyValid(props.outlineDistanceScaling))
+                            ToonShaderStyles.DrawFeatureToggle(props.outlineDistanceScaling, "Distance Scaling", "Outline scales with camera distance.", "📐");
+
+                        if(props.IsFeatureEnabled(props.outlineDistanceScaling))
                         {
-                            if (props.IsPropertyValid(props.outlineColorB))
-                                materialEditor.ShaderProperty(props.outlineColorB, "Second Color");
-                            if (props.IsPropertyValid(props.outlineAnimationSpeed))
+                            if(props.IsPropertyValid(props.outlineAdaptiveMinWidth))
+                                materialEditor.ShaderProperty(props.outlineAdaptiveMinWidth, "Min Thickness");
+                            if(props.IsPropertyValid(props.outlineAdaptiveMaxWidth))
+                                materialEditor.ShaderProperty(props.outlineAdaptiveMaxWidth, "Max Thickness");
+                        }
+                        
+                        EditorGUILayout.Space();
+
+                        if(props.IsPropertyValid(props.outlineAnimatedColor))
+                            ToonShaderStyles.DrawFeatureToggle(props.outlineAnimatedColor, "Animate Color", "Animate outline color using a gradient.", "🎨");
+                        
+                        if(props.IsFeatureEnabled(props.outlineAnimatedColor))
+                        {
+                            if(props.IsPropertyValid(props.outlineColorB))
+                                materialEditor.ShaderProperty(props.outlineColorB, "Color B");
+                            if(props.IsPropertyValid(props.outlineAnimationSpeed))
                                 materialEditor.ShaderProperty(props.outlineAnimationSpeed, "Animation Speed");
                         }
 
-                        EditorGUILayout.Space();
-
-                        // Noise
-                        if (props.IsPropertyValid(props.outlineNoiseMode))
-                            ToonShaderStyles.DrawFeatureToggle(props.outlineNoiseMode, "Noisy Outline", "Add a wobbly, hand-drawn look", "〰️");
-                        
-                        if (props.IsFeatureEnabled(props.outlineNoiseMode))
-                        {
-                            if (props.IsPropertyValid(props.outlineNoiseMap))
-                                materialEditor.TexturePropertySingleLine(new GUIContent("Noise Texture"), props.outlineNoiseMap);
-                            if (props.IsPropertyValid(props.outlineNoiseScale))
-                                materialEditor.ShaderProperty(props.outlineNoiseScale, "Noise Scale");
-                            if (props.IsPropertyValid(props.outlineNoiseStrength))
-                                materialEditor.ShaderProperty(props.outlineNoiseStrength, "Noise Strength");
-                            if (GUILayout.Button("Noise Texture Editor", ToonShaderStyles.ButtonSecondaryStyle))
-                                NoiseTextureEditor.ShowWindow();
-                        }
                     }, true);
+                    
+                    ToonShaderStyles.DrawInfoBox("For best results, ensure your mesh has smooth normals. 'Position' mode is often best for scaling.");
                 }
             }
         }
-
-
+        
         private void DrawSubsurfaceSectionProfessional(MaterialEditor materialEditor)
         {
             showSubsurface = ToonShaderStyles.DrawProfessionalFoldout("Subsurface Scattering", showSubsurface, "🌸");
@@ -791,23 +834,20 @@ namespace Gorgonize.ToonShader.Editor
             }
         }
         
-        private void HandleAnimationRepaint()
+        private void HandleAnimationRepaint(MaterialEditor materialEditor)
         {
-            double currentTime = EditorApplication.timeSinceStartup;
-            if (currentTime - lastUpdateTime > 0.1) // 10 FPS for smooth animations
+            // Only force repaint if sparkle animation is active
+            if (props != null && props.IsPropertyValid(props.specularMode) && props.GetFloatValue(props.specularMode) == 3 && props.IsPropertyValid(props.sparkleAnimSpeed) && props.GetFloatValue(props.sparkleAnimSpeed) > 0)
             {
-                lastUpdateTime = currentTime;
-                if (EditorWindow.focusedWindow != null)
-                {
-                    EditorWindow.focusedWindow.Repaint();
-                }
+                 // Repainting the current editor is enough to drive the animation preview in modern Unity versions.
+                materialEditor.Repaint();
             }
         }
         
         private int CountEnabledFeatures()
         {
             int count = 0;
-            if (props.IsFeatureEnabled(props.enableHighlights)) count++;
+            if (props.IsFeatureEnabled(props.enableSpecularHighlights)) count++;
             if (props.IsFeatureEnabled(props.enableRim)) count++;
             if (props.IsFeatureEnabled(props.enableOutline)) count++;
             if (props.IsFeatureEnabled(props.enableSubsurface)) count++;
@@ -848,8 +888,8 @@ namespace Gorgonize.ToonShader.Editor
                 props.shadowThreshold.floatValue = 0.5f;
             if (props.IsPropertyValid(props.enableOutline))
                 props.enableOutline.floatValue = 1f;
-            if (props.IsPropertyValid(props.enableHighlights))
-                props.enableHighlights.floatValue = 1f;
+            if (props.IsPropertyValid(props.enableSpecularHighlights))
+                props.enableSpecularHighlights.floatValue = 1f;
             if (props.IsPropertyValid(props.enableRim))
                 props.enableRim.floatValue = 1f;
         }

@@ -27,7 +27,7 @@ struct Varyings
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
     float3 positionWS               : TEXCOORD2;
     float3 normalWS                 : TEXCOORD3;
-    #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC)
+    #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC) || defined(_ENVIRONMENTREFLECTIONS_ON)
         half4 tangentWS                 : TEXCOORD4;
     #endif
     float3 viewDirWS                : TEXCOORD5;
@@ -60,7 +60,7 @@ Varyings vert(Attributes input)
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
     output.normalWS = normalInput.normalWS;
     
-    #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC)
+    #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC) || defined(_ENVIRONMENTREFLECTIONS_ON)
         real sign = input.tangentOS.w * GetOddNegativeScale();
         half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
         output.tangentWS = tangentWS;
@@ -92,11 +92,17 @@ half4 frag(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     
     // Temel doku ve renk örneklemesi
-    half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv) * _BaseColor;
+    half4 baseMapColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
+    half4 baseColor = baseMapColor * _BaseColor;
     
+    // PBR-like yüzey özellikleri
+    half oneMinusReflectivity = 1.0 - kDielectricSpec.r;
+    half3 albedo = baseColor.rgb * (1.0 - _Metallic * oneMinusReflectivity);
+    half3 specColor = lerp(kDielectricSpec.rgb, baseColor.rgb, _Metallic);
+
     // Normal map hesaplamaları
     half3 normalWS = normalize(input.normalWS);
-    #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC)
+    #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC) || defined(_ENVIRONMENTREFLECTIONS_ON)
         half3 normalTS = half3(0,0,1);
         #if defined(_NORMALMAP)
             normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.uv), _NormalStrength);
@@ -109,14 +115,16 @@ half4 frag(Varyings input) : SV_Target
                  normalTS = detailNormalTS;
             #endif
         #endif
-        half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, input.tangentWS.w * cross(input.normalWS, input.tangentWS.xyz), input.normalWS);
-        normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
+        #if defined(_NORMALMAP) || defined(_DETAIL) // Only create matrix if we actually have a tangent space normal
+            half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, input.tangentWS.w * cross(input.normalWS, input.tangentWS.xyz), input.normalWS);
+            normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
+        #endif
     #endif
 
     // Detail albedo
     #if defined(_DETAIL)
         half4 detailColor = SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, input.uv * _DetailMap_ST.xy + _DetailMap_ST.zw);
-        baseColor.rgb = lerp(baseColor.rgb, baseColor.rgb * detailColor.rgb * 2, _DetailStrength);
+        albedo = lerp(albedo, albedo * detailColor.rgb * 2, _DetailStrength);
     #endif
     
     half3 viewDirWS = normalize(input.viewDirWS);
@@ -134,46 +142,47 @@ half4 frag(Varyings input) : SV_Target
     Light mainLight = GetMainLight(shadowCoord);
     half shadowAttenuation = mainLight.shadowAttenuation;
 
-    // AYDINLATMA MANTIĞI
-    half3 mainLightDiffuse = CalculateToonDiffuse(mainLight, baseColor.rgb, normalWS, shadowAttenuation);
-    
-    // Renkleri birleştirmeye başla
-    half3 finalColor = mainLightDiffuse;
-    
-    // Ek ışıklar (Additional Lights)
-    #ifdef _ADDITIONAL_LIGHTS
-        uint pixelLightCount = GetAdditionalLightsCount();
-        for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
-        {
-            Light light = GetAdditionalLight(lightIndex, input.positionWS);
-            half atten = light.shadowAttenuation * light.distanceAttenuation;
-            
-            // Ek ışıklar her zaman daha basit bir aydınlatma kullanır, Ramp modu burada geçerli olmaz
-            half additionalLightIntensity = CalculateToonLightIntensity(light.direction, normalWS, atten);
-            finalColor += baseColor.rgb * light.color * additionalLightIntensity;
-        }
+    // === AYDINLATMA HESAPLAMALARI BAŞLANGICI (YENİ MANTIK) ===
+
+    // 1. Toon Diffuse ve GI hesaplaması (Temel Işık)
+    half3 diffuseComponent = CalculateToonDiffuse(mainLight, albedo, normalWS, shadowAttenuation);
+    diffuseComponent += SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS) * albedo * _LightmapInfluence * _OcclusionStrength;
+
+    // 2. Çevre Yansımaları (Environment Reflections)
+    half3 specularComponent = half3(0,0,0);
+    #if defined(_ENVIRONMENTREFLECTIONS_ON)
+        half perceptualRoughness = 1.0h - _Smoothness;
+        half3 reflectVec = reflect(-viewDirWS, normalWS);
+        half occlusion = 1.0h;
+        half3 reflection = GlossyEnvironmentReflection(reflectVec, perceptualRoughness, occlusion);
+        specularComponent = reflection * _EnvironmentReflections * specColor;
     #endif
 
-    // Eklemeli efektler
-    #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC)
-        half4 tangentWS = input.tangentWS;
-    #else
-        half4 tangentWS = half4(1,0,0,1); // Anisotropic için dummy veri
-    #endif
+    // 3. Fresnel ile Diffuse ve Specular birleştirme
+    half fresnel = pow(1.0 - saturate(dot(normalWS, viewDirWS)), 5.0);
+    half fresnelTerm = lerp(fresnel, 1.0h, _Metallic); // Metalik ise her yerden, değilse kenarlardan yansıt
     
-    half3 specularColor = CalculateSpecular(normalWS, mainLight.direction, viewDirWS, mainLight.color, shadowAttenuation, tangentWS, input.uv);
-    half3 rimColor = CalculateRimLighting(normalWS, viewDirWS, mainLight.direction, mainLight.color, input.uv);
-    half3 subsurfaceColor = CalculateSubsurface(normalWS, viewDirWS, mainLight);
+    // Metalik olmayan yüzeyler için yansımayı albedo rengiyle karıştır, metalik yüzeyler için olduğu gibi bırak.
+    // Bu, "beyaz plastik" gibi malzemelerin doğru görünmesini sağlar.
+    half3 surfaceColor = lerp(diffuseComponent, specularComponent, fresnelTerm);
 
-    // Lightmap / Baked GI
-    half3 bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
-    
-    // Tüm aydınlatma bileşenlerini birleştir
-    finalColor += specularColor;
-    finalColor += rimColor;
-    finalColor += subsurfaceColor;
-    finalColor += bakedGI * baseColor.rgb * _LightmapInfluence * _OcclusionStrength;
-    
+    // 4. Final Rengi oluşturmaya başla
+    half3 finalColor = surfaceColor;
+
+    // 5. Eklemeli Efektler (Additive Effects)
+    // Toon specular artık yansımaların üzerine ekleniyor, böylece kaybolmuyor.
+    #if defined(_SPECULARHIGHLIGHTS_ON)
+        #if defined(_NORMALMAP) || defined(_DETAIL) || defined(_SPECULARMODE_ANISOTROPIC) || defined(_ENVIRONMENTREFLECTIONS_ON)
+            half4 tangentWS = input.tangentWS;
+        #else
+            half4 tangentWS = half4(1,0,0,1); // Dummy data
+        #endif
+        finalColor += CalculateSpecular(normalWS, mainLight.direction, viewDirWS, mainLight.color, shadowAttenuation, tangentWS, input.uv);
+    #endif
+
+    finalColor += CalculateRimLighting(normalWS, viewDirWS, mainLight.direction, mainLight.color, input.uv);
+    finalColor += CalculateSubsurface(normalWS, viewDirWS, mainLight);
+
     // Emission
     #if defined(_EMISSION)
         half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).rgb * _EmissionColor.rgb * _EmissionIntensity;

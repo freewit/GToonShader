@@ -5,15 +5,18 @@
 // Kod tekrarını önler ve merkezi bir kontrol sağlar.
 
 // Textures
-TEXTURE2D(_BaseMap);            SAMPLER(sampler_BaseMap);
-TEXTURE2D(_ShadowRamp);         SAMPLER(sampler_ShadowRamp);
-TEXTURE2D(_NormalMap);          SAMPLER(sampler_NormalMap);
-TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
-TEXTURE2D(_DetailMap);          SAMPLER(sampler_DetailMap);
-TEXTURE2D(_DetailNormalMap);    SAMPLER(sampler_DetailNormalMap);
-TEXTURE2D(_SparkleMap);         SAMPLER(sampler_SparkleMap);
-TEXTURE2D(_RimTexture);         SAMPLER(sampler_RimTexture);
-TEXTURE2D(_OutlineNoiseMap);    SAMPLER(sampler_OutlineNoiseMap);
+TEXTURE2D(_BaseMap);                    SAMPLER(sampler_BaseMap);
+TEXTURE2D(_ShadowRamp);                 SAMPLER(sampler_ShadowRamp);
+TEXTURE2D(_NormalMap);                  SAMPLER(sampler_NormalMap);
+TEXTURE2D(_EmissionMap);                SAMPLER(sampler_EmissionMap);
+TEXTURE2D(_DetailMap);                  SAMPLER(sampler_DetailMap);
+TEXTURE2D(_DetailNormalMap);            SAMPLER(sampler_DetailNormalMap);
+TEXTURE2D(_SoftSpecularMask);           SAMPLER(sampler_SoftSpecularMask);
+TEXTURE2D(_AnisotropicFlowMap);         SAMPLER(sampler_AnisotropicFlowMap);
+TEXTURE2D(_SparkleMap);                 SAMPLER(sampler_SparkleMap);
+TEXTURE2D(_MatcapTex);                  SAMPLER(sampler_MatcapTex);
+TEXTURE2D(_RimTexture);                 SAMPLER(sampler_RimTexture);
+TEXTURE2D(_OutlineNoiseMap);            SAMPLER(sampler_OutlineNoiseMap);
 
 
 CBUFFER_START(UnityPerMaterial)
@@ -24,6 +27,9 @@ CBUFFER_START(UnityPerMaterial)
     
     // Temel Özellikler
     half4 _BaseColor;
+    half _Metallic;
+    half _Smoothness;
+    half _EnvironmentReflections;
     
     // Aydınlatma & Gölge
     half _LightingMode;
@@ -40,23 +46,48 @@ CBUFFER_START(UnityPerMaterial)
     
     // Specular
     half _SpecularMode;
+
+    // Stepped
     half4 _SpecularColor;
     half _SpecularSize;
     half _SpecularSmoothness;
     half _SpecularSteps;
+    half _SteppedFalloff;
+
+    // Soft
     half _SoftSpecularGlossiness;
     half _SoftSpecularStrength;
+
+    // Anisotropic
     half _AnisotropicDirection;
     half _AnisotropicSharpness;
     half _AnisotropicIntensity;
     half _AnisotropicOffset;
+
+    // Sparkle
     half _SparkleDensity;
     half4 _SparkleColor;
+    half _SparkleAnimSpeed;
+    half _SparkleSize;
+
+    // Double Tone
     half4 _SpecularInnerColor;
     half4 _SpecularOuterColor;
     half _SpecularInnerSize;
     half _SpecularOuterSize;
     half _SpecularDoubleToneSoftness;
+
+    // Matcap
+    half _MatcapIntensity;
+    half _MatcapBlendWithLighting;
+
+    // Hair/Fur
+    half4 _HairPrimaryColor;
+    half4 _HairSecondaryColor;
+    half _HairPrimaryShift;
+    half _HairSecondaryShift;
+    half _HairPrimaryExponent;
+    half _HairSecondaryExponent;
 
     // Rim
     half _RimMode;
@@ -84,13 +115,11 @@ CBUFFER_START(UnityPerMaterial)
     // Outline
     half4 _OutlineColor;
     half _OutlineWidth;
-    half _OutlineExpansionMode;
-    half _OutlineMinWidth;
-    float4 _OutlineMinMaxDistance;
+    half _OutlineMode;
+    half _OutlineAdaptiveMinWidth;
+    half _OutlineAdaptiveMaxWidth;
     half4 _OutlineColorB;
     half _OutlineAnimationSpeed;
-    half _OutlineNoiseScale;
-    half _OutlineNoiseStrength;
     
     // Rüzgar
     half _WindSpeed;
