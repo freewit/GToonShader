@@ -318,11 +318,9 @@ namespace Gorgonize.ToonShader.Editor
 
             if(showHighlights)
             {
-                // DÜZELTME: Ana "Enable" butonu buraya geri eklendi.
                 if(props.IsPropertyValid(props.enableSpecularHighlights))
                     ToonShaderStyles.DrawFeatureToggle(props.enableSpecularHighlights, "Enable Toon Specular", "Enable stylized, artistic highlights.", "✨");
 
-                // Sadece Specular aktif ise diğer ayarları göster.
                 if (props.IsFeatureEnabled(props.enableSpecularHighlights))
                 {
                     ToonShaderStyles.DrawPropertyGroup("Specular Mode", () =>
@@ -718,38 +716,72 @@ namespace Gorgonize.ToonShader.Editor
                 
                 if (props.IsFeatureEnabled(props.enableSubsurface))
                 {
-                    ToonShaderStyles.DrawPropertyGroup("Subsurface Properties", () =>
-                    {
-                        if (props.IsPropertyValid(props.subsurfaceColor))
-                            materialEditor.ShaderProperty(props.subsurfaceColor, "🌺 Subsurface Color");
-                            
-                        if (props.IsPropertyValid(props.subsurfaceIntensity))
-                            materialEditor.ShaderProperty(props.subsurfaceIntensity, "💪 Scattering Intensity");
-                            
-                        if (props.IsPropertyValid(props.subsurfaceDistortion))
-                            materialEditor.ShaderProperty(props.subsurfaceDistortion, "🌊 Light Distortion");
-                            
-                        if (props.IsPropertyValid(props.subsurfacePower))
-                            materialEditor.ShaderProperty(props.subsurfacePower, "⚡ Scattering Power");
+                    ToonShaderStyles.DrawPropertyGroup("SSS Mode", () => {
+                         if(props.IsPropertyValid(props.subsurfaceMode))
+                            materialEditor.ShaderProperty(props.subsurfaceMode, "Scattering Mode");
                     }, true);
-                    
-                    ToonShaderStyles.DrawInfoBox("Perfect for skin, leaves, fabric, and other translucent materials.");
+
+                    var sssMode = (int)props.GetFloatValue(props.subsurfaceMode);
+
+                    if (sssMode == 0) // Basic
+                    {
+                        ToonShaderStyles.DrawPropertyGroup("Basic SSS Properties", () =>
+                        {
+                            if (props.IsPropertyValid(props.subsurfaceColor))
+                                materialEditor.ShaderProperty(props.subsurfaceColor, "🌺 Subsurface Color");
+                            if (props.IsPropertyValid(props.subsurfaceIntensity))
+                                materialEditor.ShaderProperty(props.subsurfaceIntensity, "💪 Scattering Intensity");
+                            if (props.IsPropertyValid(props.subsurfaceDistortion))
+                                materialEditor.ShaderProperty(props.subsurfaceDistortion, "🌊 Light Distortion");
+                            if (props.IsPropertyValid(props.subsurfacePower))
+                                materialEditor.ShaderProperty(props.subsurfacePower, "⚡ Scattering Power");
+                        }, true);
+                    }
+                    else // Advanced
+                    {
+                         ToonShaderStyles.DrawPropertyGroup("Advanced SSS Properties", () =>
+                        {
+                            if (props.IsPropertyValid(props.subsurfaceColor))
+                                materialEditor.ShaderProperty(props.subsurfaceColor, "🌺 Subsurface Color");
+                            if (props.IsPropertyValid(props.subsurfaceIntensity))
+                                materialEditor.ShaderProperty(props.subsurfaceIntensity, "💪 Scattering Intensity");
+                            if (props.IsPropertyValid(props.subsurfacePower))
+                                materialEditor.ShaderProperty(props.subsurfacePower, "⚡ Scattering Power");
+
+                            EditorGUILayout.Space();
+
+                            if(props.IsPropertyValid(props.subsurfaceMap))
+                                materialEditor.TexturePropertySingleLine(new GUIContent("🎭 Subsurface Mask"), props.subsurfaceMap);
+                            if(props.IsPropertyValid(props.thicknessMap))
+                                materialEditor.TexturePropertySingleLine(new GUIContent("🗺️ Thickness Map"), props.thicknessMap);
+                            
+                            ToonShaderStyles.DrawInfoBox("Subsurface Map controls where the effect appears. Thickness Map controls the strength of the scattering.");
+                        }, true);
+                    }
                 }
             }
         }
         
         private void DrawAdvancedSectionProfessional(MaterialEditor materialEditor)
         {
-            showAdvanced = ToonShaderStyles.DrawProfessionalFoldout("Surface Details", showAdvanced, "⚙️");
+            showAdvanced = ToonShaderStyles.DrawProfessionalFoldout("Advanced Surface Details", showAdvanced, "⚙️");
             
             if (showAdvanced)
             {
-                ToonShaderStyles.DrawPropertyGroup("Normal Mapping", () =>
+                ToonShaderStyles.DrawPropertyGroup("Normal & Parallax Mapping", () =>
                 {
                     if (props.IsPropertyValid(props.normalMap))
+                        materialEditor.TexturePropertySingleLine(new GUIContent("🗺️ Normal Map"), props.normalMap, props.normalStrength);
+
+                    EditorGUILayout.Space();
+
+                    if(props.IsPropertyValid(props.enableParallax))
+                        ToonShaderStyles.DrawFeatureToggle(props.enableParallax, "Parallax Mapping", "Creates depth illusion using a height map.", "🧊");
+                    
+                    if(props.IsFeatureEnabled(props.enableParallax))
                     {
-                        materialEditor.TexturePropertySingleLine(new GUIContent("🗺️ Normal Map"), props.normalMap, 
-                            props.IsPropertyValid(props.normalStrength) ? props.normalStrength : null);
+                        if(props.IsPropertyValid(props.heightMap))
+                            materialEditor.TexturePropertySingleLine(new GUIContent("📈 Height Map"), props.heightMap, props.heightScale);
                     }
                 }, true);
                 
@@ -759,7 +791,7 @@ namespace Gorgonize.ToonShader.Editor
                         materialEditor.TexturePropertySingleLine(new GUIContent("🔍 Detail Albedo"), props.detailMap);
                         
                     if (props.IsPropertyValid(props.detailNormalMap))
-                        materialEditor.TexturePropertySingleLine(new GUIContent("🗺️ Detail Normal"), props.detailNormalMap);
+                        materialEditor.TexturePropertySingleLine(new GUIContent("🗺️ Detail Normal"), props.detailNormalMap, props.detailNormalScale);
                         
                     if (props.IsPropertyValid(props.detailStrength))
                         materialEditor.ShaderProperty(props.detailStrength, "💪 Detail Strength");
@@ -775,13 +807,22 @@ namespace Gorgonize.ToonShader.Editor
                     
                     if (props.IsPropertyValid(props.emissionIntensity))
                         materialEditor.ShaderProperty(props.emissionIntensity, "🔆 Emission Intensity");
+
+                    EditorGUILayout.Space();
+                    
+                    if(props.IsPropertyValid(props.enableEmissionPulse))
+                        ToonShaderStyles.DrawFeatureToggle(props.enableEmissionPulse, "Pulse Animation", "Animates emission intensity over time.", "💓");
+
+                    if(props.IsFeatureEnabled(props.enableEmissionPulse) && props.IsPropertyValid(props.pulseSpeed))
+                        materialEditor.ShaderProperty(props.pulseSpeed, "Pulse Speed");
+
                 }, true);
             }
         }
         
         private void DrawWindSectionProfessional(MaterialEditor materialEditor)
         {
-            showWind = ToonShaderStyles.DrawProfessionalFoldout("Wind Animation", showWind, "🌬️");
+            showWind = ToonShaderStyles.DrawProfessionalFoldout("Advanced Wind System", showWind, "🌬️");
             
             if (showWind)
             {
@@ -792,19 +833,44 @@ namespace Gorgonize.ToonShader.Editor
                 
                 if (props.IsFeatureEnabled(props.enableWind))
                 {
-                    ToonShaderStyles.DrawPropertyGroup("Wind Settings", () =>
+                    ToonShaderStyles.DrawPropertyGroup("Wind Mode", () => {
+                         if(props.IsPropertyValid(props.windMode))
+                            materialEditor.ShaderProperty(props.windMode, "Wind Simulation Mode");
+                    }, true);
+
+                    var windMode = (int)props.GetFloatValue(props.windMode);
+
+                    // Basic Wind
+                    ToonShaderStyles.DrawPropertyGroup("Basic Wind", () =>
                     {
                         if (props.IsPropertyValid(props.windSpeed))
                             materialEditor.ShaderProperty(props.windSpeed, "💨 Wind Speed");
-                            
                         if (props.IsPropertyValid(props.windStrength))
                             materialEditor.ShaderProperty(props.windStrength, "💪 Wind Strength");
-                            
                         if (props.IsPropertyValid(props.windDirection))
                             materialEditor.ShaderProperty(props.windDirection, "🧭 Wind Direction");
                     }, true);
-                    
-                    ToonShaderStyles.DrawInfoBox("Wind animation works best on vegetation and cloth objects.");
+
+                    if (windMode == 1) // Advanced
+                    {
+                        ToonShaderStyles.DrawPropertyGroup("Advanced Wind", () =>
+                        {
+                            if (props.IsPropertyValid(props.windTurbulence))
+                                materialEditor.ShaderProperty(props.windTurbulence, "Turbulence");
+                            if (props.IsPropertyValid(props.windNoiseScale))
+                                materialEditor.ShaderProperty(props.windNoiseScale, "Noise Scale");
+                            if (props.IsPropertyValid(props.windPhaseVariation))
+                                materialEditor.ShaderProperty(props.windPhaseVariation, "Phase Variation");
+                            if (props.IsPropertyValid(props.branchBending))
+                                materialEditor.ShaderProperty(props.branchBending, "Branch Bending");
+                            
+                            EditorGUILayout.Space();
+
+                            if(props.IsPropertyValid(props.windVertexColorMask))
+                                ToonShaderStyles.DrawFeatureToggle(props.windVertexColorMask, "Vertex Color Mask (Alpha)", "Use vertex alpha to mask wind effect.", "🖌️");
+
+                        }, true);
+                    }
                 }
             }
         }
@@ -875,11 +941,20 @@ namespace Gorgonize.ToonShader.Editor
         
         private void HandleAnimationRepaint(MaterialEditor materialEditor)
         {
-            // Only force repaint if sparkle animation is active
-            if (props != null && props.IsPropertyValid(props.specularMode) && props.GetFloatValue(props.specularMode) == 3 && props.IsPropertyValid(props.sparkleAnimSpeed) && props.GetFloatValue(props.sparkleAnimSpeed) > 0)
+            bool needsRepaint = false;
+            if (props != null)
             {
-                 // Repainting the current editor is enough to drive the animation preview in modern Unity versions.
-                materialEditor.Repaint();
+                // Check for sparkle animation
+                bool sparkleAnim = props.IsPropertyValid(props.specularMode) && props.GetFloatValue(props.specularMode) == 3 && props.IsPropertyValid(props.sparkleAnimSpeed) && props.GetFloatValue(props.sparkleAnimSpeed) > 0;
+                // Check for emission pulse
+                bool pulseAnim = props.IsFeatureEnabled(props.enableEmissionPulse) && props.IsPropertyValid(props.pulseSpeed) && props.GetFloatValue(props.pulseSpeed) > 0;
+
+                needsRepaint = sparkleAnim || pulseAnim;
+            }
+
+            if(needsRepaint)
+            {
+                 materialEditor.Repaint();
             }
         }
         
@@ -937,6 +1012,8 @@ namespace Gorgonize.ToonShader.Editor
         {
             if (props.IsPropertyValid(props.enableWind))
                 props.enableWind.floatValue = 1f;
+            if (props.IsPropertyValid(props.subsurfaceMode))
+                props.windMode.floatValue = 1; // Advanced wind
             if (props.IsPropertyValid(props.enableSubsurface))
                 props.enableSubsurface.floatValue = 1f;
             if (props.IsPropertyValid(props.shadowThreshold))

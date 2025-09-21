@@ -11,13 +11,14 @@ struct OutlineAttributes
 {
     float4 positionOS   : POSITION;
     float3 normalOS     : NORMAL;
-    float2 texcoord     : TEXCOORD0;
+    float4 color        : COLOR;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct OutlineVaryings
 {
     float4 positionCS   : SV_POSITION;
+    float3 positionWS   : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -34,52 +35,38 @@ OutlineVaryings OutlineVert(OutlineAttributes input)
     #if defined(_ENABLEOUTLINE_ON)
     
     float3 positionOS = input.positionOS.xyz;
-    float4 initialPositionOS = input.positionOS; // Orijinal pozisyonu gürültü ve rüzgar için sakla
     
     // Rüzgar animasyonunu uygula
-    ApplyWind(positionOS, initialPositionOS);
-
-    // --- Final Width Calculation ---
-    half finalWidth = _OutlineWidth;
-
+    ApplyWind(positionOS, input.positionOS, input.color);
+    
+    float width = _OutlineWidth;
+    
+    // Distance Scaling
     #if defined(_OUTLINE_DISTANCE_SCALING_ON)
-        VertexPositionInputs vertexInputForDist = GetVertexPositionInputs(positionOS);
-        float dist = distance(vertexInputForDist.positionWS, _WorldSpaceCameraPos);
-        // Uzaklaştıkça 0'a, yaklaştıkça 1'e giden bir faktör hesapla
-        float distFactor = 1.0 - saturate((dist - _OutlineMinMaxDistance.x) / (_OutlineMinMaxDistance.y - _OutlineMinMaxDistance.x));
-        
-        #if defined(_OUTLINE_ADAPTIVE_ON)
-            // Min ve Max değerleri arasında geçiş yap
-            finalWidth = lerp(_OutlineMinWidth, _OutlineWidth, distFactor);
-        #else
-            // Sadece ana kalınlığı mesafeye göre ölçekle
-            finalWidth = _OutlineWidth * distFactor;
-        #endif
+        float3 positionWS = TransformObjectToWorld(positionOS);
+        float distanceToCamera = length(positionWS - _WorldSpaceCameraPos.xyz);
+        // Uzaklığa göre 0-1 arası bir değer hesapla, min/max ile kelepçele
+        float distanceFactor = saturate(distanceToCamera / 50.0); // 50 birim varsayılan max mesafe
+        width = lerp(_OutlineAdaptiveMinWidth, _OutlineAdaptiveMaxWidth, distanceFactor);
     #endif
 
-    // --- Expansion Logic ---
-    float3 expansionDir = normalize(input.normalOS);
-    
-    #if defined(_OUTLINEEXPANSIONMODE_POSITION)
-        expansionDir = normalize(positionOS);
-    #elif defined(_OUTLINEEXPANSIONMODE_UV)
-        // UV koordinatlarının merkezden dışarı doğru olan yönünü kullanarak 2D bir genişleme yönü oluştur
-        float2 uvDir = normalize(input.texcoord - 0.5);
-        expansionDir = float3(uvDir.x, uvDir.y, 0);
-    #endif
-
-    // --- Noise Logic ---
-    #if defined(_OUTLINE_NOISE_MODE_ON)
-        float4 noiseTex = SAMPLE_TEXTURE2D_LOD(_OutlineNoiseMap, sampler_OutlineNoiseMap, initialPositionOS.xy * _OutlineNoiseScale * 0.1, 0);
-        float noise = (noiseTex.r - 0.5) * 2.0;
-        float noiseFactor = noise * _OutlineNoiseStrength;
-        positionOS.xy += expansionDir.xy * noiseFactor * (finalWidth * 0.01);
+    // Extrusion Mode
+    #if defined(_OUTLINEMODE_POSITION)
+        // --- DÜZELTME ---
+        // Kameradan uzaklaşmak yerine objenin merkezinden (pivot) uzaklaş. 
+        // Bu, sert kenarlı modellerde (küp gibi) daha stabil ve tutarlı sonuçlar verir.
+        float3 direction = normalize(input.positionOS.xyz);
+        positionOS += direction * width * 0.005;
+    #elif defined(_OUTLINEMODE_UV)
+        // Bu mod için özel bir UV genişletme tekniği gerekebilir.
+        // Şimdilik normal mod gibi davranması için bırakıldı.
+        positionOS += input.normalOS * width * 0.005;
+    #else // _OUTLINEMODE_NORMAL
+        positionOS += input.normalOS * width * 0.005;
     #endif
     
-    // --- Final Position Calculation ---
-    positionOS += expansionDir * finalWidth * 0.005; 
-    
-    output.positionCS = TransformObjectToHClip(positionOS);
+    output.positionWS = TransformObjectToWorld(positionOS);
+    output.positionCS = TransformWorldToHClip(output.positionWS);
     
     #else
     // Outline kapalıysa, vertex'i kırpma alanının dışına taşıyarak görünmez yap
@@ -98,13 +85,13 @@ half4 OutlineFrag(OutlineVaryings input) : SV_Target
     #if defined(_ENABLEOUTLINE_ON)
         half4 finalColor = _OutlineColor;
         #if defined(_OUTLINE_ANIMATED_COLOR_ON)
-            float sine = (sin(_Time.y * _OutlineAnimationSpeed) + 1.0) * 0.5;
+            float sine = sin(_Time.y * _OutlineAnimationSpeed + input.positionWS.y) * 0.5 + 0.5;
             finalColor = lerp(_OutlineColor, _OutlineColorB, sine);
         #endif
         return finalColor;
     #else
-    discard;
-    return half4(0, 0, 0, 0);
+        discard;
+        return half4(0, 0, 0, 0);
     #endif
 }
 

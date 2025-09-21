@@ -6,17 +6,32 @@
 
 // Textures
 TEXTURE2D(_BaseMap);            SAMPLER(sampler_BaseMap);
-TEXTURE2D(_ShadowRamp);         SAMPLER(sampler_ShadowRamp);
-TEXTURE2D(_CustomRamp);         SAMPLER(sampler_CustomRamp);
 TEXTURE2D(_NormalMap);          SAMPLER(sampler_NormalMap);
+TEXTURE2D(_HeightMap);          SAMPLER(sampler_HeightMap);
 TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
 TEXTURE2D(_DetailMap);          SAMPLER(sampler_DetailMap);
 TEXTURE2D(_DetailNormalMap);    SAMPLER(sampler_DetailNormalMap);
-TEXTURE2D(_SparkleMap);         SAMPLER(sampler_SparkleMap);
-TEXTURE2D(_SoftSpecularMask);   SAMPLER(sampler_SoftSpecularMask);
-TEXTURE2D(_AnisotropicFlowMap); SAMPLER(sampler_AnisotropicFlowMap);
-TEXTURE2D(_MatcapTex);          SAMPLER(sampler_MatcapTex);
+
+// Lighting
+TEXTURE2D(_ShadowRamp);         SAMPLER(sampler_ShadowRamp);
+TEXTURE2D(_CustomRamp);         SAMPLER(sampler_CustomRamp);
+
+// Specular
+TEXTURE2D(_SoftSpecularMask);       SAMPLER(sampler_SoftSpecularMask);
+TEXTURE2D(_AnisotropicFlowMap);     SAMPLER(sampler_AnisotropicFlowMap);
+TEXTURE2D(_SparkleMap);             SAMPLER(sampler_SparkleMap);
+TEXTURE2D(_MatcapTex);              SAMPLER(sampler_MatcapTex);
+
+// Rim
 TEXTURE2D(_RimTexture);         SAMPLER(sampler_RimTexture);
+
+// Subsurface
+TEXTURE2D(_SubsurfaceMap);      SAMPLER(sampler_SubsurfaceMap);
+TEXTURE2D(_ThicknessMap);       SAMPLER(sampler_ThicknessMap);
+
+// Outline
+TEXTURE2D(_OutlineNoiseMap);    SAMPLER(sampler_OutlineNoiseMap);
+
 
 CBUFFER_START(UnityPerMaterial)
     // Doku Tiling/Offset
@@ -28,6 +43,8 @@ CBUFFER_START(UnityPerMaterial)
     half4 _BaseColor;
     half _Metallic;
     half _Smoothness;
+    half _EnableSpecularHighlights;
+    half _EnableEnvironmentReflections;
     half _EnvironmentReflections;
     
     // Aydınlatma & Gölge
@@ -35,21 +52,25 @@ CBUFFER_START(UnityPerMaterial)
     half _TintShadowOnBase;
     half _ShadowThreshold;
     half _TransitionSoftness;
-    half4 _ShadowColor;
     half _ShadowContrast;
+    half4 _ShadowColor;
+    half _OcclusionStrength;
+    half _LightmapInfluence;
+    half _ReceiveShadows;
+
+    // Dual Cell
     half _PrimaryThreshold;
     half _SecondaryThreshold;
     half4 _PrimaryShadowColor;
     half4 _SecondaryShadowColor;
-    half _OcclusionStrength;
-
+    
     // Banded Mode
     half _BandCount;
     half _MidtoneThreshold;
     half _BandSoftness;
     half _BandDistribution;
-
-    // Ramp Modes
+    
+    // Ramp Mode
     half _RampIntensity;
     
     // Specular
@@ -66,9 +87,9 @@ CBUFFER_START(UnityPerMaterial)
     half _AnisotropicIntensity;
     half _AnisotropicOffset;
     half _SparkleDensity;
-    half4 _SparkleColor;
     half _SparkleSize;
     half _SparkleAnimSpeed;
+    half4 _SparkleColor;
     half4 _SpecularInnerColor;
     half4 _SpecularOuterColor;
     half _SpecularInnerSize;
@@ -101,11 +122,17 @@ CBUFFER_START(UnityPerMaterial)
 
     // Gelişmiş Özellikler
     half _NormalStrength;
+    half _EnableParallax;
+    half _HeightScale;
     half4 _EmissionColor;
     half _EmissionIntensity;
+    half _EnableEmissionPulse;
+    half _PulseSpeed;
+    half _DetailNormalScale;
     half _DetailStrength;
     
     // Subsurface
+    half _SubsurfaceMode;
     half4 _SubsurfaceColor;
     half _SubsurfaceIntensity;
     half _SubsurfaceDistortion;
@@ -113,20 +140,27 @@ CBUFFER_START(UnityPerMaterial)
     
     // Outline
     half4 _OutlineColor;
+    half4 _OutlineColorB;
     half _OutlineWidth;
     half _OutlineMode;
+    half _OutlineDistanceScaling;
     half _OutlineAdaptiveMinWidth;
     half _OutlineAdaptiveMaxWidth;
-    half4 _OutlineColorB;
+    half _OutlineAnimatedColor;
     half _OutlineAnimationSpeed;
     
     // Rüzgar
+    half _WindMode;
     half _WindSpeed;
     half _WindStrength;
     float4 _WindDirection;
+    half _WindTurbulence;
+    half _WindNoiseScale;
+    half _WindPhaseVariation;
+    half _BranchBending;
     
     // Performans
-    half _LightmapInfluence;
+    half _EnableAdditionalLights;
 CBUFFER_END
 
 #endif // GTOON_INPUT_INCLUDED
