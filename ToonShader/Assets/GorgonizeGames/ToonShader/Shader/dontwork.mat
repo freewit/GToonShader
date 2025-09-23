@@ -18,10 +18,12 @@ Material:
   - _ENABLESPECULARHIGHLIGHTS_ON
   - _ENVIRONMENTREFLECTIONS_ON
   - _LIGHTINGMODE_SINGLE_CELL
+  - _OUTLINELOD_ON
   - _OUTLINEMODE_NORMAL
   - _RIMMODE_STEPPED
   - _SPECULARMODE_STEPPED
   - _TINT_SHADOW_ON_BASE
+  - _WINDMODE_BASIC
   m_InvalidKeywords:
   - TCP2_RIM_LIGHTING_LIGHTMASK
   - TCP2_SHADOW_LIGHT_COLOR
@@ -31,15 +33,12 @@ Material:
   - _LIGHTINGMODE_STEPPED
   - _MAINLIGHTAFFECTSSHADOWCOLOR_ON
   - _MATCAP_BLEND_OFF
-  - _OUTLINEANTIALIASING_ON
   - _OUTLINEEXPANSIONMODE_POSITION
-  - _OUTLINELOD_ON
-  - _OUTLINEMODE_STANDARD
-  - _OUTLINEMODE_TRADITIONAL
   - _OUTLINE_NOISE_MODE_ON
   - _OUTLINE_NOISE_ON
   - _SHADOWMODE_SIMPLE
   - _SPECULARHIGHLIGHTS_ON
+  - _SUBSURFACEMODE_BASIC
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -58,11 +57,23 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _CustomRamp:
         m_Texture: {fileID: 2800000, guid: a069bfa9c5e4fc040b0e5f580d4ada4d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _DetailMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -71,6 +82,14 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HeightMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MatCapTexture:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -90,6 +109,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _RimGradient:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _RimTexture:
         m_Texture: {fileID: 2800000, guid: f4739cc238aa0b64f84b556a5ac8ba53, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -106,10 +129,20 @@ Material:
         m_Texture: {fileID: 2800000, guid: f4739cc238aa0b64f84b556a5ac8ba53, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SubsurfaceMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ThicknessMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _AdditionalLightIntensity: 1.31
+    - _AlphaClip: 0
     - _AnisotropicDirection: -1
+    - _AnisotropicFlowMapToggle: 0
     - _AnisotropicIntensity: 0.44
     - _AnisotropicOffset: 1
     - _AnisotropicSharpness: 0.178
@@ -119,17 +152,28 @@ Material:
     - _BandSoftness: 0.009
     - _BandedShadowIntensity: 0.79
     - _BandedShadowThreshold: 0.5
+    - _Blend: 0
+    - _BranchBending: 0.5
+    - _BumpScale: 1
     - _Cull: 2
     - _Cutoff: 0.38
+    - _Detail: 0
+    - _DetailNormalScale: 1
     - _DetailStrength: 1
     - _DetailToggle: 0
     - _DstBlend: 0
+    - _Emission: 0
     - _EmissionIntensity: 0
+    - _EmissionPulseAmount: 0.5
+    - _EmissionPulseSpeed: 1
     - _EmissionToggle: 0
     - _EnableAdditionalLights: 0
+    - _EnableEmissionPulse: 0
     - _EnableEnvironmentReflections: 1
     - _EnableHighlights: 1
+    - _EnableNormalMap: 0
     - _EnableOutline: 1
+    - _EnableParallax: 0
     - _EnableRealShadows: 1
     - _EnableRim: 1
     - _EnableSpecularHighlights: 1
@@ -138,16 +182,20 @@ Material:
     - _EnvironmentReflections: 0
     - _FresnelBias: 0.108
     - _FresnelPower: 11.6
+    - _Glossiness: 0.3
     - _HairPrimaryExponent: 83
     - _HairPrimaryShift: 0.03
     - _HairSecondaryExponent: 131
     - _HairSecondaryShift: 0.02
+    - _HeightScale: 0.02
     - _HighlightThreshold: 0.825
+    - _IndirectLightingMultiplier: 1
     - _LightFalloff: 1.65
     - _LightWrap: 0
     - _LightingMode: 0
     - _LightmapInfluence: 0.831
     - _MainLightAffectsShadowColor: 1
+    - _MatCapBlendWithLighting: 0
     - _MatcapBlendWithLighting: 0
     - _MatcapIntensity: 0.31
     - _Metallic: 0
@@ -165,6 +213,7 @@ Material:
     - _OutlineAnimatedColor: 0
     - _OutlineAnimationSpeed: 4.31
     - _OutlineAntiAliasing: 1
+    - _OutlineAntialiasing: 0
     - _OutlineArtisticCurve: 1
     - _OutlineComplexityThreshold: 1
     - _OutlineDistanceScaling: 0
@@ -191,12 +240,16 @@ Material:
     - _OutlineViewAngleFactor: 1
     - _OutlineWidth: 10
     - _OutlineWidthSecondary: 0.6
+    - _OutlineZOffset: 0
     - _PrimaryThreshold: 0.623
+    - _PulseSpeed: 5
+    - _QueueOffset: 0
     - _RampIntensity: 1.05
     - _RampSmoothing: 0
     - _RampThreshold: 0.197
     - _ReceiveShadows: 0
     - _ReceiveShadowsOff: 1
+    - _ReflectionIntensity: 1
     - _RenderingMode: 0
     - _RimGradientPower: 5
     - _RimIntensity: 2.23
@@ -230,6 +283,7 @@ Material:
     - _SimpleSmooth: 0
     - _Smoothness: 0
     - _SoftSpecularGlossiness: 0.723
+    - _SoftSpecularMaskToggle: 0
     - _SoftSpecularStrength: 2
     - _SparkleAnimSpeed: 0.08
     - _SparkleDensity: 12.3
@@ -241,12 +295,16 @@ Material:
     - _SpecularOuterSize: 0.8
     - _SpecularSize: 0.531
     - _SpecularSmoothness: 0.001
+    - _SpecularSoftness: 0.05
     - _SpecularSteps: 1
+    - _SpecularThreshold: 0.5
     - _SrcBlend: 1
     - _SteppedFalloff: 2.69
     - _SubsurfaceDistortion: 0
     - _SubsurfaceIntensity: 0.71
+    - _SubsurfaceMode: 0
     - _SubsurfacePower: 4.17
+    - _Surface: 0
     - _TintShadowOnBase: 1
     - _ToonNormalBias: 0.58
     - _ToonShadowBias: 0.0006
@@ -259,8 +317,14 @@ Material:
     - _UseRimLightMask: 1
     - _UseShadowColor: 0.372
     - _UseVertexColor: 0
+    - _WindGustiness: 0.5
+    - _WindMode: 0
+    - _WindNoiseScale: 1
+    - _WindPhaseVariation: 0.1
     - _WindSpeed: 3.06
     - _WindStrength: 0.1
+    - _WindTurbulence: 1
+    - _WindVertexColorMask: 0
     - _ZBias: 0.0001
     - _ZWrite: 1
     m_Colors:

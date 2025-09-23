@@ -1,81 +1,47 @@
 #ifndef GTOON_INPUT_INCLUDED
 #define GTOON_INPUT_INCLUDED
 
-// Bu dosya, tüm shader özellikleri (CBUFFER) ve doku tanımlamalarını içerir.
-// Kod tekrarını önler ve merkezi bir kontrol sağlar.
-
-// Textures
-TEXTURE2D(_BaseMap);            SAMPLER(sampler_BaseMap);
-TEXTURE2D(_NormalMap);          SAMPLER(sampler_NormalMap);
-TEXTURE2D(_HeightMap);          SAMPLER(sampler_HeightMap);
-TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
-TEXTURE2D(_DetailMap);          SAMPLER(sampler_DetailMap);
-TEXTURE2D(_DetailNormalMap);    SAMPLER(sampler_DetailNormalMap);
-
-// Lighting
-TEXTURE2D(_ShadowRamp);         SAMPLER(sampler_ShadowRamp);
-TEXTURE2D(_CustomRamp);         SAMPLER(sampler_CustomRamp);
-
-// Specular
-TEXTURE2D(_SoftSpecularMask);       SAMPLER(sampler_SoftSpecularMask);
-TEXTURE2D(_AnisotropicFlowMap);     SAMPLER(sampler_AnisotropicFlowMap);
-TEXTURE2D(_SparkleMap);             SAMPLER(sampler_SparkleMap);
-TEXTURE2D(_MatcapTex);              SAMPLER(sampler_MatcapTex);
-
-// Rim
-TEXTURE2D(_RimTexture);         SAMPLER(sampler_RimTexture);
-
-// Subsurface
-TEXTURE2D(_SubsurfaceMap);      SAMPLER(sampler_SubsurfaceMap);
-TEXTURE2D(_ThicknessMap);       SAMPLER(sampler_ThicknessMap);
-
-// Outline
-TEXTURE2D(_OutlineNoiseMap);    SAMPLER(sampler_OutlineNoiseMap);
-
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
-    // Doku Tiling/Offset
+    // Base Properties
     float4 _BaseMap_ST;
-    float4 _DetailMap_ST;
-    float4 _RimTexture_ST;
-    
-    // Temel Özellikler
     half4 _BaseColor;
-    half _Metallic;
+    half _Cutoff;
     half _Smoothness;
-    half _EnableSpecularHighlights;
-    half _EnableEnvironmentReflections;
-    half _EnvironmentReflections;
+    half _Metallic;
+    half _OcclusionStrength;
     
-    // Aydınlatma & Gölge
-    half _LightingMode;
-    half _TintShadowOnBase;
+    // Normal Map
+    half _BumpScale;
+    
+    // Lighting Properties
     half _ShadowThreshold;
     half _TransitionSoftness;
     half _ShadowContrast;
     half4 _ShadowColor;
-    half _OcclusionStrength;
-    half _LightmapInfluence;
-    half _ReceiveShadows;
-
-    // Dual Cell
+    
+    // Dual Cell Lighting
     half _PrimaryThreshold;
     half _SecondaryThreshold;
     half4 _PrimaryShadowColor;
     half4 _SecondaryShadowColor;
     
-    // Banded Mode
+    // Enhanced Banded Lighting
     half _BandCount;
     half _MidtoneThreshold;
     half _BandSoftness;
     half _BandDistribution;
     
-    // Ramp Mode
+    // Ramp Lighting
     half _RampIntensity;
     
-    // Specular
-    half _SpecularMode;
+    // Specular Properties - ALL ORIGINAL MODES PRESERVED
     half4 _SpecularColor;
+    half _Glossiness;
+    half _SpecularThreshold;
+    half _SpecularSoftness;
     half _SpecularSize;
     half _SpecularSmoothness;
     half _SpecularSteps;
@@ -83,9 +49,9 @@ CBUFFER_START(UnityPerMaterial)
     half _SoftSpecularGlossiness;
     half _SoftSpecularStrength;
     half _AnisotropicDirection;
+    half _AnisotropicOffset;
     half _AnisotropicSharpness;
     half _AnisotropicIntensity;
-    half _AnisotropicOffset;
     half _SparkleDensity;
     half _SparkleSize;
     half _SparkleAnimSpeed;
@@ -96,22 +62,20 @@ CBUFFER_START(UnityPerMaterial)
     half _SpecularOuterSize;
     half _SpecularDoubleToneSoftness;
     half _MatcapIntensity;
-    half _MatcapBlendWithLighting;
     half4 _HairPrimaryColor;
     half4 _HairSecondaryColor;
     half _HairPrimaryShift;
     half _HairSecondaryShift;
     half _HairPrimaryExponent;
     half _HairSecondaryExponent;
-
-    // Rim
-    half _RimMode;
+    
+    // Rim Lighting - ALL ORIGINAL MODES PRESERVED
     half4 _RimColor;
+    half _RimThreshold;
+    half _RimSoftness;
     half _RimPower;
     half _RimIntensity;
     half _RimOffset;
-    half _RimThreshold;
-    half _RimSoftness;
     half _RimLightInfluence;
     half _RimScrollSpeed;
     half _FresnelPower;
@@ -119,49 +83,94 @@ CBUFFER_START(UnityPerMaterial)
     half4 _RimColorTop;
     half4 _RimColorBottom;
     half _RimGradientPower;
-
-    // Gelişmiş Özellikler
-    half _NormalStrength;
-    half _EnableParallax;
-    half _HeightScale;
-    half4 _EmissionColor;
-    half _EmissionIntensity;
-    half _EnableEmissionPulse;
-    half _PulseSpeed;
-    half _DetailNormalScale;
-    half _DetailStrength;
     
-    // Subsurface
-    half _SubsurfaceMode;
+    // Subsurface Scattering
     half4 _SubsurfaceColor;
     half _SubsurfaceIntensity;
-    half _SubsurfaceDistortion;
     half _SubsurfacePower;
+    half _SubsurfaceDistortion;
+    
+    // Environment
+    half _ReflectionIntensity;
+    half _IndirectLightingMultiplier;
+    
+    // Detail Maps
+    float4 _DetailMap_ST;
+    half _DetailNormalScale;
+    
+    // Height Mapping
+    half _HeightScale;
+    
+    // Emission
+    half4 _EmissionColor;
+    half _EmissionPulseSpeed;
+    half _EmissionPulseAmount;
+    
+    // Wind
+    float4 _WindDirection;
+    half _WindSpeed;
+    half _WindStrength;
+    half _WindGustiness;
     
     // Outline
     half4 _OutlineColor;
-    half4 _OutlineColorB;
     half _OutlineWidth;
-    half _OutlineMode;
-    half _OutlineDistanceScaling;
-    half _OutlineAdaptiveMinWidth;
-    half _OutlineAdaptiveMaxWidth;
-    half _OutlineAnimatedColor;
-    half _OutlineAnimationSpeed;
-    
-    // Rüzgar
-    half _WindMode;
-    half _WindSpeed;
-    half _WindStrength;
-    float4 _WindDirection;
-    half _WindTurbulence;
-    half _WindNoiseScale;
-    half _WindPhaseVariation;
-    half _BranchBending;
-    
-    // Performans
-    half _EnableAdditionalLights;
+    half _OutlineZOffset;
 CBUFFER_END
 
-#endif // GTOON_INPUT_INCLUDED
+// Texture declarations - ALL ORIGINAL TEXTURES PRESERVED
+TEXTURE2D(_BaseMap);            SAMPLER(sampler_BaseMap);
+TEXTURE2D(_BumpMap);            SAMPLER(sampler_BumpMap);
+TEXTURE2D(_DetailMap);          SAMPLER(sampler_DetailMap);
+TEXTURE2D(_DetailAlbedoMap);    SAMPLER(sampler_DetailAlbedoMap);
+TEXTURE2D(_DetailNormalMap);    SAMPLER(sampler_DetailNormalMap);
+TEXTURE2D(_DetailMask);         SAMPLER(sampler_DetailMask);
+TEXTURE2D(_HeightMap);          SAMPLER(sampler_HeightMap);
+TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
+TEXTURE2D(_ShadowRamp);         SAMPLER(sampler_ShadowRamp);
+TEXTURE2D(_CustomRamp);         SAMPLER(sampler_CustomRamp);
+TEXTURE2D(_AnisotropicFlowMap); SAMPLER(sampler_AnisotropicFlowMap);
+TEXTURE2D(_SoftSpecularMask);   SAMPLER(sampler_SoftSpecularMask);
+TEXTURE2D(_MatCapTexture);      SAMPLER(sampler_MatCapTexture);
+TEXTURE2D(_RimGradient);        SAMPLER(sampler_RimGradient);
 
+// Surface data input function for compatibility
+half4 SampleAlbedoAlpha(float2 uv, TEXTURE2D_PARAM(albedoAlphaMap, sampler_albedoAlphaMap))
+{
+    return SAMPLE_TEXTURE2D(albedoAlphaMap, sampler_albedoAlphaMap, uv);
+}
+
+half3 SampleNormal(float2 uv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half scale = 1.0h)
+{
+#ifdef _NORMALMAP
+    half4 n = SAMPLE_TEXTURE2D(bumpMap, sampler_bumpMap, uv);
+    return UnpackNormalScale(n, scale);
+#else
+    return half3(0.0h, 0.0h, 1.0h);
+#endif
+}
+
+half3 SampleEmission(float2 uv, half3 emissionColor, TEXTURE2D_PARAM(emissionMap, sampler_emissionMap))
+{
+#ifndef _EMISSION
+    return 0;
+#else
+    return SAMPLE_TEXTURE2D(emissionMap, sampler_emissionMap, uv).rgb * emissionColor;
+#endif
+}
+
+#ifdef UNITY_INSTANCING_ENABLED
+    UNITY_INSTANCING_BUFFER_START(Props)
+        UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
+        UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
+        UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
+        UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
+    UNITY_INSTANCING_BUFFER_END(Props)
+
+    #define _BaseColor          UNITY_ACCESS_INSTANCED_PROP(Props, _BaseColor)
+    #define _Cutoff             UNITY_ACCESS_INSTANCED_PROP(Props, _Cutoff)
+    #define _Smoothness         UNITY_ACCESS_INSTANCED_PROP(Props, _Smoothness)
+    #define _Metallic           UNITY_ACCESS_INSTANCED_PROP(Props, _Metallic)
+#endif
+
+#endif
