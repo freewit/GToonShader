@@ -21,8 +21,6 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty featureSubsurfaceScattering;
         public MaterialProperty featureAdvancedSurfaceDetails;
         public MaterialProperty featureAdvancedWindSystem;
-        public MaterialProperty featureRenderingAndPerformance;
-        public MaterialProperty featureHelpAndResources;
 
         // --- Base Properties ---
         public MaterialProperty baseColor;
@@ -166,6 +164,7 @@ namespace Gorgonize.ToonShader.Editor
 
         // --- Performance Properties ---
         public MaterialProperty enableAdditionalLights;
+        public MaterialProperty indirectLightingMultiplier;
 
         public ToonShaderProperties(MaterialProperty[] properties)
         {
@@ -183,8 +182,6 @@ namespace Gorgonize.ToonShader.Editor
             featureSubsurfaceScattering = FindProperty("_FeatureSubsurfaceScatteringToggle", properties);
             featureAdvancedSurfaceDetails = FindProperty("_FeatureAdvancedSurfaceDetailsToggle", properties);
             featureAdvancedWindSystem = FindProperty("_FeatureAdvancedWindSystemToggle", properties);
-            featureRenderingAndPerformance = FindProperty("_FeatureRenderingAndPerformanceToggle", properties);
-            featureHelpAndResources = FindProperty("_FeatureHelpAndResourcesToggle", properties);
 
             // --- Find all other properties... ---
             baseColor = FindProperty("_BaseColor", properties);
@@ -317,6 +314,7 @@ namespace Gorgonize.ToonShader.Editor
             windVertexColorMask = FindProperty("_WindVertexColorMask", properties);
 
             enableAdditionalLights = FindProperty("_EnableAdditionalLights", properties);
+            indirectLightingMultiplier = FindProperty("_IndirectLightingMultiplier", properties);
         }
 
         public bool IsFeatureEnabled(MaterialProperty property)
@@ -435,3 +433,4 @@ namespace Gorgonize.ToonShader.Editor
         }
     }
 }
+

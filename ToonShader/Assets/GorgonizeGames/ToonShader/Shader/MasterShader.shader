@@ -10,8 +10,6 @@ Shader "Gorgonize/Gorgonize Toon Shader"
         [HideInInspector] [Toggle(GTOON_FEATURE_SUBSURFACESCATTERING)] _FeatureSubsurfaceScatteringToggle ("Enable Subsurface Scattering", Float) = 0
         [HideInInspector] [Toggle(GTOON_FEATURE_ADVANCEDSURFACEDETAILS)] _FeatureAdvancedSurfaceDetailsToggle ("Enable Advanced Details", Float) = 0
         [HideInInspector] [Toggle(GTOON_FEATURE_ADVANCEDWINDSYSTEM)] _FeatureAdvancedWindSystemToggle ("Enable Wind System", Float) = 0
-        [HideInInspector] [Toggle(GTOON_FEATURE_RENDERINGANDPERFORMANCE)] _FeatureRenderingAndPerformanceToggle ("Enable Performance Settings", Float) = 0
-        [HideInInspector] [Toggle(GTOON_FEATURE_HELPANDRESOURCES)] _FeatureHelpAndResourcesToggle ("Enable Help", Float) = 0
         
         [Header(Base Properties)]
         _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
@@ -242,8 +240,6 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             #pragma shader_feature_local GTOON_FEATURE_SUBSURFACESCATTERING
             #pragma shader_feature_local GTOON_FEATURE_ADVANCEDSURFACEDETAILS
             #pragma shader_feature_local GTOON_FEATURE_ADVANCEDWINDSYSTEM
-            #pragma shader_feature_local GTOON_FEATURE_RENDERINGANDPERFORMANCE
-            #pragma shader_feature_local GTOON_FEATURE_HELPANDRESOURCES
             
             // Feature keywords - PRESERVE ALL ORIGINAL FEATURES
             #pragma shader_feature_local _ENABLESPECULARHIGHLIGHTS_ON

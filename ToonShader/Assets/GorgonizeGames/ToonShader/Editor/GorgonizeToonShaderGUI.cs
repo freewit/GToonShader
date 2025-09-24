@@ -1,6 +1,5 @@
 using UnityEditor;
 using UnityEngine;
-using System.Collections.Generic;
 
 namespace Gorgonize.ToonShader.Editor
 {
@@ -9,30 +8,62 @@ namespace Gorgonize.ToonShader.Editor
         private ToonShaderProperties props;
         private int currentMaterialHash;
         private MaterialEditor m_MaterialEditor;
-
-        private static readonly Dictionary<string, (string DisplayName, string Icon, string ToggleProperty)> Features = new Dictionary<string, (string, string, string)>
+        
+        public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
         {
-            { "GTOON_FEATURE_ADVANCEDLIGHTING", ("Advanced Lighting System", "🌑", "_FeatureAdvancedLightingToggle") },
-            { "GTOON_FEATURE_SPECULARSYSTEM", ("Specular System", "✨", "_FeatureSpecularSystemToggle") },
-            { "GTOON_FEATURE_ADVANCEDRIMLIGHTING", ("Advanced Rim Lighting", "🌟", "_FeatureAdvancedRimLightingToggle") },
-            { "GTOON_FEATURE_SMARTOUTLINESYSTEM", ("Smart Outline System", "📝", "_FeatureSmartOutlineSystemToggle") },
-            { "GTOON_FEATURE_SUBSURFACESCATTERING", ("Subsurface Scattering", "🌸", "_FeatureSubsurfaceScatteringToggle") },
-            { "GTOON_FEATURE_ADVANCEDSURFACEDETAILS", ("Advanced Surface Details", "⚙️", "_FeatureAdvancedSurfaceDetailsToggle") },
-            { "GTOON_FEATURE_ADVANCEDWINDSYSTEM", ("Advanced Wind System", "🌬️", "_FeatureAdvancedWindSystemToggle") },
-            { "GTOON_FEATURE_RENDERINGANDPERFORMANCE", ("Rendering & Performance", "⚡", "_FeatureRenderingAndPerformanceToggle") },
-            { "GTOON_FEATURE_HELPANDRESOURCES", ("Help & Resources", "📚", "_FeatureHelpAndResourcesToggle") }
-        };
+            base.AssignNewShaderToMaterial(material, oldShader, newShader);
+
+            if (material != null)
+            {
+                // Explicitly turn off all feature toggles that might be on by default in the shader
+                // and disable their corresponding keywords to ensure a clean start.
+                SetFeature(material, "_EnableSpecularHighlights", "_ENABLESPECULARHIGHLIGHTS_ON", 0.0f);
+                SetFeature(material, "_EnableEnvironmentReflections", "_ENVIRONMENTREFLECTIONS_ON", 0.0f);
+                SetFeature(material, "_EnableRim", "_ENABLERIM_ON", 0.0f);
+                SetFeature(material, "_EnableOutline", "_ENABLEOUTLINE_ON", 0.0f);
+                SetFeature(material, "_EnableSubsurface", "_ENABLESUBSURFACE_ON", 0.0f);
+                SetFeature(material, "_EnableWind", "_ENABLEWIND_ON", 0.0f);
+                SetFeature(material, "_EnableParallax", "_ENABLEPARALLAX_ON", 0.0f);
+                SetFeature(material, "_EnableEmissionPulse", "_ENABLEEMISSIONPULSE_ON", 0.0f);
+                SetFeature(material, "_TintShadowOnBase", "_TINT_SHADOW_ON_BASE", 0.0f);
+
+                // Reset enum dropdowns to their first option (index 0)
+                if (material.HasProperty("_LightingMode")) material.SetFloat("_LightingMode", 0);
+                if (material.HasProperty("_SpecularMode")) material.SetFloat("_SpecularMode", 0);
+                if (material.HasProperty("_RimMode")) material.SetFloat("_RimMode", 0);
+                if (material.HasProperty("_OutlineMode")) material.SetFloat("_OutlineMode", 0);
+                if (material.HasProperty("_SubsurfaceMode")) material.SetFloat("_SubsurfaceMode", 0);
+                if (material.HasProperty("_WindMode")) material.SetFloat("_WindMode", 0);
+                
+                EditorUtility.SetDirty(material);
+            }
+        }
+        
+        private void SetFeature(Material material, string property, string keyword, float value)
+        {
+            if (material.HasProperty(property))
+            {
+                material.SetFloat(property, value);
+            }
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                if (value > 0.5f)
+                    material.EnableKeyword(keyword);
+                else
+                    material.DisableKeyword(keyword);
+            }
+        }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
             m_MaterialEditor = materialEditor;
             var material = materialEditor.target as Material;
             if (material == null) return;
-
-            currentMaterialHash = material.GetInstanceID();
-
-            ToonShaderStyles.Initialize();
+            
             props = new ToonShaderProperties(properties);
+            
+            currentMaterialHash = material.GetInstanceID();
+            ToonShaderStyles.Initialize();
             
             EditorGUI.BeginChangeCheck();
 
@@ -57,49 +88,21 @@ namespace Gorgonize.ToonShader.Editor
         private void DrawMainContentSections(MaterialEditor materialEditor)
         {
             DrawBaseSectionProfessional(materialEditor);
-            DrawActiveFeatures(materialEditor);
+            DrawShadowSectionProfessional(materialEditor);
+            DrawHighlightsSectionProfessional(materialEditor);
+            DrawRimSectionProfessional(materialEditor);
+            DrawOutlineSectionProfessional(materialEditor);
+            DrawSubsurfaceSectionProfessional(materialEditor);
+            DrawAdvancedSectionProfessional(materialEditor);
+            DrawWindSectionProfessional(materialEditor);
+            DrawPerformanceSectionProfessional(materialEditor);
             
-            EditorGUILayout.Space(10);
-            if (GUILayout.Button("✚ Feature Catalog...", ToonShaderStyles.ButtonPrimaryStyle, GUILayout.Height(35)))
-            {
-                FeatureCatalogEditor.ShowWindow(materialEditor);
-            }
-            EditorGUILayout.Space(5);
-
             ToonShaderStyles.DrawProfessionalFooter();
         }
 
-        private void DrawActiveFeatures(MaterialEditor materialEditor)
+        private bool DrawFeatureFoldout(string title, string icon)
         {
-            foreach (var feature in Features)
-            {
-                MaterialProperty toggleProp = FindProperty(feature.Value.ToggleProperty, props.All);
-                if (toggleProp != null && toggleProp.floatValue > 0.5f)
-                {
-                    DrawFeatureSection(materialEditor, feature.Key);
-                }
-            }
-        }
-
-        private void DrawFeatureSection(MaterialEditor materialEditor, string featureKey)
-        {
-            switch (featureKey)
-            {
-                case "GTOON_FEATURE_ADVANCEDLIGHTING": DrawShadowSectionProfessional(materialEditor, featureKey); break;
-                case "GTOON_FEATURE_SPECULARSYSTEM": DrawHighlightsSectionProfessional(materialEditor, featureKey); break;
-                case "GTOON_FEATURE_ADVANCEDRIMLIGHTING": DrawRimSectionProfessional(materialEditor, featureKey); break;
-                case "GTOON_FEATURE_SMARTOUTLINESYSTEM": DrawOutlineSectionProfessional(materialEditor, featureKey); break;
-                case "GTOON_FEATURE_SUBSURFACESCATTERING": DrawSubsurfaceSectionProfessional(materialEditor, featureKey); break;
-                case "GTOON_FEATURE_ADVANCEDSURFACEDETAILS": DrawAdvancedSectionProfessional(materialEditor, featureKey); break;
-                case "GTOON_FEATURE_ADVANCEDWINDSYSTEM": DrawWindSectionProfessional(materialEditor, featureKey); break;
-                case "GTOON_FEATURE_RENDERINGANDPERFORMANCE": DrawPerformanceSectionProfessional(materialEditor, featureKey); break;
-                case "GTOON_FEATURE_HELPANDRESOURCES": DrawHelpSectionProfessional(featureKey); break;
-            }
-        }
-        
-        private bool DrawFeatureFoldout(string title, string icon, string featureKey, bool canBeRemoved = true)
-        {
-            string sessionKey = $"{currentMaterialHash}_{featureKey}";
+            string sessionKey = $"{currentMaterialHash}_{title}";
             bool currentState = SessionState.GetBool(sessionKey, false);
 
             EditorGUILayout.Space(5);
@@ -110,19 +113,7 @@ namespace Gorgonize.ToonShader.Editor
             var accentRect = new Rect(bgRect.x, bgRect.y, 4, bgRect.height);
             EditorGUI.DrawRect(accentRect, currentState ? ToonShaderStyles.AccentBlue : new Color(ToonShaderStyles.AccentBlue.r, ToonShaderStyles.AccentBlue.g, ToonShaderStyles.AccentBlue.b, 0.5f));
             
-            if (canBeRemoved)
-            {
-                var removeButtonRect = new Rect(rect.xMax - 28, rect.y + 7, 20, 20);
-                var removeButtonStyle = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleCenter, normal = {textColor = new Color(0.8f, 0.5f, 0.5f)}, fontStyle = FontStyle.Bold };
-
-                if (GUI.Button(removeButtonRect, "✖", removeButtonStyle))
-                {
-                    RemoveFeature(featureKey);
-                    return currentState; 
-                }
-            }
-            
-            var contentRect = new Rect(rect.x + 8, rect.y, rect.width - (canBeRemoved ? 40 : 8), rect.height);
+            var contentRect = new Rect(rect.x + 8, rect.y, rect.width - 8, rect.height);
             string displayTitle = $"{icon}  {title}";
             var titleStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 13, fontStyle = FontStyle.Bold, normal = { textColor = currentState ? ToonShaderStyles.AccentBlue : Color.white }, alignment = TextAnchor.MiddleLeft };
             
@@ -135,23 +126,11 @@ namespace Gorgonize.ToonShader.Editor
             return currentState;
         }
 
-        private void RemoveFeature(string featureKey)
-        {
-            if (Features.TryGetValue(featureKey, out var featureInfo))
-            {
-                 MaterialProperty toggleProp = FindProperty(featureInfo.ToggleProperty, props.All);
-                 if (toggleProp != null)
-                 {
-                     toggleProp.floatValue = 0f;
-                 }
-            }
-        }
-        
         #region Section Drawing Methods
         
         private void DrawBaseSectionProfessional(MaterialEditor materialEditor)
         {
-            if (DrawFeatureFoldout("Base Properties", "🎨", "BaseProperties", canBeRemoved: false))
+            if (DrawFeatureFoldout("Base Properties", "🎨"))
             {
                 ToonShaderStyles.DrawPropertyGroup("Surface", () =>
                 {
@@ -172,9 +151,9 @@ namespace Gorgonize.ToonShader.Editor
             }
         }
 
-        private void DrawShadowSectionProfessional(MaterialEditor materialEditor, string featureKey)
+        private void DrawShadowSectionProfessional(MaterialEditor materialEditor)
         {
-            if (DrawFeatureFoldout(Features[featureKey].DisplayName, Features[featureKey].Icon, featureKey))
+            if (DrawFeatureFoldout("Advanced Lighting System", "🌑"))
             {
                 ToonShaderStyles.DrawPropertyGroup("Lighting Mode", () =>
                 {
@@ -202,9 +181,9 @@ namespace Gorgonize.ToonShader.Editor
             }
         }
         
-        private void DrawHighlightsSectionProfessional(MaterialEditor materialEditor, string featureKey)
+        private void DrawHighlightsSectionProfessional(MaterialEditor materialEditor)
         {
-            if(DrawFeatureFoldout(Features[featureKey].DisplayName, Features[featureKey].Icon, featureKey))
+            if(DrawFeatureFoldout("Specular System", "✨"))
             {
                 if(props.IsPropertyValid(props.enableSpecularHighlights))
                     ToonShaderStyles.DrawFeatureToggle(props.enableSpecularHighlights, "Enable Toon Specular", "Enable stylized, artistic highlights.", "✨");
@@ -233,9 +212,9 @@ namespace Gorgonize.ToonShader.Editor
             }
         }
         
-        private void DrawRimSectionProfessional(MaterialEditor materialEditor, string featureKey)
+        private void DrawRimSectionProfessional(MaterialEditor materialEditor)
         {
-            if (DrawFeatureFoldout(Features[featureKey].DisplayName, Features[featureKey].Icon, featureKey))
+            if (DrawFeatureFoldout("Advanced Rim Lighting", "🌟"))
             {
                 if (props.IsPropertyValid(props.enableRim))
                 {
@@ -263,9 +242,9 @@ namespace Gorgonize.ToonShader.Editor
             }
         }
         
-        private void DrawOutlineSectionProfessional(MaterialEditor materialEditor, string featureKey)
+        private void DrawOutlineSectionProfessional(MaterialEditor materialEditor)
         {
-            if (DrawFeatureFoldout(Features[featureKey].DisplayName, Features[featureKey].Icon, featureKey))
+            if (DrawFeatureFoldout("Smart Outline System", "📝"))
             {
                 if (props.IsPropertyValid(props.enableOutline))
                 {
@@ -284,9 +263,9 @@ namespace Gorgonize.ToonShader.Editor
             }
         }
         
-        private void DrawSubsurfaceSectionProfessional(MaterialEditor materialEditor, string featureKey)
+        private void DrawSubsurfaceSectionProfessional(MaterialEditor materialEditor)
         {
-            if (DrawFeatureFoldout(Features[featureKey].DisplayName, Features[featureKey].Icon, featureKey))
+            if (DrawFeatureFoldout("Subsurface Scattering", "🌸"))
             {
                 if (props.IsPropertyValid(props.enableSubsurface))
                 {
@@ -311,9 +290,9 @@ namespace Gorgonize.ToonShader.Editor
             }
         }
 
-        private void DrawAdvancedSectionProfessional(MaterialEditor materialEditor, string featureKey)
+        private void DrawAdvancedSectionProfessional(MaterialEditor materialEditor)
         {
-            if (DrawFeatureFoldout(Features[featureKey].DisplayName, Features[featureKey].Icon, featureKey))
+            if (DrawFeatureFoldout("Advanced Surface Details", "⚙️"))
             {
                 ToonShaderStyles.DrawPropertyGroup("Normal & Parallax Mapping", () =>
                 {
@@ -356,9 +335,9 @@ namespace Gorgonize.ToonShader.Editor
             }
         }
         
-        private void DrawWindSectionProfessional(MaterialEditor materialEditor, string featureKey)
+        private void DrawWindSectionProfessional(MaterialEditor materialEditor)
         {
-            if (DrawFeatureFoldout(Features[featureKey].DisplayName, Features[featureKey].Icon, featureKey))
+            if (DrawFeatureFoldout("Advanced Wind System", "🌬️"))
             {
                 if (props.IsPropertyValid(props.enableWind))
                 {
@@ -382,31 +361,21 @@ namespace Gorgonize.ToonShader.Editor
             }
         }
 
-        private void DrawPerformanceSectionProfessional(MaterialEditor materialEditor, string featureKey)
+        private void DrawPerformanceSectionProfessional(MaterialEditor materialEditor)
         {
-            if (DrawFeatureFoldout(Features[featureKey].DisplayName, Features[featureKey].Icon, featureKey))
+            if (DrawFeatureFoldout("Rendering & Performance", "⚡"))
             {
                 ToonShaderStyles.DrawPropertyGroup("Performance Options", () =>
                 {
                     if (props.IsPropertyValid(props.enableAdditionalLights))
                         ToonShaderStyles.DrawFeatureToggle(props.enableAdditionalLights, "Additional Lights", "Allow more than one light to affect the object.", "💡");
+                    if (props.IsPropertyValid(props.indirectLightingMultiplier))
+                        materialEditor.ShaderProperty(props.indirectLightingMultiplier, "🗺️ Indirect Lighting Multiplier");
+
                 }, true);
             }
         }
-
-        private void DrawHelpSectionProfessional(string featureKey)
-        {
-            if (DrawFeatureFoldout(Features[featureKey].DisplayName, Features[featureKey].Icon, featureKey))
-            {
-                 ToonShaderStyles.DrawPropertyGroup("Common Use Cases", () =>
-                {
-                    if (GUILayout.Button("🎭 Anime Character Setup")) { /* Apply preset logic */ }
-                    if (GUILayout.Button("🌿 Vegetation Setup")) { /* Apply preset logic */ }
-                    if (GUILayout.Button("🏢 Environment Setup")) { /* Apply preset logic */ }
-                }, false);
-            }
-        }
-
+        
         #endregion
 
         #region Sub-drawing Methods
