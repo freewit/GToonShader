@@ -13,10 +13,10 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _ADDITIONAL_LIGHTS_ON
-  - _ENABLESPECULARHIGHLIGHTS_ON
+  - _ENABLEOUTLINE_ON
   - _ENVIRONMENTREFLECTIONS_ON
   - _LIGHTINGMODE_SINGLE_CELL
-  - _OUTLINEMODE_NORMAL
+  - _OUTLINEMODE_STANDARD
   - _RECEIVESHADOWS_ON
   - _RIMMODE_STANDARD
   - _SPECULARMODE_STEPPED
@@ -115,10 +115,10 @@ Material:
     - _EnableEmissionPulse: 0
     - _EnableEnvironmentReflections: 1
     - _EnableNormalMap: 0
-    - _EnableOutline: 0
+    - _EnableOutline: 1
     - _EnableParallax: 0
     - _EnableRim: 0
-    - _EnableSpecularHighlights: 1
+    - _EnableSpecularHighlights: 0
     - _EnableSubsurface: 0
     - _EnableWind: 0
     - _FeatureAdvancedLightingToggle: 0
@@ -146,8 +146,8 @@ Material:
     - _OcclusionStrength: 1
     - _OutlineAntialiasing: 0
     - _OutlineLOD: 0
-    - _OutlineMode: 0
-    - _OutlineWidth: 0.01
+    - _OutlineMode: 1
+    - _OutlineWidth: 0.0513
     - _OutlineZOffset: 0
     - _PrimaryThreshold: 0.5
     - _QueueOffset: 0
@@ -165,7 +165,7 @@ Material:
     - _RimThreshold: 0.5
     - _SecondaryThreshold: 0.25
     - _ShadowContrast: 1
-    - _ShadowThreshold: 0.5
+    - _ShadowThreshold: 0.4
     - _Smoothness: 0.5
     - _SoftSpecularGlossiness: 0.3
     - _SoftSpecularMaskToggle: 0

@@ -116,7 +116,7 @@ Material:
     - _EnableEmissionPulse: 0
     - _EnableEnvironmentReflections: 1
     - _EnableNormalMap: 0
-    - _EnableOutline: 0
+    - _EnableOutline: 1
     - _EnableParallax: 0
     - _EnableRim: 1
     - _EnableSpecularHighlights: 1
