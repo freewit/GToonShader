@@ -12,16 +12,22 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - GTOON_FEATURE_ADVANCEDLIGHTING
+  - GTOON_FEATURE_ADVANCEDRIMLIGHTING
+  - GTOON_FEATURE_SMARTOUTLINESYSTEM
+  - GTOON_FEATURE_SPECULARSYSTEM
+  - GTOON_FEATURE_SUBSURFACESCATTERING
   - _ADDITIONAL_LIGHTS
+  - _ADDITIONAL_LIGHTS_ON
   - _ENABLEOUTLINE_ON
   - _ENABLERIM_ON
   - _ENABLESPECULARHIGHLIGHTS_ON
-  - _ENVIRONMENTREFLECTIONS_ON
   - _LIGHTINGMODE_SINGLE_CELL
   - _OUTLINELOD_ON
   - _OUTLINEMODE_NORMAL
   - _RIMMODE_STEPPED
   - _SPECULARMODE_STEPPED
+  - _SUBSURFACE_BASIC
   - _TINT_SHADOW_ON_BASE
   - _WINDMODE_BASIC
   m_InvalidKeywords:
@@ -167,9 +173,9 @@ Material:
     - _EmissionPulseAmount: 0.5
     - _EmissionPulseSpeed: 1
     - _EmissionToggle: 0
-    - _EnableAdditionalLights: 0
+    - _EnableAdditionalLights: 1
     - _EnableEmissionPulse: 0
-    - _EnableEnvironmentReflections: 1
+    - _EnableEnvironmentReflections: 0
     - _EnableHighlights: 1
     - _EnableNormalMap: 0
     - _EnableOutline: 1
@@ -180,6 +186,15 @@ Material:
     - _EnableSubsurface: 0
     - _EnableWind: 0
     - _EnvironmentReflections: 0
+    - _FeatureAdvancedLightingToggle: 1
+    - _FeatureAdvancedRimLightingToggle: 1
+    - _FeatureAdvancedSurfaceDetailsToggle: 0
+    - _FeatureAdvancedWindSystemToggle: 0
+    - _FeatureHelpAndResourcesToggle: 0
+    - _FeatureRenderingAndPerformanceToggle: 0
+    - _FeatureSmartOutlineSystemToggle: 1
+    - _FeatureSpecularSystemToggle: 1
+    - _FeatureSubsurfaceScatteringToggle: 1
     - _FresnelBias: 0.108
     - _FresnelPower: 11.6
     - _Glossiness: 0.3
@@ -238,7 +253,7 @@ Material:
     - _OutlineSmoothness: 0.5
     - _OutlineVariation: 1
     - _OutlineViewAngleFactor: 1
-    - _OutlineWidth: 10
+    - _OutlineWidth: 0.1
     - _OutlineWidthSecondary: 0.6
     - _OutlineZOffset: 0
     - _PrimaryThreshold: 0.623
@@ -329,7 +344,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BandedShadowColor: {r: 0.6, g: 0.6, b: 0.8, a: 1}
-    - _BaseColor: {r: 0.5188679, g: 0.3989409, b: 0.4012472, a: 1}
+    - _BaseColor: {r: 0.7169812, g: 0.6235135, b: 0.34834465, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _HColor: {r: 1, g: 1, b: 1, a: 1}
     - _HairPrimaryColor: {r: 1, g: 1, b: 1, a: 1}

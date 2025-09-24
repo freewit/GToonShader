@@ -2,6 +2,17 @@ Shader "Gorgonize/Gorgonize Toon Shader"
 {
     Properties
     {
+        // --- Feature Toggles (Managed by Custom GUI) ---
+        [HideInInspector] [Toggle(GTOON_FEATURE_ADVANCEDLIGHTING)] _FeatureAdvancedLightingToggle ("Enable Advanced Lighting", Float) = 0
+        [HideInInspector] [Toggle(GTOON_FEATURE_SPECULARSYSTEM)] _FeatureSpecularSystemToggle ("Enable Specular System", Float) = 0
+        [HideInInspector] [Toggle(GTOON_FEATURE_ADVANCEDRIMLIGHTING)] _FeatureAdvancedRimLightingToggle ("Enable Rim Lighting", Float) = 0
+        [HideInInspector] [Toggle(GTOON_FEATURE_SMARTOUTLINESYSTEM)] _FeatureSmartOutlineSystemToggle ("Enable Outline System", Float) = 0
+        [HideInInspector] [Toggle(GTOON_FEATURE_SUBSURFACESCATTERING)] _FeatureSubsurfaceScatteringToggle ("Enable Subsurface Scattering", Float) = 0
+        [HideInInspector] [Toggle(GTOON_FEATURE_ADVANCEDSURFACEDETAILS)] _FeatureAdvancedSurfaceDetailsToggle ("Enable Advanced Details", Float) = 0
+        [HideInInspector] [Toggle(GTOON_FEATURE_ADVANCEDWINDSYSTEM)] _FeatureAdvancedWindSystemToggle ("Enable Wind System", Float) = 0
+        [HideInInspector] [Toggle(GTOON_FEATURE_RENDERINGANDPERFORMANCE)] _FeatureRenderingAndPerformanceToggle ("Enable Performance Settings", Float) = 0
+        [HideInInspector] [Toggle(GTOON_FEATURE_HELPANDRESOURCES)] _FeatureHelpAndResourcesToggle ("Enable Help", Float) = 0
+        
         [Header(Base Properties)]
         _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
         _BaseMap ("Base Texture", 2D) = "white" {}
@@ -222,6 +233,17 @@ Shader "Gorgonize/Gorgonize Toon Shader"
             #pragma target 4.5
             #pragma vertex vert
             #pragma fragment frag
+
+            // --- Feature Keywords from Toggles ---
+            #pragma shader_feature_local GTOON_FEATURE_ADVANCEDLIGHTING
+            #pragma shader_feature_local GTOON_FEATURE_SPECULARSYSTEM
+            #pragma shader_feature_local GTOON_FEATURE_ADVANCEDRIMLIGHTING
+            #pragma shader_feature_local GTOON_FEATURE_SMARTOUTLINESYSTEM
+            #pragma shader_feature_local GTOON_FEATURE_SUBSURFACESCATTERING
+            #pragma shader_feature_local GTOON_FEATURE_ADVANCEDSURFACEDETAILS
+            #pragma shader_feature_local GTOON_FEATURE_ADVANCEDWINDSYSTEM
+            #pragma shader_feature_local GTOON_FEATURE_RENDERINGANDPERFORMANCE
+            #pragma shader_feature_local GTOON_FEATURE_HELPANDRESOURCES
             
             // Feature keywords - PRESERVE ALL ORIGINAL FEATURES
             #pragma shader_feature_local _ENABLESPECULARHIGHLIGHTS_ON
@@ -447,3 +469,4 @@ Shader "Gorgonize/Gorgonize Toon Shader"
     Fallback "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "Gorgonize.ToonShader.Editor.GorgonizeToonShaderGUI"
 }
+

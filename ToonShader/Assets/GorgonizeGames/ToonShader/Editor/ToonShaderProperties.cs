@@ -3,18 +3,28 @@ using UnityEditor;
 
 namespace Gorgonize.ToonShader.Editor
 {
-    /// <summary>
-    /// Gorgonize Toon Shader için tüm materyal özelliklerini yönetir
-    /// </summary>
     public class ToonShaderProperties
     {
-        // Helper method to find properties
+        // --- Helper to find properties and avoid nulls ---
         private MaterialProperty FindProperty(string name, MaterialProperty[] props)
         {
             return System.Array.Find(props, p => p.name == name);
         }
+        
+        public MaterialProperty[] All { get; private set; }
 
-        // Base Properties
+        // --- Feature Toggles ---
+        public MaterialProperty featureAdvancedLighting;
+        public MaterialProperty featureSpecularSystem;
+        public MaterialProperty featureAdvancedRimLighting;
+        public MaterialProperty featureSmartOutlineSystem;
+        public MaterialProperty featureSubsurfaceScattering;
+        public MaterialProperty featureAdvancedSurfaceDetails;
+        public MaterialProperty featureAdvancedWindSystem;
+        public MaterialProperty featureRenderingAndPerformance;
+        public MaterialProperty featureHelpAndResources;
+
+        // --- Base Properties ---
         public MaterialProperty baseColor;
         public MaterialProperty baseMap;
         public MaterialProperty metallic;
@@ -23,7 +33,7 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty enableEnvironmentReflections;
         public MaterialProperty environmentReflections;
 
-        // Lighting/Shadow Properties
+        // --- Lighting/Shadow Properties ---
         public MaterialProperty lightingMode;
         public MaterialProperty tintShadowOnBase;
         public MaterialProperty shadowThreshold;
@@ -36,22 +46,22 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty lightmapInfluence;
         public MaterialProperty receiveShadows;
 
-        // Dual Cell Mode
+        // --- Dual Cell Mode ---
         public MaterialProperty primaryThreshold;
         public MaterialProperty secondaryThreshold;
         public MaterialProperty primaryShadowColor;
         public MaterialProperty secondaryShadowColor;
         
-        // Banded Mode Properties
+        // --- Banded Mode Properties ---
         public MaterialProperty bandCount;
         public MaterialProperty midtoneThreshold;
         public MaterialProperty bandSoftness;
         public MaterialProperty bandDistribution;
 
-        // Ramp Mode
+        // --- Ramp Mode ---
         public MaterialProperty rampIntensity;
         
-        // Specular Properties
+        // --- Specular Properties ---
         public MaterialProperty specularMode;
         public MaterialProperty specularColor;
         public MaterialProperty specularSize;
@@ -86,7 +96,7 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty hairPrimaryExponent;
         public MaterialProperty hairSecondaryExponent;
 
-        // Rim Lighting Properties
+        // --- Rim Lighting Properties ---
         public MaterialProperty enableRim;
         public MaterialProperty rimMode;
         public MaterialProperty rimColor;
@@ -104,7 +114,7 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty rimColorBottom;
         public MaterialProperty rimGradientPower;
 
-        // Advanced Feature Properties
+        // --- Advanced Feature Properties ---
         public MaterialProperty normalMap;
         public MaterialProperty normalStrength;
         public MaterialProperty enableParallax;
@@ -120,7 +130,7 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty detailNormalScale;
         public MaterialProperty detailStrength;
         
-        // Subsurface Scattering Properties
+        // --- Subsurface Scattering Properties ---
         public MaterialProperty enableSubsurface;
         public MaterialProperty subsurfaceMode;
         public MaterialProperty subsurfaceColor;
@@ -130,7 +140,7 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty subsurfaceMap;
         public MaterialProperty thicknessMap;
 
-        // Outline Properties
+        // --- Outline Properties ---
         public MaterialProperty enableOutline;
         public MaterialProperty outlineColor;
         public MaterialProperty outlineColorB;
@@ -142,7 +152,7 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty outlineAnimatedColor;
         public MaterialProperty outlineAnimationSpeed;
 
-        // Wind Animation Properties
+        // --- Wind Animation Properties ---
         public MaterialProperty enableWind;
         public MaterialProperty windMode;
         public MaterialProperty windSpeed;
@@ -154,26 +164,36 @@ namespace Gorgonize.ToonShader.Editor
         public MaterialProperty branchBending;
         public MaterialProperty windVertexColorMask;
 
-        // Performance Properties
+        // --- Performance Properties ---
         public MaterialProperty enableAdditionalLights;
 
         public ToonShaderProperties(MaterialProperty[] properties)
         {
+            All = properties; // Keep a reference to all properties
             FindAllProperties(properties);
         }
 
-        /// <summary>
-        /// Tüm material property'leri bulur ve atar
-        /// </summary>
         private void FindAllProperties(MaterialProperty[] properties)
         {
+            // --- Feature Toggles ---
+            featureAdvancedLighting = FindProperty("_FeatureAdvancedLightingToggle", properties);
+            featureSpecularSystem = FindProperty("_FeatureSpecularSystemToggle", properties);
+            featureAdvancedRimLighting = FindProperty("_FeatureAdvancedRimLightingToggle", properties);
+            featureSmartOutlineSystem = FindProperty("_FeatureSmartOutlineSystemToggle", properties);
+            featureSubsurfaceScattering = FindProperty("_FeatureSubsurfaceScatteringToggle", properties);
+            featureAdvancedSurfaceDetails = FindProperty("_FeatureAdvancedSurfaceDetailsToggle", properties);
+            featureAdvancedWindSystem = FindProperty("_FeatureAdvancedWindSystemToggle", properties);
+            featureRenderingAndPerformance = FindProperty("_FeatureRenderingAndPerformanceToggle", properties);
+            featureHelpAndResources = FindProperty("_FeatureHelpAndResourcesToggle", properties);
+
+            // --- Find all other properties... ---
             baseColor = FindProperty("_BaseColor", properties);
             baseMap = FindProperty("_BaseMap", properties);
             metallic = FindProperty("_Metallic", properties);
             smoothness = FindProperty("_Smoothness", properties);
             enableSpecularHighlights = FindProperty("_EnableSpecularHighlights", properties);
             enableEnvironmentReflections = FindProperty("_EnableEnvironmentReflections", properties);
-            environmentReflections = FindProperty("_EnvironmentReflections", properties);
+            environmentReflections = FindProperty("_ReflectionIntensity", properties);
             
             lightingMode = FindProperty("_LightingMode", properties);
             tintShadowOnBase = FindProperty("_TintShadowOnBase", properties);
@@ -223,9 +243,9 @@ namespace Gorgonize.ToonShader.Editor
             specularInnerSize = FindProperty("_SpecularInnerSize", properties);
             specularOuterSize = FindProperty("_SpecularOuterSize", properties);
             specularDoubleToneSoftness = FindProperty("_SpecularDoubleToneSoftness", properties);
-            matcapTex = FindProperty("_MatcapTex", properties);
+            matcapTex = FindProperty("_MatCapTexture", properties); // Corrected name
             matcapIntensity = FindProperty("_MatcapIntensity", properties);
-            matcapBlendWithLighting = FindProperty("_MatcapBlendWithLighting", properties);
+            matcapBlendWithLighting = FindProperty("_MatCapBlendWithLighting", properties);
             hairPrimaryColor = FindProperty("_HairPrimaryColor", properties);
             hairSecondaryColor = FindProperty("_HairSecondaryColor", properties);
             hairPrimaryShift = FindProperty("_HairPrimaryShift", properties);
@@ -242,7 +262,7 @@ namespace Gorgonize.ToonShader.Editor
             rimThreshold = FindProperty("_RimThreshold", properties);
             rimSoftness = FindProperty("_RimSoftness", properties);
             rimLightInfluence = FindProperty("_RimLightInfluence", properties);
-            rimTexture = FindProperty("_RimTexture", properties);
+            rimTexture = FindProperty("_RimGradient", properties); // Corrected name
             rimScrollSpeed = FindProperty("_RimScrollSpeed", properties);
             fresnelPower = FindProperty("_FresnelPower", properties);
             fresnelBias = FindProperty("_FresnelBias", properties);
@@ -250,8 +270,8 @@ namespace Gorgonize.ToonShader.Editor
             rimColorBottom = FindProperty("_RimColorBottom", properties);
             rimGradientPower = FindProperty("_RimGradientPower", properties);
             
-            normalMap = FindProperty("_NormalMap", properties);
-            normalStrength = FindProperty("_NormalStrength", properties);
+            normalMap = FindProperty("_BumpMap", properties);
+            normalStrength = FindProperty("_BumpScale", properties);
             enableParallax = FindProperty("_EnableParallax", properties);
             heightMap = FindProperty("_HeightMap", properties);
             heightScale = FindProperty("_HeightScale", properties);
@@ -299,43 +319,25 @@ namespace Gorgonize.ToonShader.Editor
             enableAdditionalLights = FindProperty("_EnableAdditionalLights", properties);
         }
 
-        /// <summary>
-        /// Feature'ın aktif olup olmadığını kontrol eder
-        /// </summary>
         public bool IsFeatureEnabled(MaterialProperty property)
         {
-            if (property == null) return false;
-            
-            if (property.type == MaterialProperty.PropType.Float || 
-                property.type == MaterialProperty.PropType.Range)
-            {
-                return property.floatValue > 0.5f;
-            }
-            
-            return false;
+            return property != null && property.floatValue > 0.5f;
         }
 
-        /// <summary>
-        /// Float property değerini güvenli şekilde alır
-        /// </summary>
         public float GetFloatValue(MaterialProperty property)
         {
-            if (property == null) return 0.0f;
-            
-            if (property.type == MaterialProperty.PropType.Float || 
-                property.type == MaterialProperty.PropType.Range)
-            {
-                return property.floatValue;
-            }
-            
-            return 0.0f;
+            return property?.floatValue ?? 0.0f;
+        }
+
+        public bool IsPropertyValid(MaterialProperty property)
+        {
+            return property != null;
         }
         
-        /// <summary>
-        /// Shader keyword'lerini günceller
-        /// </summary>
         public void UpdateKeywords(Material material)
         {
+            if (material == null) return;
+
             // Lighting Mode
             if (IsPropertyValid(lightingMode))
             {
@@ -385,11 +387,11 @@ namespace Gorgonize.ToonShader.Editor
             {
                 var mode = GetFloatValue(outlineMode);
                 SetKeyword(material, "_OUTLINEMODE_NORMAL", mode == 0f);
-                SetKeyword(material, "_OUTLINEMODE_POSITION", mode == 1f);
-                SetKeyword(material, "_OUTLINEMODE_UV", mode == 2f);
+                SetKeyword(material, "_OUTLINEMODE_STANDARD", mode == 1f);
+                SetKeyword(material, "_OUTLINEMODE_TRADITIONAL", mode == 2f);
             }
             
-             // Wind Mode
+            // Wind Mode
             if (IsPropertyValid(windMode))
             {
                 var mode = GetFloatValue(windMode);
@@ -417,8 +419,7 @@ namespace Gorgonize.ToonShader.Editor
             SetKeyword(material, "_NORMALMAP", normalMap?.textureValue != null);
             SetKeyword(material, "_HEIGHTMAP", heightMap?.textureValue != null && IsFeatureEnabled(enableParallax));
             SetKeyword(material, "_DETAIL", detailMap?.textureValue != null || detailNormalMap?.textureValue != null);
-            bool hasEmission = emissionMap?.textureValue != null || 
-                              (emissionColor != null && emissionColor.colorValue.maxColorComponent > 0);
+            bool hasEmission = emissionMap?.textureValue != null || (emissionColor != null && emissionColor.colorValue.maxColorComponent > 0);
             SetKeyword(material, "_EMISSION", hasEmission);
             SetKeyword(material, "_MATCAP_BLEND_ON", IsFeatureEnabled(matcapBlendWithLighting));
             SetKeyword(material, "_ANISOTROPIC_FLOWMAP_ON", anisotropicFlowMap?.textureValue != null);
@@ -432,14 +433,5 @@ namespace Gorgonize.ToonShader.Editor
             else
                 material.DisableKeyword(keyword);
         }
-
-        /// <summary>
-        /// Property'nin geçerli olup olmadığını kontrol eder
-        /// </summary>
-        public bool IsPropertyValid(MaterialProperty property)
-        {
-            return property != null;
-        }
     }
 }
-
